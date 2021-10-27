@@ -9,7 +9,7 @@ on:
         default: "1.33.0"
 
 jobs:
-  build:
+  skaffold-build-push:
     name: Build and push docker images
     runs-on: ubuntu-latest
     steps:
@@ -44,11 +44,11 @@ jobs:
           name: build-ref
           path: build.json
 
-  deploy-development:
+  skaffold-deploy-development:
     name: Deploy to development
     if: startsWith(github.event.ref, 'refs/heads/master')
     needs:
-      - build
+      - skaffold-build-push
     runs-on: ubuntu-latest
     environment: development
     steps:
@@ -79,11 +79,11 @@ jobs:
         run: |
           skaffold deploy --build-artifacts=build.json
 
-  deploy-production:
+  skaffold-deploy-production:
     name: Deploy to production
     if: startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
     needs:
-      - build
+      - skaffold-build-push
     runs-on: ubuntu-latest
     environment: production
     steps:
