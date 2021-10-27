@@ -4,8 +4,8 @@ on:
   workflow_call:
     inputs:
       skaffold:
-        description: "Skaffold Version"
         type: string
+        description: "Skaffold Version"
         default: "1.33.0"
     secrets:
       GCP_PROJECT_ID:
