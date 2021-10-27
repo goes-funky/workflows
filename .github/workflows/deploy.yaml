@@ -6,6 +6,7 @@ on:
       skaffold:
         description: "Skaffold Version"
         required: true
+        type: string
         default: "1.33.0"
 
 jobs:
