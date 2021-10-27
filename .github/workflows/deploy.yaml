@@ -7,9 +7,22 @@ on:
         description: "Skaffold Version"
         type: string
         default: "1.33.0"
+    secrets:
+      GCP_PROJECT_ID:
+        description: "GCP Project ID"
+        required: true
+      GCP_SERVICE_ACCOUNT:
+        description: "GCP Service Account Key"
+        required: true
+      GKE_CLUSTER:
+        description: "GKE Cluster Name"
+        required: true
+      GKE_LOCATION:
+        description: "GKE Cluster Location"
+        required: true
 
 jobs:
-  skaffold-build-push:
+  build:
     name: Build and push docker images
     runs-on: ubuntu-latest
     steps:
@@ -44,11 +57,11 @@ jobs:
           name: build-ref
           path: build.json
 
-  skaffold-deploy-development:
+  deploy-development:
     name: Deploy to development
     if: startsWith(github.event.ref, 'refs/heads/master')
     needs:
-      - skaffold-build-push
+      - build
     runs-on: ubuntu-latest
     environment: development
     steps:
@@ -79,11 +92,11 @@ jobs:
         run: |
           skaffold deploy --build-artifacts=build.json
 
-  skaffold-deploy-production:
+  deploy-production:
     name: Deploy to production
     if: startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
     needs:
-      - skaffold-build-push
+      - build
     runs-on: ubuntu-latest
     environment: production
     steps:
