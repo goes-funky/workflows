@@ -1,5 +1,6 @@
 id: build-go
 name: Build
+
 on:
   workflow_call:
     inputs:
@@ -7,19 +8,22 @@ on:
         type: string
         description: Go version
         default: 1.17
+
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           submodules: "true"
+
       - name: Setup go
         uses: actions/setup-go@v2
         with:
           go-version: "${{ inputs.go-version }}"
+
       - name: Setup cache
         uses: actions/cache@v2
         with:
@@ -27,13 +31,18 @@ jobs:
             ~/go/pkg/mod
             build/
           key: ${{ runner.os }}-go-${{ inputs.go-version }}-${{ hashFiles('**/go.sum', 'Makefile') }}
+
       - name: Download dependencies
         run: make deps
+
       - name: Ensure code is formatted
         run: make format && make git-dirty
+
       - name: Lint
         run: GOLANGCILINT_CONCURRENCY=4 make lint
+
       - name: Unit test with coverage
         run: make test-coverage
+
       - name: Integration test
         run: make integration-test

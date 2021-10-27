@@ -24,7 +24,7 @@ on:
 jobs:
   build:
     name: Build Docker images
-    if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
+    if: github.event.ref == 'refs/heads/develop' || github.event.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -60,7 +60,7 @@ jobs:
 
   deploy-development:
     name: Deploy to development
-    if: github.event.ref == 'refs/heads/master'
+    if: github.event.ref == 'refs/heads/develop'
     needs:
       - build
     runs-on: ubuntu-latest
@@ -95,7 +95,7 @@ jobs:
 
   deploy-production:
     name: Deploy to production
-    if: startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
+    if: github.event.ref == 'master'
     needs:
       - build
     runs-on: ubuntu-latest
