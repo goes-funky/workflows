@@ -1,5 +1,4 @@
-id: build-go
-name: Build
+name: Build Go
 
 on:
   workflow_call:
