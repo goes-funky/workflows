@@ -43,9 +43,6 @@ jobs:
         with:
           setup-tools: "skaffold"
           skaffold: "${{ inputs.skaffold }}"
-      - name: GitStatus # TODO: remove
-        run: |
-          git status
       - name: Build
         run: |
           skaffold build
