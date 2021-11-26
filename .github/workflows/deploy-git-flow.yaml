@@ -34,7 +34,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           export_default_credentials: true
-          credentials_file_path: "/tmp/"
+          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
       - name: Configure Docker Auth
         run: |
           gcloud --quiet auth configure-docker eu.gcr.io
