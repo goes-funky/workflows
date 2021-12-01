@@ -24,7 +24,7 @@ on:
 jobs:
   build:
     name: Build Docker images
-    if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
+    if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/') || startsWith(github.event.ref, 'refs/heads/deploy/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -91,6 +91,65 @@ jobs:
       - name: Deploy
         run: |
           skaffold deploy --build-artifacts=build.json
+
+  get-deploy-env:
+    name: Get deployment environment
+    if: github.event.ref == 'refs/heads/deploy/demo'
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-deploy-env.outputs.environment }}
+    steps:
+      - id: set-deploy-env
+        name: Set the environment name from manual input or branch name
+        run: |
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            echo 'sourcing environment from manual input: ${{ github.event.inputs.environment }}'
+            echo '::set-output name=environment::${{ github.event.inputs.environment }}'
+          else
+            # Normalize the `master` branch into `deploy/development`
+            normalized="${GITHUB_REF/master/deploy/development}"
+            # Do the French Revolution - off with their heads!
+            environment="${normalized#refs/heads/deploy/}"
+            echo "sourcing environment from branch name: $environment"
+            echo "::set-output name=environment::$environment"
+          fi
+
+  deploy:
+    name: Deploy
+    if: startsWith(github.event.ref, 'refs/heads/deploy/')
+    needs:
+      - build
+      - get-deploy-env
+    runs-on: ubuntu-latest
+    environment: ${{ needs.get-deploy-env.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          export_default_credentials: true
+
+      - uses: google-github-actions/get-gke-credentials@v0.3.0
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER }}
+          location: ${{ secrets.GKE_LOCATION }}
+
+      - name: Download build reference
+        uses: actions/download-artifact@v2
+        with:
+          name: build-ref
+
+      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          setup-tools: skaffold
+          skaffold: "${{ inputs.skaffold }}"
+
+      - name: Deploy
+        run: |
+          skaffold deploy --build-artifacts=build.json
+
 
   deploy-production:
     name: Deploy to production
