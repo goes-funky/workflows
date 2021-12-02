@@ -7,6 +7,9 @@ on:
         type: string
         description: "Skaffold Version"
         default: "1.33.0"
+      environment:
+        type: string
+        description: "Environment to deploy to"
     secrets:
       GCP_PROJECT_ID:
         description: "GCP Project ID"
@@ -67,9 +70,9 @@ jobs:
       - id: set-deploy-env
         name: Set the environment name from manual input or branch name
         run: |
-          if [ -n "${{ github.event.inputs.environment }}" ]; then
-            echo 'sourcing environment from manual input: ${{ github.event.inputs.environment }}'
-            echo '::set-output name=environment::${{ github.event.inputs.environment }}'
+          if [ -n "${{ inputs.environment }}" ]; then
+            echo 'sourcing environment from manual input: ${{ inputs.environment }}'
+            echo '::set-output name=environment::${{ inputs.environment }}'
             exit
           fi
 
