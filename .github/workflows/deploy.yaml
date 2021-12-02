@@ -107,14 +107,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: google-github-actions/setup-gcloud@v0.2.1
+      - uses: google-github-actions/auth@v0.4.0
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-          export_default_credentials: true
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           cluster_name: ${{ secrets.GKE_CLUSTER }}
           location: ${{ secrets.GKE_LOCATION }}
 
