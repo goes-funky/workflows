@@ -43,10 +43,19 @@ jobs:
           name: build
           path: build.tar
 
-  format:
+  tests:
     runs-on: ubuntu-latest
-    name: Format
+    name: Tests
     needs: build
+    env:
+      GOLANGCILINT_CONCURRENCY: 4
+    strategy:
+      matrix:
+        test:
+          - make lint
+          - make test-coverage
+          - make format && make git-dirty
+          - make integration-test
     steps:
       - name: Download built code
         uses: actions/download-artifact@v2
@@ -60,65 +69,5 @@ jobs:
         with:
           go-version: "${{ inputs.go-version }}"
 
-      - name: Ensure code is formatted
-        run: make format && make git-dirty
-
-  lint:
-    runs-on: ubuntu-latest
-    name: Lint
-    needs: build
-    steps:
-      - name: Download built code
-        uses: actions/download-artifact@v2
-        with:
-          name: build
-      - name: Unpack build code
-        run: tar -xvf build.tar
-
-      - name: Setup go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "${{ inputs.go-version }}"
-
-      - name: Lint
-        run: GOLANGCILINT_CONCURRENCY=4 make lint
-
-  unit-test:
-    runs-on: ubuntu-latest
-    name: Unit test
-    needs: build
-    steps:
-      - name: Download built code
-        uses: actions/download-artifact@v2
-        with:
-          name: build
-      - name: Unpack build code
-        run: tar -xvf build.tar
-
-      - name: Setup go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "${{ inputs.go-version }}"
-
-      - name: Unit test with coverage
-        run: make test-coverage
-
-  integration-test:
-    runs-on: ubuntu-latest
-    name: Integration test
-    needs: build
-    steps:
-      - name: Download built code
-        uses: actions/download-artifact@v2
-        with:
-          name: build
-      - name: Unpack build code
-        run: tar -xvf build.tar
-
-      - name: Setup go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "${{ inputs.go-version }}"
-
-      - name: Integration test
-        run: make integration-test
+      - name: Run the test
+        run: ${{ matrix.test }}
