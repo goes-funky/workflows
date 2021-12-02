@@ -34,7 +34,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           export_default_credentials: true
-          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+
       - name: Configure Docker Auth
         run: |
           gcloud --quiet auth configure-docker eu.gcr.io
@@ -58,48 +58,39 @@ jobs:
           name: build-ref
           path: build.json
 
-  deploy-development:
-    name: Deploy to development
-    if: github.event.ref == 'refs/heads/develop'
-    needs:
-      - build
+  get-deploy-env:
+    name: Get deployment environment
     runs-on: ubuntu-latest
-    environment: development
+    outputs:
+      environment: ${{ steps.set-deploy-env.outputs.environment }}
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@v0.2.1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-          export_default_credentials: true
-
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
-        with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
-
-      - name: Download build reference
-        uses: actions/download-artifact@v2
-        with:
-          name: build-ref
-
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
-        with:
-          setup-tools: skaffold
-          skaffold: "${{ inputs.skaffold }}"
-
-      - name: Deploy
+      - id: set-deploy-env
+        name: Set the environment name from manual input or branch name
         run: |
-          skaffold deploy --build-artifacts=build.json
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            echo 'sourcing environment from manual input: ${{ github.event.inputs.environment }}'
+            echo '::set-output name=environment::${{ github.event.inputs.environment }}'
+            exit
+          fi
 
-  deploy-production:
-    name: Deploy to production
-    if: github.event.ref == 'master'
+          branch="${ref#refs/heads/}"
+          if [[ "$branch" == "develop" ]]; then
+            environment="development"
+          elif [[ "$branch" == "master" ]]; then
+            environment="production"
+          fi
+
+          echo "sourcing environment from branch name: $environment"
+          echo "::set-output name=environment::$environment"
+
+
+  deploy:
+    name: Deploy
     needs:
       - build
+      - get-deploy-env
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ needs.get-deploy-env.outputs.environment }}
     steps:
       - uses: actions/checkout@v2
 
