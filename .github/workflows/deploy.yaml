@@ -7,6 +7,9 @@ on:
         type: string
         description: "Skaffold Version"
         default: "1.33.0"
+      environment:
+        type: string
+        description: "Environment to deploy to"
     secrets:
       GCP_PROJECT_ID:
         description: "GCP Project ID"
@@ -21,10 +24,18 @@ on:
         description: "GKE Cluster Location"
         required: true
 
+  push:
+    branches:
+      - master
+      - hotfix/*
+      - deploy/*
+    tags:
+      - v*
+
+
 jobs:
   build:
     name: Build Docker images
-    if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/') || startsWith(github.event.ref, 'refs/heads/deploy/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -57,44 +68,8 @@ jobs:
           name: build-ref
           path: build.json
 
-  deploy-development:
-    name: Deploy to development
-    if: github.event.ref == 'refs/heads/master'
-    needs:
-      - build
-    runs-on: ubuntu-latest
-    environment: development
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@v0.2.1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-          export_default_credentials: true
-
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
-        with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
-
-      - name: Download build reference
-        uses: actions/download-artifact@v2
-        with:
-          name: build-ref
-
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
-        with:
-          setup-tools: skaffold
-          skaffold: "${{ inputs.skaffold }}"
-
-      - name: Deploy
-        run: |
-          skaffold deploy --build-artifacts=build.json
-
   get-deploy-env:
     name: Get deployment environment
-    if: github.event.ref == 'refs/heads/deploy/demo'
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set-deploy-env.outputs.environment }}
@@ -105,59 +80,37 @@ jobs:
           if [ -n "${{ github.event.inputs.environment }}" ]; then
             echo 'sourcing environment from manual input: ${{ github.event.inputs.environment }}'
             echo '::set-output name=environment::${{ github.event.inputs.environment }}'
-          else
-            # Normalize the `master` branch into `deploy/development`
-            normalized="${GITHUB_REF/master/deploy/development}"
-            # Do the French Revolution - off with their heads!
-            environment="${normalized#refs/heads/deploy/}"
-            echo "sourcing environment from branch name: $environment"
-            echo "::set-output name=environment::$environment"
+            exit
           fi
+
+          # Normalize the `master` branch into `deploy/development`
+          normalized="${GITHUB_REF/master/deploy/development}"
+          ref="${normalized#refs/}"
+
+          # In this flow, we deploy to production on push to tags, and
+          # `hotfix/*` branches.
+          if [[ $ref == "tags/v*" || $ref == "heads/hotfix/*" ]]; then
+            echo "sourcing environment from tag or hotfix branch name name: production"
+            echo "::set-output name=environment::production"
+            exit
+          fi
+
+          # Otherwise, it's either a deploy branch or master branch, which
+          # we've normalized to a deploy branch.
+
+          # Do the French Revolution - off with their heads.
+          environment="${ref#heads/deploy/}"
+
+          echo "sourcing environment from branch name: $environment"
+          echo "::set-output name=environment::$environment"
 
   deploy:
     name: Deploy
-    if: startsWith(github.event.ref, 'refs/heads/deploy/')
     needs:
       - build
       - get-deploy-env
     runs-on: ubuntu-latest
     environment: ${{ needs.get-deploy-env.outputs.environment }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@v0.2.1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-          export_default_credentials: true
-
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
-        with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
-
-      - name: Download build reference
-        uses: actions/download-artifact@v2
-        with:
-          name: build-ref
-
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
-        with:
-          setup-tools: skaffold
-          skaffold: "${{ inputs.skaffold }}"
-
-      - name: Deploy
-        run: |
-          skaffold deploy --build-artifacts=build.json
-
-
-  deploy-production:
-    name: Deploy to production
-    if: startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
-    needs:
-      - build
-    runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v2
 
