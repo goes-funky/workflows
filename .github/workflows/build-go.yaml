@@ -34,14 +34,91 @@ jobs:
       - name: Download dependencies
         run: make deps
 
+      - name: Pack built code
+        run: tar -cvf build.tar .
+
+      - name: Upload built code
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: build.tar
+
+  format:
+    runs-on: ubuntu-latest
+    name: Format
+    needs: build
+    steps:
+      - name: Download built code
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+      - name: Unpack build code
+        run: tar -xvf build.tar
+
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
+
       - name: Ensure code is formatted
         run: make format && make git-dirty
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    needs: build
+    steps:
+      - name: Download built code
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+      - name: Unpack build code
+        run: tar -xvf build.tar
+
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
 
       - name: Lint
         run: GOLANGCILINT_CONCURRENCY=4 make lint
 
+  unit-test:
+    runs-on: ubuntu-latest
+    name: Unit test
+    needs: build
+    steps:
+      - name: Download built code
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+      - name: Unpack build code
+        run: tar -xvf build.tar
+
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
+
       - name: Unit test with coverage
         run: make test-coverage
+
+  integration-test:
+    runs-on: ubuntu-latest
+    name: Integration test
+    needs: build
+    steps:
+      - name: Download built code
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+      - name: Unpack build code
+        run: tar -xvf build.tar
+
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
 
       - name: Integration test
         run: make integration-test
