@@ -24,19 +24,12 @@ on:
         description: "GKE Cluster Location"
         required: true
 
-  push:
-    branches:
-      - master
-      - hotfix/*
-      - deploy/*
-    tags:
-      - v*
-
 
 jobs:
   build:
     name: Build Docker images
     runs-on: ubuntu-latest
+    if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/heads/hotfix/') || startsWith(github.event.ref, 'refs/heads/deploy/') || startsWith(github.event.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v2
 
