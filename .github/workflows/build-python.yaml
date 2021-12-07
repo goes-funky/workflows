@@ -11,6 +11,10 @@ on:
         type: string
         description: Poetry version
         default: "1.1.12"
+    secrets:
+      GH_REPO_READ_TOKEN:
+        description: Token to authenticate to GitHub with, in order to fetch private dependencies
+        required: false
 
 jobs:
   build:
@@ -22,6 +26,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "true"
+
+      - name: Setup .gitconfig and netrc
+        env:
+          GITHUB_TOKEN: "${{ secrets.GH_REPO_READ_TOKEN }}"
+        run: |
+          echo "machine github.com" > ~/.netrc
+          echo "  login ${GITHUB_TOKEN}" >> ~/.netrc
+          echo "  password x-oauth-basic" >> ~/.netrc
+          chmod 600 ~/.netrc
+          git config --global --add url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://github.com/".insteadOf "git@github.com:"
 
       - name: Setup python
         uses: actions/setup-python@v2
