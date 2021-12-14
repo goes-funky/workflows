@@ -23,13 +23,19 @@ jobs:
         with:
           go-version: "${{ inputs.go-version }}"
 
-      - name: Setup cache
+      - name: Setup tools cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            build/
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile') }}
+
+      - name: Setup go cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
-            build/
-          key: ${{ runner.os }}-go-${{ inputs.go-version }}-${{ hashFiles('**/go.sum', 'Makefile') }}
+          key: ${{ runner.os }}-go-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
 
       - name: Download dependencies
         run: make deps
