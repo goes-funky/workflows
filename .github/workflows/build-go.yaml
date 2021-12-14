@@ -9,7 +9,34 @@ on:
         default: "1.17"
 
 jobs:
+  tools:
+    runs-on: ubuntu-latest
+    name: Tools
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
+
+      - name: Setup tools cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            build/
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
+
+      - name: Download tools
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: make tools
+
   build:
+    needs: tools
     runs-on: ubuntu-latest
     name: Build
     steps:
@@ -28,7 +55,7 @@ jobs:
         with:
           path: |
             build/
-          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile') }}
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
 
       - name: Setup go cache
         uses: actions/cache@v2
