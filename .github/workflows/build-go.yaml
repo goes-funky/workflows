@@ -9,7 +9,62 @@ on:
         default: "1.17"
 
 jobs:
+  tools:
+    runs-on: ubuntu-latest
+    name: Tools
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+
+      - name: Setup tools cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            build/
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
+
+      - name: Setup go
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
+
+      - name: Download tools
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: make tools
+
+  deps:
+    runs-on: ubuntu-latest
+    name: Dependencies
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+          
+      - name: Setup go cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+
+      - name: Setup go
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
+
+      - name: Download dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: make deps
+
   build:
+    needs: [tools, deps]
     runs-on: ubuntu-latest
     name: Build
     steps:
@@ -28,17 +83,14 @@ jobs:
         with:
           path: |
             build/
-          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile') }}
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
 
       - name: Setup go cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
-
-      - name: Download dependencies
-        run: make deps
+          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
 
       - name: Ensure code is formatted
         run: make format && make git-dirty
