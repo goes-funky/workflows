@@ -63,10 +63,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: make deps
 
-  build:
+  check:
     needs: [tools, deps]
     runs-on: ubuntu-latest
-    name: Build
+    name: Check
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -97,6 +97,35 @@ jobs:
 
       - name: Lint
         run: GOLANGCILINT_CONCURRENCY=4 make lint
+
+  test:
+    needs: [tools, deps]
+    runs-on: ubuntu-latest
+    name: Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "${{ inputs.go-version }}"
+
+      - name: Setup tools cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            build/
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
+
+      - name: Setup go cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
 
       - name: Unit test with coverage
         run: make test-coverage
