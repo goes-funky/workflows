@@ -69,6 +69,3 @@ jobs:
 
       - name: Unit test
         run: poetry run pytest
-
-      - name: Integration test
-        run: pipenv run integration-test
