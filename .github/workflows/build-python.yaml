@@ -63,7 +63,7 @@ jobs:
         run: poetry run flake8
 
       - name: Unit test
-        run: pipenv run test
+        run: poetry run pytest
 
       - name: Integration test
         run: pipenv run integration-test
