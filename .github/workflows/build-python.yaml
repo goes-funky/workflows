@@ -11,6 +11,9 @@ on:
         type: string
         description: Poetry version
         default: "1.1.12"
+      skip-lint:
+        type: boolean
+        description: Whether to skip code formatting and linting
     secrets:
       GH_REPO_READ_TOKEN:
         description: Token to authenticate to GitHub with, in order to fetch private dependencies
@@ -57,9 +60,11 @@ jobs:
         run: poetry install
 
       - name: Ensure code is formatted
+        if: inputs.skip-lint != true
         run: poetry run black . && git diff --quiet --exit-code
 
       - name: Lint
+        if: inputs.skip-lint != true
         run: poetry run flake8
 
       - name: Unit test
