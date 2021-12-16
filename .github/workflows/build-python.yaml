@@ -28,15 +28,9 @@ jobs:
           submodules: "true"
 
       - name: Setup .gitconfig and netrc
-        env:
-          GITHUB_TOKEN: "${{ secrets.GH_REPO_READ_TOKEN }}"
-        run: |
-          echo "machine github.com" > ~/.netrc
-          echo "  login ${GITHUB_TOKEN}" >> ~/.netrc
-          echo "  password x-oauth-basic" >> ~/.netrc
-          chmod 600 ~/.netrc
-          git config --global --add url."https://github.com/".insteadOf "ssh://git@github.com/"
-          git config --global --add url."https://github.com/".insteadOf "git@github.com:"
+        uses: goes-funky/github-netrc-gitconfig-action@master
+        with:
+          github-token: "${{ secrets.GH_REPO_READ_TOKEN }}"
 
       - name: Setup python
         uses: actions/setup-python@v2
