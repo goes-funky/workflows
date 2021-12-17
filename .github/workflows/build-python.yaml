@@ -20,8 +20,8 @@ on:
         description: Whether to skip code formatting
         default: false
     secrets:
-      GH_REPO_READ_TOKEN:
-        description: Token to authenticate to GitHub with, in order to fetch private dependencies
+      ssh-private-key:
+        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
 
 jobs:
@@ -35,10 +35,10 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Setup .gitconfig and netrc
-        uses: goes-funky/github-netrc-gitconfig-action@master
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          github-token: "${{ secrets.GH_REPO_READ_TOKEN }}"
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
 
       - name: Setup python
         uses: actions/setup-python@v2
@@ -62,7 +62,9 @@ jobs:
 
       - name: Download dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: poetry install
+        run: |
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
+          poetry install
 
       - name: Ensure code is formatted
         if: inputs.skip-format != true
