@@ -5,8 +5,19 @@ on:
     inputs:
       skaffold:
         type: string
+        required: true
         description: "Skaffold Version"
         default: "1.33.0"
+      develop_deploy_ref:
+        type: string
+        required: true
+        description: "which ref should be used for deploying to develop"
+        default: "refs/heads/develop"
+      production_deploy_ref:
+        type: string
+        required: true
+        description: "which ref should be used for deploying to production"
+        default: "refs/heads/master"
     secrets:
       GCP_PROJECT_ID:
         description: "GCP Project ID"
@@ -24,7 +35,7 @@ on:
 jobs:
   build:
     name: Build Docker images
-    if: github.event.ref == 'refs/heads/develop' || github.event.ref == 'refs/heads/master'
+    if: github.event.ref == "${{ inputs.develop_deploy_ref }}" || github.event.ref == "${{ inputs.production_deploy_ref }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -60,7 +71,7 @@ jobs:
 
   deploy-development:
     name: Deploy to development
-    if: github.event.ref == 'refs/heads/develop'
+    if: github.event.ref == "${{ inputs.develop_deploy_ref }}"
     needs:
       - build
     runs-on: ubuntu-latest
@@ -95,7 +106,7 @@ jobs:
 
   deploy-production:
     name: Deploy to production
-    if: github.event.ref == 'master'
+    if: github.event.ref == "${{ inputs.production_deploy_ref }}"
     needs:
       - build
     runs-on: ubuntu-latest
