@@ -5,17 +5,17 @@ on:
     inputs:
       skaffold:
         type: string
-        required: true
+        required: false
         description: "Skaffold Version"
         default: "1.33.0"
       develop_deploy_ref:
         type: string
-        required: true
+        required: false
         description: "which ref should be used for deploying to develop"
         default: "refs/heads/develop"
       production_deploy_ref:
         type: string
-        required: true
+        required: false
         description: "which ref should be used for deploying to production"
         default: "refs/heads/master"
     secrets:
