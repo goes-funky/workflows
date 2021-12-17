@@ -35,7 +35,7 @@ on:
 jobs:
   build:
     name: Build Docker images
-    if: github.event.ref == ${{ inputs.develop_deploy_ref }} || github.event.ref == ${{ inputs.production_deploy_ref }}
+    if: ${{ github.event.ref == inputs.develop_deploy_ref }} || ${{ github.event.ref == inputs.production_deploy_ref }}
     runs-on: ubuntu-latest
     steps:
       - run: echo ${{ inputs.develop_deploy_ref }}
@@ -74,7 +74,7 @@ jobs:
 
   deploy-development:
     name: Deploy to development
-    if: github.event.ref == ${{ inputs.develop_deploy_ref }}
+    if: ${{ github.event.ref == inputs.develop_deploy_ref }}
     needs:
       - build
     runs-on: ubuntu-latest
@@ -108,7 +108,7 @@ jobs:
 
   deploy-production:
     name: Deploy to production
-    if: github.event.ref == ${{ inputs.production_deploy_ref }}
+    if: ${{ github.event.ref == inputs.production_deploy_ref }}
     needs:
       - build
     runs-on: ubuntu-latest
