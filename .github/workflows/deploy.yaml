@@ -23,6 +23,9 @@ on:
       GKE_LOCATION:
         description: "GKE Cluster Location"
         required: true
+      ssh-private-key:
+        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
+        required: false
 
 
 jobs:
@@ -43,10 +46,16 @@ jobs:
         run: |
           gcloud --quiet auth configure-docker eu.gcr.io
 
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
+
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: "skaffold"
           skaffold: "${{ inputs.skaffold }}"
+
       - name: Build
         run: |
           skaffold build
