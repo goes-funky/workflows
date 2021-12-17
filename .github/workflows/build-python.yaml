@@ -73,4 +73,7 @@ jobs:
         run: poetry run flake8
 
       - name: Unit test
-        run: poetry run pytest
+        run: poetry run pytest --suppress-no-test-exit-code
+
+      - name: Integration test
+        run: poetry run pytest --with-integration --suppress-no-test-exit-code
