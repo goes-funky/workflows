@@ -7,6 +7,10 @@ on:
         type: string
         description: Go version
         default: "1.17"
+    secrets:
+      ssh-private-key:
+        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
+        required: false
 
 jobs:
   tools:
@@ -24,7 +28,7 @@ jobs:
         with:
           path: |
             build/
-          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
+          key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
 
       - name: Setup go
         if: steps.cache.outputs.cache-hit != 'true'
@@ -42,26 +46,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          submodules: "true"
           
-      - name: Setup go cache
+      - name: Setup Go cache
         id: cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
-          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}""
 
-      - name: Setup go
+      - name: Setup Go
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v2
         with:
           go-version: "${{ inputs.go-version }}"
 
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
+
       - name: Download dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: make deps
+        run: |
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
+          go mod download
 
   check:
     needs: [tools, deps]
@@ -83,14 +92,14 @@ jobs:
         with:
           path: |
             build/
-          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
+          key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
 
       - name: Setup go cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
-          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
 
       - name: Ensure code is formatted
         run: make format && make git-dirty
@@ -118,14 +127,14 @@ jobs:
         with:
           path: |
             build/
-          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
+          key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
 
       - name: Setup go cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
-          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
 
       - name: Unit test with coverage
         run: make test-coverage
