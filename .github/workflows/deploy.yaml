@@ -32,6 +32,11 @@ jobs:
   build:
     name: Build Docker images
     runs-on: ubuntu-latest
+    # We need to set the environment here, because environments
+    # contain our GCP credentials.
+    needs:
+      - get-deploy-env
+    environment: ${{ needs.get-deploy-env.outputs.environment }}
     if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/heads/hotfix/') || startsWith(github.event.ref, 'refs/heads/deploy/') || startsWith(github.event.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v2
