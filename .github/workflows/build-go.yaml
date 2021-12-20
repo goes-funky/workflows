@@ -53,7 +53,7 @@ jobs:
         with:
           path: |
             ~/go/pkg/mod
-          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}""
+          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
 
       - name: Setup Go
         if: steps.cache.outputs.cache-hit != 'true'
