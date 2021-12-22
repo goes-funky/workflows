@@ -1,0 +1,9 @@
+#!/bin/bash -e
+
+templates="deploy.yaml"
+
+for template in $(ls templates)
+do
+    echo ${template}
+    yq eval 'explode(.) | del (.fragments)' templates/${template} > .github/workflows/${template}
+done

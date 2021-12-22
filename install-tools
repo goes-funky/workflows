@@ -1,0 +1,4 @@
+#!/bin/bash -e
+
+go install github.com/rhysd/actionlint/cmd/actionlint@latest
+go install github.com/mikefarah/yq/v4@latest

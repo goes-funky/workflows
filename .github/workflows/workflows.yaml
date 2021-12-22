@@ -1,0 +1,45 @@
+name: Verify workflows
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup tools cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/bin
+          key: "${{ runner.os }}-tools-${{ hashFiles('install-tools') }}"
+
+      - name: Setup go
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - name: Install tools
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          ./install-tools
+
+      - name: Verify that workflows are up to date
+        run: |
+          ./update-workflows
+          git diff --exit-code
+
+      - name: Lint workflows
+        run: |
+          actionlint
+
+      
+
