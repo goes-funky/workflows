@@ -68,7 +68,7 @@ jobs:
 
       - name: Ensure code is formatted
         if: inputs.skip-format != true
-        run: poetry run black --check
+        run: poetry run black --check .
 
       - name: Lint
         if: inputs.skip-lint != true
