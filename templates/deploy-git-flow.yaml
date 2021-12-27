@@ -1,105 +1,13 @@
 name: Deploy
 
 on:
-  workflow_call:
-    inputs:
-      skaffold:
-        type: string
-        description: "Skaffold Version"
-        default: "1.33.0"
-      dist-artifact:
-        type: string
-        description: "Dist artifact name"
-        required: false
-      environment:
-        type: string
-        description: "Deployment environment"
-        required: false
-      skip-deploy:
-        type: boolean
-        description: "Skip deployment to cluster"
-        required: false
-    secrets:
-      GCP_PROJECT_ID:
-        description: "GCP Project ID"
-        required: true
-      GCP_SERVICE_ACCOUNT:
-        description: "GCP Service Account Key"
-        required: true
-      GKE_CLUSTER:
-        description: "GKE Cluster Name"
-        required: true
-      GKE_LOCATION:
-        description: "GKE Cluster Location"
-        required: true
-
-fragments:
-  step-setup-gcloud: &step-setup-gcloud
-    name: "Setup GCloud"
-    uses: google-github-actions/setup-gcloud@v0.2.1
-    with:
-      project_id: ${{ secrets.GCP_PROJECT_ID }}
-      service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      export_default_credentials: true
-
-  job-deploy: &job-deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - !!merge: <<: *step-setup-gcloud
-
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
-        with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
-
-      - name: Download build reference
-        uses: actions/download-artifact@v2
-        with:
-          name: build-ref
-
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
-        with:
-          setup-tools: skaffold
-          skaffold: "${{ inputs.skaffold }}"
-
-      - name: Deploy
-        run: |
-          skaffold deploy --build-artifacts=build.json
+  !!merge: <<: *workflow-call-deploy
 
 jobs:
-  build:
+  build: 
     name: Build Docker images
-    if: github.event.ref == 'refs/heads/develop' || github.event.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - !!merge: <<: *step-setup-gcloud
-
-      - name: Configure Docker Auth
-        run: |
-          gcloud --quiet auth configure-docker eu.gcr.io
-
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
-        with:
-          setup-tools: "skaffold"
-          skaffold: "${{ inputs.skaffold }}"
-
-      - name: Build
-        run: |
-          skaffold build
-
-      - name: Push
-        run: |
-          skaffold build --file-output=build.json
-
-      - name: Archive build reference
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-ref
-          path: build.json
+    if: "github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/develop'"
+    !!merge <<: *job-build
 
   deploy-environment:
     name: Deploy to environment
@@ -117,7 +25,7 @@ jobs:
 
   deploy-production:
     name: Deploy to production
-    if: "!inputs.skip-deploy && github.event.ref == 'master'"
+    if: "!inputs.skip-deploy && github.event.ref == 'refs/heads/master'"
     needs: [build, deploy-development]
     environment: production
     !!merge <<: *job-deploy

@@ -2,8 +2,8 @@
 
 templates="deploy.yaml"
 
-for template in $(ls templates)
+for template in $(ls templates | grep -v fragments.yaml)
 do
     echo ${template}
-    yq eval 'explode(.) | del (.fragments)' templates/${template} > .github/workflows/${template}
+    cat templates/fragments.yaml templates/${template} | yq eval 'explode(.) | del (.fragments)' - > .github/workflows/${template}
 done

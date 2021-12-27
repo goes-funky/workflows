@@ -19,22 +19,25 @@ on:
         description: "Skip deployment to cluster"
         required: false
     secrets:
-      GCP_PROJECT_ID:
+      gcp-project-id:
         description: "GCP Project ID"
         required: true
-      GCP_SERVICE_ACCOUNT:
+      gcp-service-account:
         description: "GCP Service Account Key"
         required: true
-      GKE_CLUSTER:
+      gke-cluster:
         description: "GKE Cluster Name"
         required: true
-      GKE_LOCATION:
+      gke-location:
         description: "GKE Cluster Location"
         required: true
+      ssh-private-key:
+        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
+        required: false
 jobs:
   build:
     name: Build Docker images
-    if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
+    if: "github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -43,11 +46,16 @@ jobs:
         with:
           name: ${{ inputs.dist-artifact }}
           path: dist
+      - name: Setup SSH Agent
+        if: secrets.ssh-private-key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
       - name: Configure Docker Auth
         run: |
@@ -78,13 +86,13 @@ jobs:
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
+          cluster_name: ${{ secrets.gke-cluster }}
+          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
@@ -107,13 +115,13 @@ jobs:
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
+          cluster_name: ${{ secrets.gke-cluster }}
+          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
@@ -136,13 +144,13 @@ jobs:
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
+          cluster_name: ${{ secrets.gke-cluster }}
+          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
