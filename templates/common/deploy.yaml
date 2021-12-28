@@ -1,39 +1,44 @@
+includes:
+  - ssh-agent.yaml
+
+on:
+  workflow_call:
+    inputs:
+      skaffold:
+        type: string
+        description: "Skaffold Version"
+        default: "1.33.0"
+      dist-artifact:
+        type: string
+        description: "Dist artifact name"
+        required: false
+      environment:
+        type: string
+        description: "Deployment environment"
+        required: false
+      skip-deploy:
+        type: boolean
+        description: "Skip deployment to cluster"
+        required: false
+    secrets:
+      gcp-project-id:
+        description: "GCP Project ID"
+        required: true
+      gcp-service-account:
+        description: "GCP Service Account Key"
+        required: true
+      gke-cluster:
+        description: "GKE Cluster Name"
+        required: true
+      gke-location:
+        description: "GKE Cluster Location"
+        required: true
+      ssh-private-key:
+        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
+        required: false
+
 fragments:
-  workflow-call-deploy: &workflow-call-deploy
-    workflow_call:
-      inputs:
-        skaffold:
-          type: string
-          description: "Skaffold Version"
-          default: "1.33.0"
-        dist-artifact:
-          type: string
-          description: "Dist artifact name"
-          required: false
-        environment:
-          type: string
-          description: "Deployment environment"
-          required: false
-        skip-deploy:
-          type: boolean
-          description: "Skip deployment to cluster"
-          required: false
-      secrets:
-        gcp-project-id:
-          description: "GCP Project ID"
-          required: true
-        gcp-service-account:
-          description: "GCP Service Account Key"
-          required: true
-        gke-cluster:
-          description: "GKE Cluster Name"
-          required: true
-        gke-location:
-          description: "GKE Cluster Location"
-          required: true
-        ssh-private-key:
-          description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-          required: false
+  step-setup-ssh-agent: &step-setup-ssh-agent
 
   step-setup-gcloud: &step-setup-gcloud
     name: "Setup GCloud"
@@ -42,13 +47,6 @@ fragments:
       project_id: ${{ secrets.gcp-project-id }}
       service_account_key: ${{ secrets.gcp-service-account }}
       export_default_credentials: true
-
-  step-setup-ssh-agent: &step-setup-ssh-agent
-    name: Setup SSH Agent
-    if: secrets.ssh-private-key
-    uses: webfactory/ssh-agent@v0.5.4
-    with:
-      ssh-private-key: "${{ secrets.ssh-private-key }}"
 
   job-build: &job-build
     runs-on: ubuntu-latest
@@ -61,9 +59,9 @@ fragments:
           name: ${{ inputs.dist-artifact }}
           path: dist
 
-      - !!merge: <<: *step-setup-ssh-agent
+      - <<: *step-setup-ssh-agent
 
-      - !!merge: <<: *step-setup-gcloud
+      - <<: *step-setup-gcloud
 
       - name: Configure Docker Auth
         run: |
@@ -93,7 +91,7 @@ fragments:
     steps:
       - uses: actions/checkout@v2
 
-      - !!merge: <<: *step-setup-gcloud
+      - <<: *step-setup-gcloud
 
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:

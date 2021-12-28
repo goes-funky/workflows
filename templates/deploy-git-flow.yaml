@@ -1,31 +1,40 @@
 name: Deploy
 
+includes:
+  - common/deploy.yaml
+
+fragments:
+  workflow-call-deploy: &workflow-call-deploy
+  step-setup-ssh-agent: &step-setup-ssh-agent
+  step-setup-gcloud: &step-setup-gcloud
+  job-build: &job-build
+  job-deploy: &job-deploy
+
 on:
-  !!merge: <<: *workflow-call-deploy
 
 jobs:
   build: 
     name: Build Docker images
     if: "github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/develop'"
-    !!merge <<: *job-build
+    <<: *job-build
 
   deploy-environment:
     name: Deploy to environment
     if: "!inputs.skip-deploy && inputs.environment"
     needs: [build]
     environment: ${{ inputs.environment }}
-    !!merge <<: *job-deploy
+    <<: *job-deploy
 
   deploy-development:
     name: Deploy to development
     if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/develop')"
     needs: [build]
     environment: development
-    !!merge <<: *job-deploy
+    <<: *job-deploy
 
   deploy-production:
     name: Deploy to production
     if: "!inputs.skip-deploy && github.event.ref == 'refs/heads/master'"
     needs: [build, deploy-development]
     environment: production
-    !!merge <<: *job-deploy
+    <<: *job-deploy

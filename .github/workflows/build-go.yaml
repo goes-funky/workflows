@@ -1,5 +1,4 @@
 name: Build Go
-
 on:
   workflow_call:
     inputs:
@@ -11,7 +10,6 @@ on:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
-
 jobs:
   tools:
     runs-on: ubuntu-latest
@@ -21,57 +19,51 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "true"
-
       - name: Setup tools cache
-        id: cache
+        id: tools-cache
         uses: actions/cache@v2
         with:
           path: |
             build/
           key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
-
       - name: Setup go
-        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v2
         with:
           go-version: "${{ inputs.go-version }}"
-
+        if: "!steps.tools-cache.outputs.cache-hit"
       - name: Download tools
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: "!steps.tools-cache.outputs.cache-hit"
         run: make tools
-
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-          
+        with:
+          submodules: "false"
       - name: Setup Go cache
-        id: cache
+        id: deps-cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
           key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
-
-      - name: Setup Go
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Setup go
         uses: actions/setup-go@v2
         with:
           go-version: "${{ inputs.go-version }}"
-
+        if: "!steps.deps-cache.outputs.cache-hit"
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: "${{ secrets.ssh-private-key }}"
-
+        if: "!steps.deps-cache.outputs.cache-hit && secrets.ssh-private-key"
       - name: Download dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: "!steps.deps-cache.outputs.cache-hit"
         run: |
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           go mod download
-
   check:
     needs: [tools, deps]
     runs-on: ubuntu-latest
@@ -81,32 +73,28 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "true"
-
       - name: Setup go
         uses: actions/setup-go@v2
         with:
           go-version: "${{ inputs.go-version }}"
-
       - name: Setup tools cache
+        id: tools-cache
         uses: actions/cache@v2
         with:
           path: |
             build/
           key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
-
-      - name: Setup go cache
+      - name: Setup Go cache
+        id: deps-cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
           key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
-
       - name: Ensure code is formatted
         run: make format && make git-dirty
-
       - name: Lint
         run: GOLANGCILINT_CONCURRENCY=4 make lint
-
   test:
     needs: [tools, deps]
     runs-on: ubuntu-latest
@@ -116,28 +104,18 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "true"
-
       - name: Setup go
         uses: actions/setup-go@v2
         with:
           go-version: "${{ inputs.go-version }}"
-
-      - name: Setup tools cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            build/
-          key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
-
-      - name: Setup go cache
+      - name: Setup Go cache
+        id: deps-cache
         uses: actions/cache@v2
         with:
           path: |
             ~/go/pkg/mod
           key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
-
       - name: Unit test with coverage
         run: make test-coverage
-
       - name: Integration test
         run: make integration-test

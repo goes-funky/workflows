@@ -1,0 +1,92 @@
+name: Build Go
+includes:
+  - common/build.yaml
+fragments:
+  step-setup-ssh-agent: &step-setup-ssh-agent
+  step-checkout: &step-checkout
+    name: Checkout
+    uses: actions/checkout@v2
+    with:
+      submodules: "true" 
+  step-setup-go: &step-setup-go
+    name: Setup go
+    uses: actions/setup-go@v2
+    with:
+      go-version: "${{ inputs.go-version }}"
+  step-setup-tools-cache: &step-setup-tools-cache
+    name: Setup tools cache
+    id: tools-cache
+    uses: actions/cache@v2
+    with:
+      path: |
+        build/
+      key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
+  step-setup-deps-cache: &step-setup-deps-cache
+    name: Setup Go cache
+    id: deps-cache
+    uses: actions/cache@v2
+    with:
+      path: |
+        ~/go/pkg/mod
+      key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        type: string
+        description: Go version
+        default: "1.17"
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    name: Tools
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-tools-cache
+      - <<: *step-setup-go
+        if: "!steps.tools-cache.outputs.cache-hit"
+      - name: Download tools
+        if: "!steps.tools-cache.outputs.cache-hit"
+        run: make tools
+  deps:
+    runs-on: ubuntu-latest
+    name: Dependencies
+    steps:
+      - <<: *step-checkout
+        with:
+          submodules: "false"
+      - <<: *step-setup-deps-cache
+      - <<: *step-setup-go
+        if: "!steps.deps-cache.outputs.cache-hit"
+      - <<: *step-setup-ssh-agent
+        if: "!steps.deps-cache.outputs.cache-hit && secrets.ssh-private-key"
+      - name: Download dependencies
+        if: "!steps.deps-cache.outputs.cache-hit"
+        run: |
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
+          go mod download
+  check:
+    needs: [tools, deps]
+    runs-on: ubuntu-latest
+    name: Check
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-go
+      - <<: *step-setup-tools-cache
+      - <<: *step-setup-deps-cache
+      - name: Ensure code is formatted
+        run: make format && make git-dirty
+      - name: Lint
+        run: GOLANGCILINT_CONCURRENCY=4 make lint
+  test:
+    needs: [tools, deps]
+    runs-on: ubuntu-latest
+    name: Test
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-go
+      - <<: *step-setup-deps-cache
+      - name: Unit test with coverage
+        run: make test-coverage
+      - name: Integration test
+        run: make integration-test

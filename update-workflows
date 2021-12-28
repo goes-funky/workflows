@@ -1,9 +1,35 @@
 #!/bin/bash -e
 
-templates="deploy.yaml"
+function collect_includes() {
+    local includes=()
+    for file in $@
+    do
+        # get directory with trailing slash
+        local dir=$(dirname ${file})
+        dir="${dir%/}/"
 
-for template in $(ls templates | grep -v fragments.yaml)
+        # find includes
+        local file_includes=($(yq eval '.includes // [] | @csv' ${file}))
+
+        # recusively collect includes
+        if [ -n ${file_includes} ]
+        then
+            file_includes=("${file_includes[@]/#/${dir}}")
+            includes+=("${file_includes}")
+            includes+=("$(collect_includes ${file_includes})")
+        fi
+    done
+
+    printf "%s\n" "${includes[@]}"
+}
+
+for template in $(find templates -type f -depth 1)
 do
     echo ${template}
-    cat templates/fragments.yaml templates/${template} | yq eval 'explode(.) | del (.fragments)' - > .github/workflows/${template}
+
+    # merge template with includes
+    yq eval-all '. as $item ireduce ({}; . *+ $item )' ${template} $(collect_includes ${template}) | \
+    # explode anchors and remove fragments and includes
+    yq eval 'explode(.) | del (.fragments) | del(.includes)' - \
+    > .github/workflows/$(basename ${template})
 done
