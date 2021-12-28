@@ -18,14 +18,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/go/bin
+            ~/bin
           key: "${{ runner.os }}-tools-${{ hashFiles('install-tools') }}"
-
-      - name: Setup go
-        if: "!steps.cache.outputs.cache-hit"
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.17
 
       - name: Install tools
         if: "!steps.cache.outputs.cache-hit"
@@ -39,4 +33,4 @@ jobs:
 
       - name: Lint workflows
         run: |
-          actionlint
+          bin/actionlint

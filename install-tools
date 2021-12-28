@@ -1,4 +1,19 @@
 #!/bin/bash -e
 
-go install github.com/rhysd/actionlint/cmd/actionlint@latest
-go install github.com/mikefarah/yq/v4@latest
+YQ_VERSION=4.16.2
+ACTIONLINT_VERSION=1.6.8
+
+os=$(uname -s | tr [:upper:] [:lower:])
+arch=$(uname -m)
+arch=${arch/x86_64/amd64}
+arch=${arch/aarch64/arm64}
+binary="${os}_${arch}"
+
+mkdir -p bin && cd bin
+
+curl -s -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_${binary}.tar.gz | \
+    tar xz ./yq_${binary} && \
+    mv yq_${binary} yq
+
+curl -s -L https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_${binary}.tar.gz | \
+    tar xz actionlint

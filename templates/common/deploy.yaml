@@ -8,13 +8,13 @@ on:
         type: string
         description: "Skaffold Version"
         default: "1.33.0"
-      dist-artifact:
-        type: string
-        description: "Dist artifact name"
-        required: false
       environment:
         type: string
         description: "Deployment environment"
+        required: false
+      dist-artifact:
+        type: string
+        description: "Dist artifact name"
         required: false
       skip-deploy:
         type: boolean
@@ -54,7 +54,7 @@ fragments:
       - uses: actions/checkout@v2
 
       - uses: actions/download-artifact@master
-        if: inputs.dist-artifact
+        if: "inputs.dist-artifact"
         with:
           name: ${{ inputs.dist-artifact }}
           path: dist
