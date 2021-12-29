@@ -1,40 +1,15 @@
+# Dependencies: templates/common/deploy.yaml templates/common/ssh-agent.yaml
 name: Deploy
-
-includes:
-  - common/deploy.yaml
-
 fragments:
-  workflow-call-deploy: &workflow-call-deploy
   step-setup-ssh-agent: &step-setup-ssh-agent
-  step-setup-gcloud: &step-setup-gcloud
-  job-build: &job-build
-  job-deploy: &job-deploy
-
 on:
-
 jobs:
-  build: 
-    name: Build Docker images
+  # build from master branch or tagged release
+  build:
     if: "github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v')"
-    <<: *job-build
-
-  deploy-environment:
-    name: Deploy to environment
-    if: "!inputs.skip-deploy && inputs.environment"
-    needs: [build]
-    environment: ${{ inputs.environment }}
-    <<: *job-deploy
-
+  # deploy to development from master branch or tagged release
   deploy-development:
-    name: Deploy to development
     if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v'))"
-    needs: [build]
-    environment: development
-    <<: *job-deploy
-
+  # deploy to production from tagged release
   deploy-production:
-    name: Deploy to production
-    if: "!inputs.skip-deploy && (startsWith(github.event.ref, 'refs/tags/v'))"
-    needs: [build, deploy-development]
-    environment: production
-    <<: *job-deploy
+    if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"

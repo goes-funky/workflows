@@ -1,40 +1,15 @@
+# Dependencies: templates/common/deploy.yaml templates/common/ssh-agent.yaml
 name: Deploy
-
-includes:
-  - common/deploy.yaml
-
 fragments:
-  workflow-call-deploy: &workflow-call-deploy
   step-setup-ssh-agent: &step-setup-ssh-agent
-  step-setup-gcloud: &step-setup-gcloud
-  job-build: &job-build
-  job-deploy: &job-deploy
-
 on:
-
 jobs:
+  # build from develop or master branch
   build: 
-    name: Build Docker images
-    if: "github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/develop'"
-    <<: *job-build
-
-  deploy-environment:
-    name: Deploy to environment
-    if: "!inputs.skip-deploy && inputs.environment"
-    needs: [build]
-    environment: ${{ inputs.environment }}
-    <<: *job-deploy
-
+    if: "github.event.ref == 'refs/heads/develop' || github.event.ref == 'refs/heads/master'"
+  # deploy to development from develop or master branch
   deploy-development:
-    name: Deploy to development
-    if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/develop')"
-    needs: [build]
-    environment: development
-    <<: *job-deploy
-
+    if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/develop' || github.event.ref == 'refs/heads/master')"
+  # deploy to production from master branch
   deploy-production:
-    name: Deploy to production
     if: "!inputs.skip-deploy && github.event.ref == 'refs/heads/master'"
-    needs: [build, deploy-development]
-    environment: production
-    <<: *job-deploy

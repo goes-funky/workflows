@@ -19,18 +19,18 @@ jobs:
         with:
           path: |
             ~/bin
-          key: "${{ runner.os }}-tools-${{ hashFiles('install-tools') }}"
+          key: "${{ runner.os }}-tools-${{ hashFiles('Makefile') }}"
 
       - name: Install tools
         if: "!steps.cache.outputs.cache-hit"
         run: |
-          ./install-tools
+          make tools
 
       - name: Verify that workflows are up to date
         run: |
-          ./update-workflows
+          make generate
           git diff --exit-code
 
       - name: Lint workflows
         run: |
-          bin/actionlint
+          make lint
