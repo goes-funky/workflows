@@ -18,7 +18,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/bin
+            bin
           key: "${{ runner.os }}-tools-${{ hashFiles('Makefile') }}"
 
       - name: Install tools

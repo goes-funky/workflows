@@ -9,19 +9,22 @@ srcdir := templates
 commondir := $(srcdir)/common
 outdir := .github/workflows
 
+# find all templates
 srcs := $(wildcard $(srcdir)/*.yaml)
+
+# generate output file names from templates
 outputs := $(patsubst $(srcdir)/%.yaml,$(outdir)/%.yaml,$(srcs))
 
-os ?= $(shell uname -s | tr [:upper:] [:lower:])
-arch ?= $(shell uname -m)
+os := $(shell uname -s | tr [:upper:] [:lower:])
+arch := $(shell uname -m)
 
 ifeq ($(arch),x86_64)
 	arch = amd64
 endif
 
-binary = $(os)_$(arch)
+binary := $(os)_$(arch)
 
-yq := bin/yq-$(YQ_VERSION)/yq
+yq := bin/yq-$(YQ_VERSION)/yq_$(binary)
 actionlint := bin/actionlint-$(ACTIONLINT_VERSION)/actionlint
 
 .PHONY: all lint generate tools lint-workflows generate-workflows
@@ -37,8 +40,7 @@ $(yq):
 	$(info $(_bullet) Installing <yq>)
 	@mkdir -p $(dir $(yq))
 	@curl -s -L https://github.com/mikefarah/yq/releases/download/v$(YQ_VERSION)/yq_$(binary).tar.gz | \
-    tar xz -C $(dir $(yq)) ./yq_$(binary) && \
-    mv $(dir $(yq))/yq_$(binary) $(yq)
+    tar xz -C $(dir $(yq))
 	ln -s $(subst bin/,,$(yq)) bin/yq
 
 # install actionlint
