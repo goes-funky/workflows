@@ -2,6 +2,11 @@ name: Deploy
 on:
   workflow_call:
     inputs:
+      production-branch:
+        type: string
+        description: "Production branch"
+        default: "master"
+        required: false
       skaffold:
         type: string
         description: "Skaffold Version"
@@ -37,7 +42,7 @@ on:
 jobs:
   # build from develop or master branch
   build:
-    if: "github.event.ref == 'refs/heads/develop' || github.event.ref == 'refs/heads/master'"
+    if: "inputs.environment || github.event.ref == 'refs/heads/develop' || github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
     name: Build Docker images
     runs-on: ubuntu-latest
     steps:
@@ -78,7 +83,7 @@ jobs:
           path: build.json
   # deploy to development from develop or master branch
   deploy-development:
-    if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/develop' || github.event.ref == 'refs/heads/master')"
+    if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/develop' || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
     name: Deploy to development
     needs: [build]
     environment: development
@@ -108,7 +113,7 @@ jobs:
           skaffold deploy --build-artifacts=build.json
   # deploy to production from master branch
   deploy-production:
-    if: "!inputs.skip-deploy && github.event.ref == 'refs/heads/master'"
+    if: "!inputs.skip-deploy && format('refs/heads/{0}', inputs.production-branch)"
     name: Deploy to production
     needs: [build, deploy-development]
     environment: production

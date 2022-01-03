@@ -24,8 +24,8 @@ endif
 
 binary := $(os)_$(arch)
 
-yq := bin/yq-$(YQ_VERSION)/yq_$(binary)
-actionlint := bin/actionlint-$(ACTIONLINT_VERSION)/actionlint
+YQ := bin/yq-$(YQ_VERSION)/yq_$(binary)
+ACTIONLINT := bin/actionlint-$(ACTIONLINT_VERSION)/actionlint
 
 .PHONY: all lint generate tools lint-workflows generate-workflows
 
@@ -33,23 +33,23 @@ actionlint := bin/actionlint-$(ACTIONLINT_VERSION)/actionlint
 
 all: lint generate
 
-tools: $(yq) $(actionlint)
+tools: $(YQ) $(ACTIONLINT)
 
 # install yq
-$(yq):
+$(YQ):
 	$(info $(_bullet) Installing <yq>)
-	@mkdir -p $(dir $(yq))
+	@mkdir -p $(dir $(YQ))
 	@curl -s -L https://github.com/mikefarah/yq/releases/download/v$(YQ_VERSION)/yq_$(binary).tar.gz | \
-    tar xz -C $(dir $(yq))
-	ln -s $(subst bin/,,$(yq)) bin/yq
+    tar xz -C $(dir $(YQ))
+	ln -s $(subst bin/,,$(YQ)) bin/yq
 
 # install actionlint
-$(actionlint):
+$(ACTIONLINT):
 	$(info $(_bullet) Installing <actionlint>)
-	@mkdir -p $(dir $(actionlint))
+	@mkdir -p $(dir $(ACTIONLINT))
 	@curl -s -L https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_${binary}.tar.gz | \
-    tar xz -C $(dir $(actionlint)) actionlint
-	ln -s $(subst bin/,,$(actionlint)) bin/actionlint
+    tar xz -C $(dir $(ACTIONLINT)) actionlint
+	ln -s $(subst bin/,,$(ACTIONLINT)) bin/actionlint
 
 # define workflow dependencies
 $(outdir)/build-go.yaml $(outdir)/build-python.yaml: $(commondir)/ssh-agent.yaml
@@ -57,7 +57,7 @@ $(outdir)/deploy-git-flow.yaml $(outdir)/deploy.yaml: $(commondir)/deploy.yaml $
 
 lint: lint-workflows
 
-lint-workflows: $(actionlint)
+lint-workflows: $(ACTIONLINT)
 	$(info $(_bullet) Lint <workflows>)
 	actionlint
 
@@ -66,19 +66,10 @@ generate: generate-workflows
 generate-workflows::
 	$(info $(_bullet) Generating <workflows>)
 
-generate-workflows:: $(yq) $(outputs)
-
-_yq_merge_files := yq eval-all '. as $$item ireduce ({}; . *+ $$item )'
-_yq_explode := yq eval 'explode(.) | del (.fragments) | . headComment=""'
+generate-workflows:: $(YQ) $(outputs)
 
 $(outdir)/%.yaml: $(srcdir)/%.yaml
 	@echo $@
-	@if (( $(words $^) != 1 )); \
-	then \
-		$(_yq_merge_files) $^ | \
-		$(_yq_explode) - \
-		> $@; \
-	else \
-		$(_yq_explode) $^ \
-		> $@; \
-	fi
+	@yq eval-all '. as $$item ireduce ({}; . *+ $$item )' $^ | \
+	yq eval 'explode(.) | del (.fragments) | . headComment=""' - \
+	> $@
