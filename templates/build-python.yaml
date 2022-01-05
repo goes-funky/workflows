@@ -1,0 +1,82 @@
+# Dependencies: templates/common/ssh-agent.yaml
+name: Build Python
+fragments:
+  step-setup-ssh-agent: &step-setup-ssh-agent
+  step-checkout: &step-checkout
+    name: Checkout
+    uses: actions/checkout@v2
+  step-setup-python: &step-setup-python
+    name: Setup python
+    uses: actions/setup-python@v2
+    with:
+      python-version: "${{ inputs.python-version }}"
+  step-setup-poetry: &step-setup-poetry
+    name: Install and configure Poetry
+    uses: snok/install-poetry@v1
+    with:
+      version: "${{ inputs.poetry-version }}"
+      virtualenvs-create: true
+      virtualenvs-in-project: true
+  step-setup-deps-cache: &step-setup-deps-cache
+    name: Setup cache
+    id: deps-cache
+    uses: actions/cache@v2
+    with:
+      path: |
+        .venv/
+      key: ${{ runner.os }}-python-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        description: Python version
+        default: "3.9"
+      poetry-version:
+        type: string
+        description: Poetry version
+        default: "1.1.12"
+      skip-lint:
+        type: boolean
+        description: Whether to skip code linting
+        default: false
+      skip-format:
+        type: boolean
+        description: Whether to skip code formatting
+        default: false
+jobs:
+  deps:
+    runs-on: ubuntu-latest
+    name: Dependencies
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-deps-cache
+      - <<: *step-setup-python
+        if: "!steps.deps-cache.outputs.cache-hit"
+      - <<: *step-setup-poetry
+        if: "!steps.deps-cache.outputs.cache-hit"
+      - <<: *step-setup-ssh-agent
+        if: "!steps.deps-cache.outputs.cache-hit && secrets.ssh-private-key"
+      - name: Download dependencies
+        if: "!steps.deps-cache.outputs.cache-hit"
+        run: |
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
+          poetry install
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-deps-cache
+      - <<: *step-setup-python
+      - <<: *step-setup-poetry
+      - name: Ensure code is formatted
+        if: "!inputs.skip-format"
+        run: poetry run black --check .
+      - name: Lint
+        if: "!inputs.skip-lint"
+        run: poetry run flake8
+      - name: Unit test
+        run: poetry run pytest --suppress-no-test-exit-code
+      - name: Integration test
+        run: poetry run pytest --with-integration --suppress-no-test-exit-code

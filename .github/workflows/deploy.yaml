@@ -1,5 +1,4 @@
 name: Deploy
-
 on:
   workflow_call:
     inputs:
@@ -7,38 +6,61 @@ on:
         type: string
         description: "Skaffold Version"
         default: "1.33.0"
+      environment:
+        type: string
+        description: "Deployment environment"
+        required: false
+      dist-artifact:
+        type: string
+        description: "Dist artifact name"
+        required: false
+      skip-deploy:
+        type: boolean
+        description: "Skip deployment to cluster"
+        required: false
     secrets:
-      GCP_PROJECT_ID:
+      gcp-project-id:
         description: "GCP Project ID"
         required: true
-      GCP_SERVICE_ACCOUNT:
+      gcp-service-account:
         description: "GCP Service Account Key"
         required: true
-      GKE_CLUSTER:
+      gke-cluster:
         description: "GKE Cluster Name"
         required: true
-      GKE_LOCATION:
+      gke-location:
         description: "GKE Cluster Location"
         required: true
-
+      ssh-private-key:
+        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
+        required: false
 jobs:
+  # build from master branch or tagged release
   build:
+    if: "inputs.environment || github.event.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.event.ref, 'refs/tags/v')"
     name: Build Docker images
-    if: github.event.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@v0.2.1
+      - uses: actions/download-artifact@master
+        if: "inputs.dist-artifact"
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          name: ${{ inputs.dist-artifact }}
+          path: dist
+      - name: Setup SSH Agent
+        if: "secrets.ssh-private-key"
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
+      - name: "Setup GCloud"
+        uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
-
       - name: Configure Docker Auth
         run: |
           gcloud --quiet auth configure-docker eu.gcr.io
-
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: "skaffold"
@@ -46,83 +68,101 @@ jobs:
       - name: Build
         run: |
           skaffold build
-
       - name: Push
         run: |
           skaffold build --file-output=build.json
-
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
           name: build-ref
           path: build.json
-
+  # deploy to development from master branch or tagged release
   deploy-development:
+    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.event.ref, 'refs/tags/v'))"
     name: Deploy to development
-    if: github.event.ref == 'refs/heads/master'
-    needs:
-      - build
-    runs-on: ubuntu-latest
+    needs: [build]
     environment: development
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@v0.2.1
+      - name: "Setup GCloud"
+        uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
-
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
-
+          cluster_name: ${{ secrets.gke-cluster }}
+          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
           skaffold: "${{ inputs.skaffold }}"
-
       - name: Deploy
         run: |
           skaffold deploy --build-artifacts=build.json
-
+  # deploy to production from tagged release
   deploy-production:
+    if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
     name: Deploy to production
-    if: startsWith(github.event.ref, 'refs/tags/v') || startsWith(github.event.ref, 'refs/heads/hotfix/')
-    needs:
-      - build
-    runs-on: ubuntu-latest
+    needs: [build, deploy-development]
     environment: production
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@v0.2.1
+      - name: "Setup GCloud"
+        uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
-
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
-
+          cluster_name: ${{ secrets.gke-cluster }}
+          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
           skaffold: "${{ inputs.skaffold }}"
-
+      - name: Deploy
+        run: |
+          skaffold deploy --build-artifacts=build.json
+  # deploy to specified environment
+  deploy-environment:
+    name: Deploy to environment
+    needs: [build]
+    if: "inputs.environment"
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Setup GCloud"
+        uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
+          export_default_credentials: true
+      - uses: google-github-actions/get-gke-credentials@v0.3.0
+        with:
+          cluster_name: ${{ secrets.gke-cluster }}
+          location: ${{ secrets.gke-location }}
+      - name: Download build reference
+        uses: actions/download-artifact@v2
+        with:
+          name: build-ref
+      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          setup-tools: skaffold
+          skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
           skaffold deploy --build-artifacts=build.json

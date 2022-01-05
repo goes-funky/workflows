@@ -1,0 +1,109 @@
+fragments:
+  step-setup-ssh-agent: &step-setup-ssh-agent
+  step-setup-gcloud: &step-setup-gcloud
+    name: "Setup GCloud"
+    uses: google-github-actions/setup-gcloud@v0.2.1
+    with:
+      project_id: ${{ secrets.gcp-project-id }}
+      service_account_key: ${{ secrets.gcp-service-account }}
+      export_default_credentials: true
+  job-deploy: &job-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - <<: *step-setup-gcloud
+      - uses: google-github-actions/get-gke-credentials@v0.3.0
+        with:
+          cluster_name: ${{ secrets.gke-cluster }}
+          location: ${{ secrets.gke-location }}
+      - name: Download build reference
+        uses: actions/download-artifact@v2
+        with:
+          name: build-ref
+      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          setup-tools: skaffold
+          skaffold: "${{ inputs.skaffold }}"
+      - name: Deploy
+        run: |
+          skaffold deploy --build-artifacts=build.json
+on:
+  workflow_call:
+    inputs:
+      skaffold:
+        type: string
+        description: "Skaffold Version"
+        default: "1.33.0"
+      environment:
+        type: string
+        description: "Deployment environment"
+        required: false
+      dist-artifact:
+        type: string
+        description: "Dist artifact name"
+        required: false
+      skip-deploy:
+        type: boolean
+        description: "Skip deployment to cluster"
+        required: false
+    secrets:
+      gcp-project-id:
+        description: "GCP Project ID"
+        required: true
+      gcp-service-account:
+        description: "GCP Service Account Key"
+        required: true
+      gke-cluster:
+        description: "GKE Cluster Name"
+        required: true
+      gke-location:
+        description: "GKE Cluster Location"
+        required: true
+jobs:
+  build:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@master
+        if: "inputs.dist-artifact"
+        with:
+          name: ${{ inputs.dist-artifact }}
+          path: dist
+      - <<: *step-setup-ssh-agent
+      - <<: *step-setup-gcloud
+      - name: Configure Docker Auth
+        run: |
+          gcloud --quiet auth configure-docker eu.gcr.io
+      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          setup-tools: "skaffold"
+          skaffold: "${{ inputs.skaffold }}"
+      - name: Build
+        run: |
+          skaffold build
+      - name: Push
+        run: |
+          skaffold build --file-output=build.json
+      - name: Archive build reference
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-ref
+          path: build.json
+  # deploy to specified environment
+  deploy-environment:
+    name: Deploy to environment
+    needs: [build]
+    if: "inputs.environment"
+    environment: ${{ inputs.environment }}
+    <<: *job-deploy
+  deploy-development:
+    name: Deploy to development
+    needs: [build]
+    environment: development
+    <<: *job-deploy
+  deploy-production:
+    name: Deploy to production
+    needs: [build, deploy-development]
+    environment: production
+    <<: *job-deploy

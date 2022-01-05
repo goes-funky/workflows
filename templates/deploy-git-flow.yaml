@@ -1,0 +1,22 @@
+# Dependencies: templates/common/deploy.yaml templates/common/ssh-agent.yaml
+name: Deploy
+fragments:
+  step-setup-ssh-agent: &step-setup-ssh-agent
+on:
+  workflow_call:
+    inputs:
+      production-branch:
+        type: string
+        description: "Production branch"
+        default: "master"
+        required: false
+jobs:
+  # build from develop or master branch
+  build: 
+    if: "inputs.environment || github.event.ref == 'refs/heads/develop' || github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
+  # deploy to development from develop or master branch
+  deploy-development:
+    if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/develop' || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
+  # deploy to production from master branch
+  deploy-production:
+    if: "!inputs.skip-deploy && format('refs/heads/{0}', inputs.production-branch)"
