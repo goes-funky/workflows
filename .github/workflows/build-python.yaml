@@ -52,7 +52,7 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: "${{ secrets.ssh-private-key }}"
-        if: "!steps.deps-cache.outputs.cache-hit && secrets.ssh-private-key"
+        if: "!steps.deps-cache.outputs.cache-hit"
       - name: Download dependencies
         if: "!steps.deps-cache.outputs.cache-hit"
         run: |

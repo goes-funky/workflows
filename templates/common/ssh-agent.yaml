@@ -1,7 +1,6 @@
 fragments:
   step-setup-ssh-agent: &step-setup-ssh-agent
     name: Setup SSH Agent
-    if: "secrets.ssh-private-key"
     uses: webfactory/ssh-agent@v0.5.4
     with:
       ssh-private-key: "${{ secrets.ssh-private-key }}"
