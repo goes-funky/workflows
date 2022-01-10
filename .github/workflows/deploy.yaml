@@ -18,6 +18,10 @@ on:
         type: boolean
         description: "Skip deployment to cluster"
         required: false
+    outputs:
+      dist-artifact:
+        type: string
+        description: "Dist artifact name (output for reusal)"
     secrets:
       gcp-project-id:
         description: "GCP Project ID"
