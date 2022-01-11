@@ -21,7 +21,7 @@ on:
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: false
+        required: true
 jobs:
   deps:
     runs-on: ubuntu-latest
