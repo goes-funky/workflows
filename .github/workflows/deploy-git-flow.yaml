@@ -9,8 +9,12 @@ on:
         required: false
       skaffold:
         type: string
-        description: "Skaffold Version"
+        description: "Skaffold version"
         default: "1.33.0"
+      kubeval:
+        type: string
+        description: "Kubeval version"
+        default: "0.16.1"
       environment:
         type: string
         description: "Deployment environment"
@@ -65,16 +69,36 @@ jobs:
       - name: Configure Docker Auth
         run: |
           gcloud --quiet auth configure-docker eu.gcr.io
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+      - name: Setup Kubernetes tools
+        uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
-          setup-tools: "skaffold"
+          setup-tools: |
+            skaffold
+            kubeval
           skaffold: "${{ inputs.skaffold }}"
+          kubeval: "${{ inputs.kubeval }}"
       - name: Build
         run: |
-          skaffold build
-      - name: Push
-        run: |
           skaffold build --file-output=build.json
+      - id: verify
+        name: Render and verify deployments
+        run: |
+          skaffold render --build-artifacts=build.json | kubeval | tee kubeval.txt
+          kubeval=$(printf '%s' "$(cat kubeval.txt)" | jq --raw-input --slurp '.')
+          echo "::set-output name=kubeval::$kubeval"
+      - id: find-pr
+        uses: jwalton/gh-find-current-pr@v1
+      - name: Publish kubeval result
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          hide_and_recreate: true
+          header: "kubeval"
+          number: ${{ steps.find-pr.outputs.pr }}
+          message: |
+            ### Kubeval
+            ```
+            ${{ fromJSON(steps.verify.outputs.kubeval) }}
+            ```
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
