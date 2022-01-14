@@ -128,7 +128,7 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json
   # deploy to production from tagged release
   deploy-production:
     if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
@@ -158,7 +158,7 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json
   # deploy to specified environment
   deploy-environment:
     name: Deploy to environment
@@ -188,4 +188,4 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json

@@ -133,7 +133,7 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json
   # deploy to production from master branch
   deploy-production:
     if: "!inputs.skip-deploy && format('refs/heads/{0}', inputs.production-branch)"
@@ -163,7 +163,7 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json
   # deploy to specified environment
   deploy-environment:
     name: Deploy to environment
@@ -193,4 +193,4 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json

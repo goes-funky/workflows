@@ -26,7 +26,7 @@ fragments:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json
 on:
   workflow_call:
     inputs:
