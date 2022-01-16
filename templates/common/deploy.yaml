@@ -69,6 +69,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Setup skaffold cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.skaffold/cache
+          key: "${{ runner.os }}-skaffold"
       - uses: actions/download-artifact@master
         if: "inputs.dist-artifact"
         with:
