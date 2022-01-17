@@ -2,6 +2,11 @@ name: Deploy
 on:
   workflow_call:
     inputs:
+      development-branch:
+        type: string
+        description: "Development branch"
+        default: "develop"
+        required: false
       production-branch:
         type: string
         description: "Production branch"
@@ -46,11 +51,17 @@ on:
 jobs:
   # build from develop or master branch
   build:
-    if: "inputs.environment || github.event.ref == 'refs/heads/develop' || github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
+    if: "inputs.environment || github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
     name: Build Docker images
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Setup skaffold cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.skaffold/cache
+          key: "${{ runner.os }}-skaffold"
       - uses: actions/download-artifact@master
         if: "inputs.dist-artifact"
         with:
@@ -106,7 +117,7 @@ jobs:
           path: build.json
   # deploy to development from develop or master branch
   deploy-development:
-    if: "!inputs.skip-deploy && (github.event.ref == 'refs/heads/develop' || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
+    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
     name: Deploy to development
     needs: [build]
     environment: development
@@ -136,7 +147,7 @@ jobs:
           skaffold deploy --force --build-artifacts=build.json
   # deploy to production from master branch
   deploy-production:
-    if: "!inputs.skip-deploy && format('refs/heads/{0}', inputs.production-branch)"
+    if: "!inputs.skip-deploy && github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
     name: Deploy to production
     needs: [build, deploy-development]
     environment: production
