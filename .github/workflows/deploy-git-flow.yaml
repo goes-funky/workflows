@@ -47,9 +47,9 @@ on:
         required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: false
+        required: true
 jobs:
-  # build from develop or master branch
+  # build from inputs.development-branch or inputs.production-branch
   build:
     if: "inputs.environment || github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
     name: Build Docker images
@@ -115,7 +115,7 @@ jobs:
         with:
           name: build-ref
           path: build.json
-  # deploy to development from develop or master branch
+  # deploy to development from inputs.development-branch
   deploy-development:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
     name: Deploy to development
@@ -145,7 +145,7 @@ jobs:
       - name: Deploy
         run: |
           skaffold deploy --force --build-artifacts=build.json
-  # deploy to production from master branch
+  # deploy to production from inputs.production-branch
   deploy-production:
     if: "!inputs.skip-deploy && github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
     name: Deploy to production
