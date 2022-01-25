@@ -84,7 +84,7 @@ jobs:
           kubeval: "${{ inputs.kubeval }}"
       - name: Configure Skaffold
         run: |
-          skaffold config set ${{ inputs.default-repo }}
+          skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
         run: |
           skaffold build --file-output=build.json
