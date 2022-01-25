@@ -42,6 +42,10 @@ on:
         type: string
         description: "Deployment environment"
         required: false
+      default-repo:
+        type: string
+        description: "Default artifact repository"
+        default: "eu.gcr.io/datos-tech"
       dist-artifact:
         type: string
         description: "Dist artifact name"
@@ -93,6 +97,9 @@ jobs:
             kubeval
           skaffold: "${{ inputs.skaffold }}"
           kubeval: "${{ inputs.kubeval }}"
+      - name: Configure Skaffold
+        run: |
+          skaffold config set ${{ inputs.default-repo }}
       - name: Build
         run: |
           skaffold build --file-output=build.json
