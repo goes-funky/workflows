@@ -29,18 +29,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ inputs.python-version }}"
       - name: Setup cache
         id: deps-cache
         uses: actions/cache@v2
         with:
           path: |
             .venv/
-          key: ${{ runner.os }}-python-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "${{ inputs.python-version }}"
-        if: "!steps.deps-cache.outputs.cache-hit"
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
         with:
@@ -65,17 +65,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ inputs.python-version }}"
       - name: Setup cache
         id: deps-cache
         uses: actions/cache@v2
         with:
           path: |
             .venv/
-          key: ${{ runner.os }}-python-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "${{ inputs.python-version }}"
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
         with:

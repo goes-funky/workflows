@@ -7,6 +7,7 @@ fragments:
     uses: actions/checkout@v2
   step-setup-python: &step-setup-python
     name: Setup python
+    id: setup-python
     uses: actions/setup-python@v2
     with:
       python-version: "${{ inputs.python-version }}"
@@ -24,7 +25,7 @@ fragments:
     with:
       path: |
         .venv/
-      key: ${{ runner.os }}-python-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 on:
   workflow_call:
     inputs:
@@ -50,9 +51,8 @@ jobs:
     name: Dependencies
     steps:
       - <<: *step-checkout
-      - <<: *step-setup-deps-cache
       - <<: *step-setup-python
-        if: "!steps.deps-cache.outputs.cache-hit"
+      - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
         if: "!steps.deps-cache.outputs.cache-hit"
       - <<: *step-setup-ssh-agent
@@ -68,8 +68,8 @@ jobs:
     name: Build
     steps:
       - <<: *step-checkout
-      - <<: *step-setup-deps-cache
       - <<: *step-setup-python
+      - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
       - name: Ensure code is formatted
         if: "!inputs.skip-format"
