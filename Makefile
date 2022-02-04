@@ -31,7 +31,7 @@ ACTIONLINT := bin/actionlint-$(ACTIONLINT_VERSION)/actionlint
 
 .PHONY: $(srcs)
 
-all: lint generate
+all: generate lint
 
 tools: $(YQ) $(ACTIONLINT)
 
