@@ -49,77 +49,6 @@ on:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
 jobs:
-  # build from default branch or tagged release
-  build:
-    if: "inputs.environment || github.event.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.event.ref, 'refs/tags/v')"
-    name: Build Docker images
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup skaffold cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.skaffold/cache
-          key: "${{ runner.os }}-skaffold"
-      - uses: actions/download-artifact@master
-        if: "inputs.dist-artifact"
-        with:
-          name: ${{ inputs.dist-artifact }}
-          path: dist
-      - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: "${{ secrets.ssh-private-key }}"
-      - name: "Setup GCloud"
-        uses: google-github-actions/setup-gcloud@v0.2.1
-        with:
-          project_id: ${{ secrets.gcp-gcr-project-id }}
-          service_account_key: ${{ secrets.gcp-gcr-service-account }}
-          export_default_credentials: true
-      - name: Configure Docker Auth
-        run: |
-          gcloud --quiet auth configure-docker eu.gcr.io
-      - name: Setup Kubernetes tools
-        uses: yokawasa/action-setup-kube-tools@v0.7.1
-        with:
-          setup-tools: |
-            skaffold
-            kubeval
-          skaffold: "${{ inputs.skaffold }}"
-          kubeval: "${{ inputs.kubeval }}"
-      - name: Configure Skaffold
-        run: |
-          skaffold config set default-repo "${{ inputs.default-repo }}"
-      - name: Build
-        run: |
-          skaffold build --file-output=build.json
-      - id: find-pr
-        uses: jwalton/gh-find-current-pr@v1
-      - id: verify
-        name: Render and verify deployments
-        if: "steps.find-pr.outputs.number"
-        run: |
-          skaffold render --offline=true --build-artifacts=build.json | kubeval | tee kubeval.txt
-          kubeval=$(printf '%s' "$(cat kubeval.txt)" | jq --raw-input --slurp '.')
-          echo "::set-output name=kubeval::$kubeval"
-      - name: Publish kubeval result
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: "steps.find-pr.outputs.number"
-        with:
-          hide_and_recreate: true
-          header: "kubeval"
-          number: ${{ steps.find-pr.outputs.number }}
-          message: |
-            ### Kubeval
-            ```
-            ${{ fromJSON(steps.verify.outputs.kubeval) }}
-            ```
-      - name: Archive build reference
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-ref
-          path: build.json
   # deploy to development from default branch or tagged release
   deploy-development:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.event.ref, 'refs/tags/v'))"
@@ -180,6 +109,70 @@ jobs:
       - name: Deploy
         run: |
           skaffold deploy --force --build-artifacts=build.json
+  build:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup skaffold cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.skaffold/cache
+          key: "${{ runner.os }}-skaffold"
+      - uses: actions/download-artifact@master
+        if: "inputs.dist-artifact"
+        with:
+          name: ${{ inputs.dist-artifact }}
+          path: dist
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
+      - name: "Setup GCloud"
+        uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          project_id: ${{ secrets.gcp-gcr-project-id }}
+          service_account_key: ${{ secrets.gcp-gcr-service-account }}
+          export_default_credentials: true
+      - name: Configure Docker Auth
+        run: |
+          gcloud --quiet auth configure-docker eu.gcr.io
+      - name: Setup Kubernetes tools
+        uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          setup-tools: |
+            skaffold
+            kubeval
+          skaffold: "${{ inputs.skaffold }}"
+          kubeval: "${{ inputs.kubeval }}"
+      - name: Configure Skaffold
+        run: |
+          skaffold config set default-repo "${{ inputs.default-repo }}"
+      - name: Build
+        run: |
+          skaffold build --file-output=build.json
+      - id: verify
+        name: Render and verify deployments
+        run: |
+          skaffold render --offline=true --build-artifacts=build.json | kubeval | tee kubeval.txt
+          kubeval=$(printf '%s' "$(cat kubeval.txt)" | jq --raw-input --slurp '.')
+          echo "::set-output name=kubeval::$kubeval"
+      - name: Publish kubeval result
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          hide_and_recreate: true
+          header: "kubeval"
+          message: |
+            ### Kubeval
+            ```
+            ${{ fromJSON(steps.verify.outputs.kubeval) }}
+            ```
+      - name: Archive build reference
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-ref
+          path: build.json
   # deploy to specified environment
   deploy-environment:
     name: Deploy to environment
