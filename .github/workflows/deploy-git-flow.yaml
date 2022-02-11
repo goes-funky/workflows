@@ -107,7 +107,7 @@ jobs:
       - id: verify
         name: Render and verify deployments
         run: |
-          skaffold render --build-artifacts=build.json | kubeval | tee kubeval.txt
+          skaffold render --offline=true --build-artifacts=build.json | kubeval | tee kubeval.txt
           kubeval=$(printf '%s' "$(cat kubeval.txt)" | jq --raw-input --slurp '.')
           echo "::set-output name=kubeval::$kubeval"
       - id: find-pr
