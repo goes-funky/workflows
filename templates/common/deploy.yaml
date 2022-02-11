@@ -113,20 +113,22 @@ jobs:
       - name: Build
         run: |
           skaffold build --file-output=build.json
+      - id: find-pr
+        uses: jwalton/gh-find-current-pr@v1
       - id: verify
         name: Render and verify deployments
+        if: "steps.find-pr.outputs.number"
         run: |
           skaffold render --offline=true --build-artifacts=build.json | kubeval | tee kubeval.txt
           kubeval=$(printf '%s' "$(cat kubeval.txt)" | jq --raw-input --slurp '.')
           echo "::set-output name=kubeval::$kubeval"
-      - id: find-pr
-        uses: jwalton/gh-find-current-pr@v1
       - name: Publish kubeval result
         uses: marocchino/sticky-pull-request-comment@v2
+        if: "steps.find-pr.outputs.number"
         with:
           hide_and_recreate: true
           header: "kubeval"
-          number: ${{ steps.find-pr.outputs.pr }}
+          number: ${{ steps.find-pr.outputs.number }}
           message: |
             ### Kubeval
             ```
