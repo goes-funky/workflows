@@ -177,7 +177,7 @@ jobs:
   deploy-environment:
     name: Deploy to environment
     needs: [build]
-    if: "inputs.environment != ''"
+    if: "inputs.environment"
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
