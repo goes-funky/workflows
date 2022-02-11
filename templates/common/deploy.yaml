@@ -138,7 +138,7 @@ jobs:
   deploy-environment:
     name: Deploy to environment
     needs: [build]
-    if: "inputs.environment"
+    if: "inputs.environment != ''"
     environment: ${{ inputs.environment }}
     <<: *job-deploy
   deploy-development:
