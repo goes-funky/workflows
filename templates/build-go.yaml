@@ -6,7 +6,7 @@ fragments:
     name: Checkout
     uses: actions/checkout@v2
     with:
-      submodules: "true" 
+      submodules: "true"
   step-setup-go: &step-setup-go
     name: Setup go
     uses: actions/setup-go@v2
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check
     env:
-      GOLANGCILINT_CONCURRENCY: "4" 
+      GOLANGCILINT_CONCURRENCY: "4"
     steps:
       - <<: *step-checkout
       - <<: *step-setup-go
@@ -87,7 +87,7 @@ jobs:
       - <<: *step-checkout
       - <<: *step-setup-go
       - <<: *step-setup-deps-cache
-      - name: Unit test with coverage
-        run: make test-coverage
-      - name: Integration test
-        run: make integration-test
+      - name: Unit test
+        run: make test
+      - name: Integration test with coverage
+        run: make integration-test-cover

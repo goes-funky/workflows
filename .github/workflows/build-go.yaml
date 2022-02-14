@@ -117,7 +117,7 @@ jobs:
           path: |
             ~/go/pkg/mod
           key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
-      - name: Unit test with coverage
-        run: make test-coverage
-      - name: Integration test
-        run: make integration-test
+      - name: Unit test
+        run: make test
+      - name: Integration test with coverage
+        run: make integration-test-cover
