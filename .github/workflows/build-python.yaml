@@ -18,6 +18,9 @@ on:
         type: boolean
         description: Whether to skip code formatting
         default: false
+      working-directory:
+        type: string
+        description: "Working Directory"
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
@@ -93,3 +96,6 @@ jobs:
         run: poetry run pytest --suppress-no-test-exit-code
       - name: Integration test
         run: poetry run pytest --with-integration --suppress-no-test-exit-code
+defaults:
+  run:
+    working-directory: ${{ inputs.working-directory }}

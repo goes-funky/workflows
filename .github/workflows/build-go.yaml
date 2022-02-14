@@ -6,6 +6,9 @@ on:
         type: string
         description: Go version
         default: "1.17"
+      working-directory:
+        type: string
+        description: "Working Directory"
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
@@ -121,3 +124,6 @@ jobs:
         run: make test-coverage
       - name: Integration test
         run: make integration-test
+defaults:
+  run:
+    working-directory: ${{ inputs.working-directory }}
