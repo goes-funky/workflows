@@ -18,6 +18,10 @@ on:
         type: boolean
         description: Whether to skip code formatting
         default: false
+      skip-checkout:
+        type: boolean
+        description: Whether to skip checkout
+        default: false
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
@@ -28,6 +32,7 @@ jobs:
     name: Dependencies
     steps:
       - name: Checkout
+        if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
       - name: Setup python
         id: setup-python
@@ -64,6 +69,7 @@ jobs:
     name: Build
     steps:
       - name: Checkout
+        if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
       - name: Setup python
         id: setup-python

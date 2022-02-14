@@ -6,6 +6,10 @@ on:
         type: string
         description: Go version
         default: "1.17"
+      skip-checkout:
+        type: boolean
+        description: Whether to skip checkout
+        default: false
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
@@ -16,9 +20,10 @@ jobs:
     name: Tools
     steps:
       - name: Checkout
+        if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
         with:
-          submodules: "true"
+          submodules: true
       - name: Setup tools cache
         id: tools-cache
         uses: actions/cache@v2
@@ -39,9 +44,8 @@ jobs:
     name: Dependencies
     steps:
       - name: Checkout
+        if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
-        with:
-          submodules: "false"
       - name: Setup Go cache
         id: deps-cache
         uses: actions/cache@v2
@@ -72,9 +76,10 @@ jobs:
       GOLANGCILINT_CONCURRENCY: "4"
     steps:
       - name: Checkout
+        if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
         with:
-          submodules: "true"
+          submodules: true
       - name: Setup go
         uses: actions/setup-go@v2
         with:
@@ -103,9 +108,10 @@ jobs:
     name: Test
     steps:
       - name: Checkout
+        if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
         with:
-          submodules: "true"
+          submodules: true
       - name: Setup go
         uses: actions/setup-go@v2
         with:

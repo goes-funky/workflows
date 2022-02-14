@@ -1,10 +1,8 @@
-# Dependencies: templates/common/ssh-agent.yaml
+# Dependencies: templates/common/build.yaml templates/common/ssh-agent.yaml
 name: Build Python
 fragments:
   step-setup-ssh-agent: &step-setup-ssh-agent
   step-checkout: &step-checkout
-    name: Checkout
-    uses: actions/checkout@v2
   step-setup-python: &step-setup-python
     name: Setup python
     id: setup-python

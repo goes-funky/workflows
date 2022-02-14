@@ -1,12 +1,8 @@
-# Dependencies: templates/common/ssh-agent.yaml
+# Dependencies: templates/common/build.yaml templates/common/ssh-agent.yaml
 name: Build Go
 fragments:
   step-setup-ssh-agent: &step-setup-ssh-agent
   step-checkout: &step-checkout
-    name: Checkout
-    uses: actions/checkout@v2
-    with:
-      submodules: "true"
   step-setup-go: &step-setup-go
     name: Setup go
     uses: actions/setup-go@v2
@@ -41,6 +37,8 @@ jobs:
     name: Tools
     steps:
       - <<: *step-checkout
+        with:
+          submodules: true
       - <<: *step-setup-tools-cache
       - <<: *step-setup-go
         if: "!steps.tools-cache.outputs.cache-hit"
@@ -52,8 +50,6 @@ jobs:
     name: Dependencies
     steps:
       - <<: *step-checkout
-        with:
-          submodules: "false"
       - <<: *step-setup-deps-cache
       - <<: *step-setup-go
         if: "!steps.deps-cache.outputs.cache-hit"
@@ -72,6 +68,8 @@ jobs:
       GOLANGCILINT_CONCURRENCY: "4"
     steps:
       - <<: *step-checkout
+        with:
+          submodules: true
       - <<: *step-setup-go
       - <<: *step-setup-tools-cache
       - <<: *step-setup-deps-cache
@@ -85,6 +83,8 @@ jobs:
     name: Test
     steps:
       - <<: *step-checkout
+        with:
+          submodules: true
       - <<: *step-setup-go
       - <<: *step-setup-deps-cache
       - name: Unit test

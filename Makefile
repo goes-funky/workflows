@@ -52,7 +52,7 @@ $(ACTIONLINT):
 	ln -s $(subst bin/,,$(ACTIONLINT)) bin/actionlint
 
 # define workflow dependencies
-$(outdir)/build-go.yaml $(outdir)/build-python.yaml: $(commondir)/ssh-agent.yaml
+$(outdir)/build-go.yaml $(outdir)/build-python.yaml: $(commondir)/build.yaml $(commondir)/ssh-agent.yaml
 $(outdir)/deploy-git-flow.yaml $(outdir)/deploy.yaml: $(commondir)/deploy.yaml $(commondir)/ssh-agent.yaml
 
 lint: lint-workflows
