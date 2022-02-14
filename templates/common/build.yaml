@@ -1,0 +1,9 @@
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: "Working Directory"
+defaults:
+  run:
+    working-directory: ${{ inputs.working-directory }}
