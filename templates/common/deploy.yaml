@@ -25,8 +25,15 @@ fragments:
           setup-tools: skaffold
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
+        if: "!inputs.is-tap-container"
         run: |
           skaffold deploy --force --build-artifacts=build.json
+      - name: Deploy tap container with job-template  
+        if: "inputs.is-tap-container"
+        run: | 
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml 
+          yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data = select(.kind == "Job" and .metadata.name == "*job-template") | select(.metadata.name != "*job-template")' rendered.yaml
+          skaffold apply --force=true rendered.yaml
 on:
   workflow_call:
     inputs:
@@ -53,6 +60,11 @@ on:
       skip-deploy:
         type: boolean
         description: "Skip deployment to cluster"
+        required: false
+      is-tap-container:
+        type: boolean
+        description: "Job-template configmap building for deploy of tap containers"
+        default: false
         required: false
     secrets:
       gcp-project-id:
