@@ -33,7 +33,7 @@ fragments:
         if: "inputs.is-tap-container"
         run: | 
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml 
-          yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data = select(.kind == "Job" and .metadata.name == "*job-template") | select(.metadata.name != "*job-template")' rendered.yaml
+          yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job-template.yaml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.name != "*job-template")' rendered.yaml
           skaffold apply --force=true rendered.yaml
 on:
   workflow_call:
