@@ -159,6 +159,9 @@ jobs:
             kubeval
           skaffold: "${{ inputs.skaffold }}"
           kubeval: "${{ inputs.kubeval }}"
+      - name: Export git build details
+        run: |
+          export CONTAINER_NAME=$(basename -s .git $(git remote get-url origin)) && export SHORT_SHA=$(git rev-parse --short HEAD)
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
