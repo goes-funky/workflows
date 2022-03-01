@@ -63,6 +63,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -97,6 +101,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -198,6 +206,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: "${{ secrets.ssh-private-key }}"
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:

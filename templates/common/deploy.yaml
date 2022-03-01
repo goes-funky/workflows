@@ -7,6 +7,7 @@ fragments:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - <<: *step-setup-ssh-agent
       - <<: *step-setup-gcloud
         with:
           project_id: ${{ secrets.gcp-project-id }}
