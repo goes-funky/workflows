@@ -73,6 +73,9 @@ on:
       gcp-gcr-service-account:
         description: "GCP GCR Service Account Key"
         required: true
+      font-awesome-key:
+        description: "Font awesome key required to build the frontend"
+        required: true
 jobs:
   build:
     name: Build Docker images
@@ -110,6 +113,9 @@ jobs:
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
+      - name: Export frontend Fontawesome key for build
+        run: |
+          FRONTEND_FONTAWESOME_KEY=${{ secrets.font-awesome-key }} export FRONTEND_FONTAWESOME_KEY
       - name: Build
         run: |
           skaffold build --file-output=build.json
