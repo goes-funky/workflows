@@ -75,7 +75,7 @@ on:
         required: true
       font-awesome-key:
         description: "Font awesome key required to build the frontend"
-        required: true
+        required: false
 jobs:
   build:
     name: Build Docker images
@@ -113,7 +113,7 @@ jobs:
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
-      - name: Export git commit hash
+      - name: Export git commit
         run: |
           COMMIT_HASH="$(git rev-parse HEAD)" export COMMIT_HASH
       - name: Build
