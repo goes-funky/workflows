@@ -164,7 +164,7 @@ jobs:
           skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Export git commit
         run: |
-          echo "COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV && echo "CONTAINER_NAME=$(basename -s .git $(git remote get-url origin))" >> $GITHUB_ENV
       - name: Build
         env:
           FONTAWESOME_KEY: ${{ secrets.font-awesome-key }}
