@@ -152,10 +152,9 @@ jobs:
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
-      - name: Export frontend Fontawesome key for build
-        run: |
-          FRONTEND_FONTAWESOME_KEY=${{ secrets.font-awesome-key }} export FRONTEND_FONTAWESOME_KEY
       - name: Build
+        env:
+          FRONTEND_FONTAWESOME_KEY: ${{ secrets.font-awesome-key }}
         run: |
           skaffold build --file-output=build.json
       - id: verify
