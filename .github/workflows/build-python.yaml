@@ -26,6 +26,9 @@ on:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
+      codecov-token:
+        description: Token to upload coverage reports to codecov
+        required: false
 jobs:
   deps:
     runs-on: ubuntu-latest
@@ -63,10 +66,11 @@ jobs:
         run: |
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           poetry install
-  build:
+  black:
     needs: [deps]
     runs-on: ubuntu-latest
-    name: Build
+    name: Black
+    if: "!inputs.skip-format"
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
@@ -90,12 +94,67 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Ensure code is formatted
-        if: "!inputs.skip-format"
         run: poetry run black --check .
+
+  lint:
+    needs: [deps]
+    runs-on: ubuntu-latest
+    name: Lint
+    if: "!inputs.skip-lint"
+    steps:
+      - name: Checkout
+        if: "!inputs.skip-checkout"
+        uses: actions/checkout@v2
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ inputs.python-version }}"
+      - name: Setup cache
+        id: deps-cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            .venv/
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: "${{ inputs.poetry-version }}"
+          virtualenvs-create: true
+          virtualenvs-in-project: true
       - name: Lint
-        if: "!inputs.skip-lint"
         run: poetry run flake8
-      - name: Unit test
-        run: poetry run pytest --suppress-no-test-exit-code
-      - name: Integration test
-        run: poetry run pytest --with-integration --suppress-no-test-exit-code
+
+  coverage:
+    needs: [deps]
+    runs-on: ubuntu-latest
+    name: Coverage
+    steps:
+      - name: Checkout
+        if: "!inputs.skip-checkout"
+        uses: actions/checkout@v2
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ inputs.python-version }}"
+      - name: Setup cache
+        id: deps-cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            .venv/
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: "${{ inputs.poetry-version }}"
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      - name: Coverage
+        run: poetry run coverage run -m pytest
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: "${{ secrets.codecov-token }}"
