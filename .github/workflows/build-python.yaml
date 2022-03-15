@@ -160,3 +160,5 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           token: "${{ secrets.codecov-token }}"
+          file: ./coverage.xml
+          yml: ./codecov.yml
