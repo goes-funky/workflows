@@ -153,8 +153,10 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Coverage
-        run: poetry run coverage run -m pytest
+        run: |
+          poetry run coverage run -m pytest
+          poetry run coverage xml
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           token: "${{ secrets.codecov-token }}"
