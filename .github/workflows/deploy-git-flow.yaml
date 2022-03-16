@@ -27,7 +27,7 @@ on:
       default-repo:
         type: string
         description: "Default artifact repository"
-        default: "eu.gcr.io/datos-tech"
+        default: "eu.gcr.io/y42-artifacts-ea47981a"
       dist-artifact:
         type: string
         description: "Dist artifact name"
@@ -64,7 +64,7 @@ jobs:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
     name: Deploy to development
     needs: [build]
-    environment: development
+    environment: dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -94,7 +94,7 @@ jobs:
     if: "!inputs.skip-deploy && github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
     name: Deploy to production
     needs: [build, deploy-development]
-    environment: production
+    environment: prod
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
