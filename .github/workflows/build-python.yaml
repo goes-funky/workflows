@@ -134,7 +134,7 @@ jobs:
     needs: [deps]
     runs-on: ubuntu-latest
     if: "!inputs.skip-tests"
-    name: Coverage
+    name: Tests
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
