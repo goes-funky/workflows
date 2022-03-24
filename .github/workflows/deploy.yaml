@@ -53,6 +53,8 @@ on:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
+env:
+  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }"
 jobs:
   # deploy to development from default branch or tagged release
   deploy-development:

@@ -15,6 +15,8 @@ on:
         description: "Production branch"
         default: "master"
         required: false
+env:
+  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch)}"
 jobs:
   # deploy to development from inputs.development-branch
   deploy-development:
