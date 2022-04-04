@@ -2,6 +2,11 @@ name: Deploy
 on:
   workflow_call:
     inputs:
+      development-branch:
+        type: string
+        description: "Development branch"
+        default: "${{ github.event.repository.default_branch }}"
+        required: false
       skaffold:
         type: string
         description: "Skaffold version"
@@ -53,10 +58,12 @@ on:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
+env:
+  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }"
 jobs:
   # deploy to development from default branch or tagged release
   deploy-development:
-    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.event.ref, 'refs/tags/v'))"
+    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
     name: Deploy to development
     needs: [build]
     environment: development
@@ -176,22 +183,6 @@ jobs:
       - name: Build
         run: |
           skaffold build --file-output=build.json
-      - id: verify
-        name: Render and verify deployments
-        run: |
-          skaffold render --offline=true --build-artifacts=build.json | kubeval | tee kubeval.txt
-          kubeval=$(printf '%s' "$(cat kubeval.txt)" | jq --raw-input --slurp '.')
-          echo "::set-output name=kubeval::$kubeval"
-      - name: Publish kubeval result
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          hide_and_recreate: true
-          header: "kubeval"
-          message: |
-            ### Kubeval
-            ```
-            ${{ fromJSON(steps.verify.outputs.kubeval) }}
-            ```
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
