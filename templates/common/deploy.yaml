@@ -53,7 +53,7 @@ on:
       default-repo:
         type: string
         description: "Default artifact repository"
-        default: "eu.gcr.io/datos-tech"
+        default: "eu.gcr.io/y42-artifacts-ea47981a"
       dist-artifact:
         type: string
         description: "Dist artifact name"
