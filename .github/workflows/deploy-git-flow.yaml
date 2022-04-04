@@ -71,7 +71,7 @@ jobs:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
     name: Deploy to development
     needs: [build]
-    environment: development
+    environment: dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -109,7 +109,7 @@ jobs:
     if: "!inputs.skip-deploy && github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
     name: Deploy to production
     needs: [build, deploy-development]
-    environment: production
+    environment: prod
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
