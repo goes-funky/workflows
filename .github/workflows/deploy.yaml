@@ -19,6 +19,16 @@ on:
         type: string
         description: "Deployment environment"
         required: false
+      development-environment:
+        type: string
+        description: "Development environment"
+        default: "dev"
+        required: false
+      production-environment:
+        type: string
+        description: "Production environment"
+        default: "prod"
+        required: false
       default-repo:
         type: string
         description: "Default artifact repository"
@@ -61,7 +71,7 @@ jobs:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
     name: Deploy to development
     needs: [build]
-    environment: dev
+    environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -91,7 +101,7 @@ jobs:
     if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
     name: Deploy to production
     needs: [build, deploy-development]
-    environment: prod
+    environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

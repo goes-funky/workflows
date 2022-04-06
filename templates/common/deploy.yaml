@@ -42,6 +42,16 @@ on:
         type: string
         description: "Deployment environment"
         required: false
+      development-environment:
+        type: string
+        description: "Development environment"
+        default: "dev"
+        required: false
+      production-environment:
+        type: string
+        description: "Production environment"
+        default: "prod"
+        required: false
       default-repo:
         type: string
         description: "Default artifact repository"
@@ -128,10 +138,10 @@ jobs:
   deploy-development:
     name: Deploy to development
     needs: [build]
-    environment: dev
+    environment: ${{ inputs.development-environment }}
     <<: *job-deploy
   deploy-production:
     name: Deploy to production
     needs: [build, deploy-development]
-    environment: prod
+    environment: ${{ inputs.production-environment }}
     <<: *job-deploy
