@@ -86,6 +86,7 @@ jobs:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
+          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -116,6 +117,7 @@ jobs:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
+          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -157,6 +159,7 @@ jobs:
           project_id: ${{ secrets.gcp-gcr-project-id }}
           service_account_key: ${{ secrets.gcp-gcr-service-account }}
           export_default_credentials: true
+          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
       - name: Configure Docker Auth
         run: |
           gcloud --quiet auth configure-docker eu.gcr.io
@@ -194,6 +197,7 @@ jobs:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
+          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
