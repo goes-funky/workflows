@@ -38,6 +38,14 @@ on:
       codecov-token:
         description: Token to upload coverage reports to codecov
         required: false
+      json-schema-bucket:
+        description: Required for json-schema upload. Name of the bucket to write integration schema to.
+        required: false
+      gcp-project-id:
+        description: Required for json-schema upload. The project where the json-schema bucket resides.
+        required: false
+      gcp-service-account:
+        description: Required for json-schema upload. The GCP creds/service account to upload into the bucket.
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
@@ -207,7 +215,7 @@ jobs:
   json-schema-generate:
     name: Json Schema Generate & Upload
     if: "!inputs.skip-json-schema-generate"
-    environment: 'dev' #TODO needs to set to dev on tag and default otherwise to environment input
+    environment: 'dev' #TODO needs to set to prod on tag and default otherwise to environment dev or input
     needs: [deps]
     runs-on: ubuntu-latest
     steps:
@@ -249,4 +257,4 @@ jobs:
         uses: 'google-github-actions/upload-cloud-storage@v0'
         with:
           path: '/tmp/integration-schema/'
-          destination: ${{ secrets.JSON_SCHEMA_BUCKET }}
+          destination: ${{ secrets.json-schema-bucket }}
