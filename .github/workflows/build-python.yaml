@@ -206,7 +206,7 @@ jobs:
           poetry run mypy .
   json-schema-generate:
     name: Json Schema Generate & Upload
-    if: "!skip-json-schema-generate"
+    if: "!inputs.skip-json-schema-generate"
     environment: 'dev' #TODO needs to set to dev on tag and default otherwise to environment input
     needs: [deps]
     runs-on: ubuntu-latest
