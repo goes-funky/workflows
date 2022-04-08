@@ -164,7 +164,7 @@ jobs:
           export KAFKA_SASL_KEY=
           export KAFKA_SASL_SECRET=
           export CONTAINER_MODULE=$(basename -s .git "$(git remote get-url origin | sed 's/-/_/g')" )
-          poetry run python -m datos_integrations.commands.generate_schemas --outpath=/tmp/integration-schema/integrations --version=0.0.0
+          poetry run python -m datos_integrations.commands.generate_schemas --outpath=./integrations --version=0.0.0
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -174,5 +174,5 @@ jobs:
       - name: Upload Integration schema to JSON schema folder
         uses: 'google-github-actions/upload-cloud-storage@v0.8.0' #pinning version till resolved https://github.com/google-github-actions/upload-cloud-storage/issues/248
         with:
-          path: '/tmp/integration-schema'
+          path: 'integrations'
           destination: ${{ secrets.json-schema-bucket }}
