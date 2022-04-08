@@ -46,6 +46,7 @@ on:
         required: false
       gcp-service-account:
         description: Required for json-schema upload. The GCP creds/service account to upload into the bucket.
+        required: false
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true

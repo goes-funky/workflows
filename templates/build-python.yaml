@@ -71,6 +71,7 @@ on:
         required: false
       gcp-service-account:
         description: Required for json-schema upload. The GCP creds/service account to upload into the bucket.
+        required: false
 jobs:
   deps:
     runs-on: ubuntu-latest
