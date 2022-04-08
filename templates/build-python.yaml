@@ -24,6 +24,10 @@ fragments:
       path: |
         .venv/
       key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+  runner-config: &runner-config
+    needs: [ deps ]
+    runs-on: ubuntu-latest
+
 on:
   workflow_call:
     inputs:
@@ -43,6 +47,18 @@ on:
         type: boolean
         description: Whether to skip code formatting
         default: false
+      skip-tests:
+        type: boolean
+        description: Whether to skip running tests
+        default: true
+      skip-mypy:
+        type: boolean
+        description: Whether to skip checking type hints with mypy
+        default: true
+    secrets:
+      codecov-token:
+        description: Token to upload coverage reports to codecov
+        required: false
 jobs:
   deps:
     runs-on: ubuntu-latest
@@ -60,22 +76,61 @@ jobs:
         run: |
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           poetry install
-  build:
-    needs: [deps]
-    runs-on: ubuntu-latest
-    name: Build
+
+  black:
+    name: Black
+    if: "!inputs.skip-format"
+    <<: *runner-config
     steps:
       - <<: *step-checkout
       - <<: *step-setup-python
       - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
       - name: Ensure code is formatted
-        if: "!inputs.skip-format"
         run: poetry run black --check .
+
+  lint:
+    name: Lint
+    if: "!inputs.skip-lint"
+    <<: *runner-config
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-python
+      - <<: *step-setup-deps-cache
+      - <<: *step-setup-poetry
       - name: Lint
-        if: "!inputs.skip-lint"
         run: poetry run flake8
-      - name: Unit test
-        run: poetry run pytest --suppress-no-test-exit-code
-      - name: Integration test
-        run: poetry run pytest --with-integration --suppress-no-test-exit-code
+
+  tests:
+    name: Tests
+    if: "!inputs.skip-tests"
+    <<: *runner-config
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-python
+      - <<: *step-setup-deps-cache
+      - <<: *step-setup-poetry
+      - name: Tests
+        run: |
+          poetry run coverage run -m pytest
+          poetry run coverage xml
+      - name: Upload Coverage to Codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.codecov-token }}
+        if: env.CODECOV_TOKEN != null
+        uses: codecov/codecov-action@v2
+        with:
+          token: "${{ secrets.codecov-token }}"
+
+  mypy:
+    name: Mypy
+    if: "!inputs.skip-mypy"
+    <<: *runner-config
+    steps:
+      - <<: *step-checkout
+      - <<: *step-setup-python
+      - <<: *step-setup-deps-cache
+      - <<: *step-setup-poetry
+      - name: Mypy
+        run: |
+          poetry run mypy .
