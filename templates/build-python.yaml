@@ -90,7 +90,7 @@ jobs:
       - <<: *step-setup-ssh-agent
         if: "!steps.deps-cache.outputs.cache-hit"
       - name: Configure setup tools for poetry
-        if: "inputs.setuptools-version"
+        if: "!steps.deps-cache.outputs.cache-hit  && inputs.setuptools-version"
         env:
           SETUPTOOLS_VERSION: ${{ inputs.setuptools-version }}
         run: |
