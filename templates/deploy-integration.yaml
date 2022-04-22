@@ -1,4 +1,4 @@
-# Dependencies: templates/common/deploy-integration.yaml templates/common/ssh-agent.yaml
+# Dependencies: templates/common/deploy-integration.yaml templates/common/ssh-agent.yaml templates/common/build.yaml
 name: Deploy Integration
 fragments:
   step-setup-ssh-agent: &step-setup-ssh-agent
@@ -17,7 +17,6 @@ jobs:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
   json-schema-generate-production:
     if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
-
   # deploy to development from default branch or tagged release
   deploy-development:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
