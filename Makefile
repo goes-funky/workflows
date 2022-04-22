@@ -54,6 +54,7 @@ $(ACTIONLINT):
 # define workflow dependencies
 $(outdir)/build-go.yaml $(outdir)/build-python.yaml: $(commondir)/build.yaml $(commondir)/ssh-agent.yaml
 $(outdir)/deploy-git-flow.yaml $(outdir)/deploy.yaml: $(commondir)/deploy.yaml $(commondir)/ssh-agent.yaml
+$(outdir)/deploy-integration.yaml: $(commondir)/deploy-integration.yaml $(commondir)/ssh-agent.yaml
 
 lint: lint-workflows
 
