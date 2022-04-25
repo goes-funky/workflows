@@ -39,6 +39,12 @@ on:
         type: string
         description: Poetry version
         default: "1.1.12"
+      setuptools-version:
+      # Know issue installing some packages. Resolved past poetry v1.2 which is currently in beta https://github.com/python-poetry/poetry/issues/4511
+        type: string
+        description: Force poetry setuptools version
+        default: "" #use version "57.5.0" to get around the problem listed above
+        required: false
       skip-lint:
         type: boolean
         description: Whether to skip code linting
@@ -71,6 +77,12 @@ jobs:
         if: "!steps.deps-cache.outputs.cache-hit"
       - <<: *step-setup-ssh-agent
         if: "!steps.deps-cache.outputs.cache-hit"
+      - name: Configure setup tools for poetry
+        if: "!steps.deps-cache.outputs.cache-hit  && inputs.setuptools-version"
+        env:
+          SETUPTOOLS_VERSION: ${{ inputs.setuptools-version }}
+        run: |
+          poetry run pip install "setuptools==$SETUPTOOLS_VERSION"
       - name: Download dependencies
         if: "!steps.deps-cache.outputs.cache-hit"
         run: |
