@@ -402,15 +402,19 @@ jobs:
         env:
           REPO: ${{ inputs.default-repo }}
         run: |
-          CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") export CONTAINER_NAME
-          REPO_NAME=$(basename -s .git "$(git remote get-url origin)") export REPO_NAME
-          SHORT_SHA="$(git rev-parse --short HEAD)" export SHORT_SHA
-          COMMIT_SHA="$(git rev-parse HEAD)" export SHORT_SHA export COMMIT_SHA
-          IMAGE_NAME="$REPO/$CONTAINER_NAME:$SHORT_SHA" export IMAGE_NAME
+          CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
+          SHORT_SHA="$(git rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+          COMMIT_SHA="$(git rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
+          IMAGE_NAME="$REPO/$CONTAINER_NAME:$SHORT_SHA" && echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
+        env:
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          SHORT_SHA: ${{ env.SHORT_SHA }}
+          COMMIT_SHA: ${{ env.COMMIT_SHA }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
         run: |
           skaffold build --file-output=build.json
       - name: Archive build reference
