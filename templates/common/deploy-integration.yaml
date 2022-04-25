@@ -31,7 +31,6 @@ fragments:
 
   json-schema-generate: &json-schema-generate
     name: Json Schema Generate & Upload
-    if: "!inputs.skip-json-schema-generate"
 
     <<: *runner-config
     steps:
@@ -41,10 +40,10 @@ fragments:
       - <<: *step-setup-poetry
       - name: Generate Integration JSON schema
         run: |
-          export KAFKA_SERVERS=
-          export KAFKA_SASL_KEY=
-          export KAFKA_SASL_SECRET=
-          export CONTAINER_MODULE=$(basename -s .git "$(git remote get-url origin | sed 's/-/_/g')" )
+          KAFKA_SERVERS='' export KAFKA_SERVERS
+          KAFKA_SASL_KEY=''  export KAFKA_SASL_KEY
+          KAFKA_SASL_SECRET='' export KAFKA_SASL_SECRET
+          CONTAINER_MODULE=$(basename -s .git "$(git remote get-url origin | sed 's/-/_/g')" ) export CONTAINER_MODULE
           poetry run python -m datos_integrations.commands.generate_schemas --outpath=./integrations --version=0.0.0
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
@@ -85,7 +84,7 @@ fragments:
         if: "inputs.skip-job-template-build"
         run: |
           skaffold deploy --force --build-artifacts=build.json
-      - name: Deploy tap container with job-template  
+      - name: Deploy tap container with job-template  #use the default job template that is provided with base kustomize for integrations
         if: "!inputs.skip-job-template-build"
         run: | 
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml 
@@ -98,10 +97,12 @@ on:
         type: string
         description: "Skaffold version"
         default: "1.33.0"
+        required: false
       kubeval:
         type: string
         description: "Kubeval version"
         default: "0.16.1"
+        required: false
       environment:
         type: string
         description: "Deployment environment"
@@ -120,6 +121,7 @@ on:
         type: string
         description: "Default artifact repository"
         default: "eu.gcr.io/y42-artifacts-ea47981a"
+        required: false
       dist-artifact:
         type: string
         description: "Dist artifact name"
@@ -133,23 +135,27 @@ on:
         description: "Job-template configmap building for deploy of tap containers"
         default: false
         required: false
-      skip-json-schema-generate:
+      skip-integration-schema-generate:
         type: boolean
         description: Whether to skip integration json schema generation & upload
         default: false
+        required: false
       python-version:
         type: string
         description: Python version
         default: "3.9"
+        required: false
       poetry-version:
         type: string
         description: Poetry version
         default: "1.1.12"
+        required: false
       setuptools-version:
       # Know issue installing some packages. Resolved past poetry v1.2 which is currently in beta https://github.com/python-poetry/poetry/issues/4511
         type: string
         description: Force poetry setuptools version
         default: "57.5.0"
+        required: false
     secrets:
       gcp-project-id:
         description: "GCP Project ID"
@@ -196,18 +202,18 @@ jobs:
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           poetry install
 
-  json-schema-generate-environment:
+  integration-schema-generate-environment:
     name: Upload integration schema to environment
     needs: [deps]
     if: "inputs.environment"
     environment: ${{ inputs.environment }}
     <<: *json-schema-generate
-  json-schema-generate-development:
+  integration-schema-generate-development:
     name: Upload integration schema to development
     needs: [deps]
     environment: ${{ inputs.development-environment }}
     <<: *json-schema-generate
-  json-schema-generate-production:
+  integration-schema-generate-production:
     name: Upload integration schema to production
     needs: [deps, json-schema-generate-development]
     environment: ${{ inputs.production-environment }}
@@ -247,8 +253,14 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
           kubeval: "${{ inputs.kubeval }}"
       - name: Export git build details
+        env:
+          REPO: ${{ inputs.default-repo }}
         run: |
-          CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") SHORT_SHA="$(git rev-parse --short HEAD)"  export CONTAINER_NAME export SHORT_SHA
+          CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") export CONTAINER_NAME
+          REPO_NAME=$(basename -s .git "$(git remote get-url origin)") export REPO_NAME
+          SHORT_SHA="$(git rev-parse --short HEAD)" export SHORT_SHA
+          COMMIT_SHA="$(git rev-parse HEAD)" export SHORT_SHA export COMMIT_SHA
+          IMAGE_NAME="$REPO/$CONTAINER_NAME:$SHORT_SHA" export IMAGE_NAME
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
