@@ -232,7 +232,7 @@ jobs:
           skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template #use the default job template that is provided with base kustomize for integrations
         if: "!inputs.skip-job-template-build"
-        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.name != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
+        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.labels.type != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
   # deploy to production from tagged release
   deploy-production:
     if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
@@ -271,7 +271,7 @@ jobs:
           skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template #use the default job template that is provided with base kustomize for integrations
         if: "!inputs.skip-job-template-build"
-        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.name != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
+        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.labels.type != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
@@ -460,4 +460,4 @@ jobs:
           skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template #use the default job template that is provided with base kustomize for integrations
         if: "!inputs.skip-job-template-build"
-        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.name != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
+        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.labels.type != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
