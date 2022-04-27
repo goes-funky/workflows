@@ -96,7 +96,7 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --force --build-artifacts=build.json
+          skaffold deploy --profile nonprod --force --build-artifacts=build.json
   # deploy to production from tagged release
   deploy-production:
     if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
@@ -127,7 +127,7 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --force --build-artifacts=build.json
+          skaffold deploy --profile prod --force --build-artifacts=build.json
   build:
     name: Build Docker images
     runs-on: ubuntu-latest
@@ -207,4 +207,4 @@ jobs:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         run: |
-          skaffold deploy --force --build-artifacts=build.json
+          skaffold deploy --profile nonprod --force --build-artifacts=build.json
