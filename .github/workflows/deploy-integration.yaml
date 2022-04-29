@@ -230,9 +230,17 @@ jobs:
         if: "inputs.skip-job-template-build"
         run: |
           skaffold deploy --force --build-artifacts=build.json
-      - name: Deploy tap container with job-template #use the default job template that is provided with base kustomize for integrations
+      #use the default job template that is provided with base kustomize for integrations
+      #first yq to put the generated job-template inside the configmap that is attached to the deploynotice
+      #second to put a git hash on the deploy notice name, this could technically be done in kustomize with a transformer
+      - name: Deploy tap container with job-template
         if: "!inputs.skip-job-template-build"
-        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.labels.type != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
+        run: |
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
+          COMMIT_SHA="$(git rev-parse HEAD)" export COMMIT_SHA
+          yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
+          skaffold apply --force=true rendered.yaml
   # deploy to production from tagged release
   deploy-production:
     if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
@@ -269,9 +277,17 @@ jobs:
         if: "inputs.skip-job-template-build"
         run: |
           skaffold deploy --force --build-artifacts=build.json
-      - name: Deploy tap container with job-template #use the default job template that is provided with base kustomize for integrations
+      #use the default job template that is provided with base kustomize for integrations
+      #first yq to put the generated job-template inside the configmap that is attached to the deploynotice
+      #second to put a git hash on the deploy notice name, this could technically be done in kustomize with a transformer
+      - name: Deploy tap container with job-template
         if: "!inputs.skip-job-template-build"
-        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.labels.type != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
+        run: |
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
+          COMMIT_SHA="$(git rev-parse HEAD)" export COMMIT_SHA
+          yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
+          skaffold apply --force=true rendered.yaml
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
@@ -458,6 +474,14 @@ jobs:
         if: "inputs.skip-job-template-build"
         run: |
           skaffold deploy --force --build-artifacts=build.json
-      - name: Deploy tap container with job-template #use the default job template that is provided with base kustomize for integrations
+      #use the default job template that is provided with base kustomize for integrations
+      #first yq to put the generated job-template inside the configmap that is attached to the deploynotice
+      #second to put a git hash on the deploy notice name, this could technically be done in kustomize with a transformer
+      - name: Deploy tap container with job-template
         if: "!inputs.skip-job-template-build"
-        run: "skaffold render --offline=true --build-artifacts=build.json > rendered.yaml \nyq -i eval-all 'select(.kind == \"ConfigMap\" and .metadata.name == \"*job-template*\").data.\"job_template.yml\" = (select(.kind == \"Job\" and .metadata.name == \"*job-template\")| to_yaml()) | select(.metadata.labels.type != \"*job-template\")' rendered.yaml\nskaffold apply --force=true rendered.yaml\n"
+        run: |
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
+          COMMIT_SHA="$(git rev-parse HEAD)" export COMMIT_SHA
+          yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
+          skaffold apply --force=true rendered.yaml
