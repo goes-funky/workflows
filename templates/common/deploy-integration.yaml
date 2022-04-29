@@ -92,7 +92,7 @@ fragments:
         run: | 
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
           yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
-          COMMIT_SHA="$(git rev-parse HEAD)" export COMMIT_SHA
+          COMMIT_SHA="$(git rev-parse --short HEAD)" export COMMIT_SHA
           yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
           skaffold apply --force=true rendered.yaml
 on:
