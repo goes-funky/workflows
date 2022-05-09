@@ -64,11 +64,11 @@ on:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
 env:
-  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.action == 'published' }"
+  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }"
 jobs:
   # deploy to development from default branch or tagged release
   deploy-development:
-    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.action == 'published')"
+    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
     name: Deploy to development
     needs: [build]
     environment: ${{ inputs.development-environment }}
@@ -99,7 +99,7 @@ jobs:
           skaffold deploy --profile nonprod --force --build-artifacts=build.json
   # deploy to production from tagged release
   deploy-production:
-    if: "!inputs.skip-deploy && github.event.action == 'published'"
+    if: "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
     name: Deploy to production
     needs: [build, deploy-development]
     environment: ${{ inputs.production-environment }}
