@@ -11,11 +11,11 @@ on:
         default: "${{ github.event.repository.default_branch }}"
         required: false
 env:
-  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.action == 'released' }"
+  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.action == 'published' }"
 jobs:
   # deploy to development from default branch or tagged release
   deploy-development:
-    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.action == 'released')"
+    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.action == 'published')"
   # deploy to production from tagged release
   deploy-production:
-    if: "!inputs.skip-deploy && github.event.action == 'released'"
+    if: "!inputs.skip-deploy && github.event.action == 'published'"
