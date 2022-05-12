@@ -104,7 +104,7 @@ env:
 jobs:
   integration-schema-generate-development:
     if: "!inputs.skip-integration-schema-generate && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
-    name: Json Schema Generate & Upload
+    name: Upload Integration Schema to dev
     needs: [deps]
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
@@ -150,8 +150,8 @@ jobs:
           destination: ${{ secrets.json-schema-bucket }}
   integration-schema-generate-production:
     if: "!inputs.skip-integration-schema-generate && startsWith(github.event.ref, 'refs/tags/v')"
-    name: Json Schema Generate & Upload
-    needs: [deps]
+    name: Upload Integration Schema to prod
+    needs: [deps, integration-schema-generate-development, deploy-development]
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     steps:
@@ -331,7 +331,7 @@ jobs:
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           poetry install
   integration-schema-generate-environment:
-    name: Json Schema Generate & Upload
+    name: Upload Integration Schema to env
     needs: [deps]
     if: "inputs.environment"
     environment: ${{ inputs.environment }}

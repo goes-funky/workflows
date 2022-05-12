@@ -23,14 +23,12 @@ fragments:
         .venv/
       key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
   runner-config: &runner-config
-    needs: [ deps ]
     runs-on: ubuntu-latest
   step-setup-gcloud: &step-setup-gcloud
     name: "Setup GCloud"
     uses: google-github-actions/setup-gcloud@v0.2.1
 
   json-schema-generate: &json-schema-generate
-    name: Json Schema Generate & Upload
 
     <<: *runner-config
     steps:
@@ -208,19 +206,19 @@ jobs:
           poetry install
 
   integration-schema-generate-environment:
-    name: Upload integration schema to environment
+    name: Upload Integration Schema to env
     needs: [deps]
     if: "inputs.environment"
     environment: ${{ inputs.environment }}
     <<: *json-schema-generate
   integration-schema-generate-development:
-    name: Upload integration schema to development
+    name: Upload Integration Schema to dev
     needs: [deps]
     environment: ${{ inputs.development-environment }}
     <<: *json-schema-generate
   integration-schema-generate-production:
-    name: Upload integration schema to production
-    needs: [deps, json-schema-generate-development]
+    name: Upload Integration Schema to prod
+    needs: [deps, integration-schema-generate-development, deploy-development]
     environment: ${{ inputs.production-environment }}
     <<: *json-schema-generate
   build:
