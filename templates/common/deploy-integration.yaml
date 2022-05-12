@@ -55,7 +55,7 @@ fragments:
           path: 'integrations'
           destination: ${{ secrets.json-schema-bucket }}
           headers: |-
-            Cache-Control: public, max-age=300
+            cache-control: public, max-age=300
 
   job-deploy: &job-deploy
     runs-on: ubuntu-latest

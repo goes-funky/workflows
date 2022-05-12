@@ -149,7 +149,7 @@ jobs:
           path: 'integrations'
           destination: ${{ secrets.json-schema-bucket }}
           headers: |-
-            Cache-Control: public, max-age=300
+            cache-control: public, max-age=300
   integration-schema-generate-production:
     if: "!inputs.skip-integration-schema-generate && startsWith(github.event.ref, 'refs/tags/v')"
     name: Upload Integration Schema to prod
@@ -197,7 +197,7 @@ jobs:
           path: 'integrations'
           destination: ${{ secrets.json-schema-bucket }}
           headers: |-
-            Cache-Control: public, max-age=300
+            cache-control: public, max-age=300
   # deploy to development from default branch or tagged release
   deploy-development:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
@@ -381,7 +381,7 @@ jobs:
           path: 'integrations'
           destination: ${{ secrets.json-schema-bucket }}
           headers: |-
-            Cache-Control: public, max-age=300
+            cache-control: public, max-age=300
   build:
     name: Build Docker images
     runs-on: ubuntu-latest
