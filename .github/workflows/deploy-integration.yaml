@@ -105,7 +105,7 @@ jobs:
   integration-schema-generate-development:
     if: "!inputs.skip-integration-schema-generate && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
     name: Upload Integration Schema to dev
-    needs: [deps]
+    needs: [deps, build]
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     steps:
@@ -153,7 +153,7 @@ jobs:
   integration-schema-generate-production:
     if: "!inputs.skip-integration-schema-generate && startsWith(github.event.ref, 'refs/tags/v')"
     name: Upload Integration Schema to prod
-    needs: [deps, integration-schema-generate-development, deploy-development]
+    needs: [deps, build, integration-schema-generate-development, deploy-development]
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     steps:
@@ -336,7 +336,7 @@ jobs:
           poetry install
   integration-schema-generate-environment:
     name: Upload Integration Schema to env
-    needs: [deps]
+    needs: [deps, build]
     if: "inputs.environment"
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest

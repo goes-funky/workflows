@@ -209,18 +209,18 @@ jobs:
 
   integration-schema-generate-environment:
     name: Upload Integration Schema to env
-    needs: [deps]
+    needs: [deps, build]
     if: "inputs.environment"
     environment: ${{ inputs.environment }}
     <<: *json-schema-generate
   integration-schema-generate-development:
     name: Upload Integration Schema to dev
-    needs: [deps]
+    needs: [deps, build]
     environment: ${{ inputs.development-environment }}
     <<: *json-schema-generate
   integration-schema-generate-production:
     name: Upload Integration Schema to prod
-    needs: [deps, integration-schema-generate-development, deploy-development]
+    needs: [deps, build, integration-schema-generate-development, deploy-development]
     environment: ${{ inputs.production-environment }}
     <<: *json-schema-generate
   build:
