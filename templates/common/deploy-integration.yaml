@@ -37,12 +37,15 @@ fragments:
       - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
       - name: Generate Integration JSON schema
+        env: 
+          GENERATE_SCHEMA_COMMAND: ${{ inputs.integration-schema-command }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
         run: |
           KAFKA_SERVERS='' export KAFKA_SERVERS
           KAFKA_SASL_KEY=''  export KAFKA_SASL_KEY
           KAFKA_SASL_SECRET='' export KAFKA_SASL_SECRET
           CONTAINER_MODULE=$(basename -s .git "$(git remote get-url origin | sed 's/-/_/g')" ) export CONTAINER_MODULE
-          poetry run python -m datos_integrations.commands.generate_schemas --outpath=./integrations --version=0.0.0
+          eval "$GENERATE_SCHEMA_COMMAND"
       - name: "Setup GCloud"
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -144,6 +147,11 @@ on:
         type: boolean
         description: Whether to skip integration json schema generation & upload
         default: false
+        required: false
+      integration-schema-command:
+        type: string
+        description: The command to run to generate the integration schema
+        default: "poetry run python -m datos_integrations.commands.generate_schemas --outpath=./integrations --version=0.0.0"
         required: false
       python-version:
         type: string
