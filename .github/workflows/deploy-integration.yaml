@@ -401,7 +401,6 @@ jobs:
           headers: |-
             cache-control: public, max-age=300
   build:
-    if: "!inputs.skip-build"
     name: Build Docker images
     runs-on: ubuntu-latest
     steps:
@@ -451,6 +450,7 @@ jobs:
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
+        if: "!inputs.skip-build"
         env:
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
           SHORT_SHA: ${{ env.SHORT_SHA }}
@@ -459,6 +459,7 @@ jobs:
         run: |
           skaffold build --file-output=build.json
       - name: Archive build reference
+        if: "!inputs.skip-build"
         uses: actions/upload-artifact@v2
         with:
           name: build-ref
