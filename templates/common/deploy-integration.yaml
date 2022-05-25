@@ -138,6 +138,10 @@ on:
         type: boolean
         description: "Skip deployment to cluster"
         required: false
+      skip-build:
+        type: boolean
+        description: "Skip build to cluster"
+        required: false
       skip-job-template-build:
         type: boolean
         description: "Job-template configmap building for deploy of tap containers"
@@ -232,6 +236,7 @@ jobs:
     environment: ${{ inputs.production-environment }}
     <<: *json-schema-generate
   build:
+    if: "!inputs.skip-build"
     name: Build Docker images
     runs-on: ubuntu-latest
     steps:
