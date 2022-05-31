@@ -30,7 +30,8 @@ on:
       go-version:
         type: string
         description: Go version
-        default: "1.17"
+        default: "1.18"
+        required: false
 jobs:
   tools:
     runs-on: ubuntu-latest

@@ -5,7 +5,8 @@ on:
       go-version:
         type: string
         description: Go version
-        default: "1.17"
+        default: "1.18"
+        required: false
       skip-checkout:
         type: boolean
         description: Whether to skip checkout

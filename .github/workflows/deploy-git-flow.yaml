@@ -15,11 +15,13 @@ on:
       skaffold:
         type: string
         description: "Skaffold version"
-        default: "1.33.0"
+        default: "1.37.1"
+        required: false
       kubeval:
         type: string
         description: "Kubeval version"
         default: "0.16.1"
+        required: false
       environment:
         type: string
         description: "Deployment environment"
@@ -38,6 +40,7 @@ on:
         type: string
         description: "Default artifact repository"
         default: "eu.gcr.io/y42-artifacts-ea47981a"
+        required: false
       dist-artifact:
         type: string
         description: "Dist artifact name"
@@ -138,6 +141,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
