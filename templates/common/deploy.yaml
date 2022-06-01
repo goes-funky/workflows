@@ -120,6 +120,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        uses: docker/setup-buildx-action@v1
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
@@ -154,6 +157,7 @@ jobs:
           skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
         run: |
+          DOCKER_BUILDKIT_BUILDER=${{ steps.setup-buildx.outputs.name }}
           skaffold build --file-output=build.json
       - name: Archive build reference
         uses: actions/upload-artifact@v2
