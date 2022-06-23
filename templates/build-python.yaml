@@ -111,8 +111,10 @@ jobs:
       - <<: *step-setup-python
       - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
-      - name: Lint
+      - name: Flake8
         run: poetry run flake8
+      - name: Isort
+        run: poetry run isort --profile black --check .
 
   tests:
     name: Tests
