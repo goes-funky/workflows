@@ -141,8 +141,10 @@ jobs:
           version: "${{ inputs.poetry-version }}"
           virtualenvs-create: true
           virtualenvs-in-project: true
-      - name: Lint
+      - name: Flake8
         run: poetry run flake8
+      - name: Isort
+        run: poetry run isort --check --profile black .
   tests:
     name: Tests
     if: "!inputs.skip-tests"
