@@ -47,8 +47,12 @@ on:
         required: false
       skip-lint:
         type: boolean
-        description: Whether to skip code linting
+        description: Whether to skip code linting with flake8
         default: false
+      skip-isort:
+        type: boolean
+        description: Whether to skip code linting with isort
+        default: true
       skip-format:
         type: boolean
         description: Whether to skip code formatting
@@ -111,8 +115,11 @@ jobs:
       - <<: *step-setup-python
       - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
-      - name: Lint
+      - name: Flake8
         run: poetry run flake8
+      - name: Isort
+        if: "!inputs.skip-isort"
+        run: poetry run isort --profile black --check .
 
   tests:
     name: Tests
