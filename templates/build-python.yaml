@@ -49,6 +49,10 @@ on:
         type: boolean
         description: Whether to skip code linting
         default: false
+      skip-isort:
+        type: boolean
+        description: Whether to skip code linting
+        default: true
       skip-format:
         type: boolean
         description: Whether to skip code formatting
@@ -114,6 +118,7 @@ jobs:
       - name: Flake8
         run: poetry run flake8
       - name: Isort
+        if: "!inputs.skip-isort"
         run: poetry run isort --profile black --check .
 
   tests:
