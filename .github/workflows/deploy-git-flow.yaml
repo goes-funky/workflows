@@ -100,8 +100,10 @@ jobs:
           setup-tools: skaffold
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
+        env:
+          SKAFFOLD_PROFILE: "$${ inputs.environment == inputs.production-environment && 'prod' || 'nonprod' }"
         run: |
-          skaffold deploy --profile nonprod --force --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json
   # deploy to production from inputs.production-branch
   deploy-production:
     if: "!inputs.skip-deploy && github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
@@ -211,5 +213,7 @@ jobs:
           setup-tools: skaffold
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
+        env:
+          SKAFFOLD_PROFILE: "$${ inputs.environment == inputs.production-environment && 'prod' || 'nonprod' }"
         run: |
-          skaffold deploy --profile nonprod --force --build-artifacts=build.json
+          skaffold deploy --force --build-artifacts=build.json
