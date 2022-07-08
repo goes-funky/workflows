@@ -154,7 +154,7 @@ jobs:
     name: Tests
     if: "!inputs.skip-tests"
     needs: [deps]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
