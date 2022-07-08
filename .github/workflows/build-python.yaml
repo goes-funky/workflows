@@ -93,7 +93,7 @@ jobs:
     name: Black
     if: "!inputs.skip-format"
     needs: [deps]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
