@@ -179,6 +179,9 @@ jobs:
           virtualenvs-in-project: true
       - name: Tests
         run: |
+          sudo apt update
+          sudo apt upgrade
+          sudo install sqlite3
           poetry run coverage run -m pytest
           poetry run coverage xml
       - name: Upload Coverage to Codecov
