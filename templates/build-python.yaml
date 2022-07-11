@@ -129,7 +129,8 @@ jobs:
       - name: Upgrade sqlite
         run: |
           sudo apt-get update
-          sudo apt-get --assume-yes install sqlite
+          sudo apt-get upgrade
+          sudo apt-get --assume-yes install sqlite3
       - <<: *step-checkout
       - <<: *step-setup-python
       - <<: *step-setup-deps-cache
