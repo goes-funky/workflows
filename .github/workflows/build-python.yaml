@@ -93,7 +93,7 @@ jobs:
     name: Black
     if: "!inputs.skip-format"
     needs: [deps]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
@@ -122,7 +122,7 @@ jobs:
     name: Lint
     if: "!inputs.skip-lint"
     needs: [deps]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
@@ -154,7 +154,7 @@ jobs:
     name: Tests
     if: "!inputs.skip-tests"
     needs: [deps]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
@@ -196,7 +196,7 @@ jobs:
     name: Mypy
     if: "!inputs.skip-mypy"
     needs: [deps]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         if: "!inputs.skip-checkout"
