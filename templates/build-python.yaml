@@ -34,7 +34,7 @@ on:
       python-version:
         type: string
         description: Python version
-        default: "3.9"
+        default: "3.9.12"
       poetry-version:
         type: string
         description: Poetry version
@@ -130,10 +130,6 @@ jobs:
       - <<: *step-setup-python
       - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
-      - name: Upgrade sqlite3
-        run: |
-          sudo apt-get update
-          sudo apt-get --assume-yes install sqlite3
       - name: Tests
         run: |
           poetry run coverage run -m pytest
