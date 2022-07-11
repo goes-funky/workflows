@@ -177,10 +177,12 @@ jobs:
           version: "${{ inputs.poetry-version }}"
           virtualenvs-create: true
           virtualenvs-in-project: true
-      - name: Tests
+      - name: Upgrade sqlite3
         run: |
           apt-get update
           apt-get install sqlite3
+      - name: Tests
+        run: |
           poetry run coverage run -m pytest
           poetry run coverage xml
       - name: Upload Coverage to Codecov
