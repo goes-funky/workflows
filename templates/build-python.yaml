@@ -130,6 +130,10 @@ jobs:
       - <<: *step-setup-python
       - <<: *step-setup-deps-cache
       - <<: *step-setup-poetry
+      - name: Install sqlite
+        run: |
+          apt-get update
+          apt-get install sqlite3
       - name: Tests
         run: |
           poetry run coverage run -m pytest
