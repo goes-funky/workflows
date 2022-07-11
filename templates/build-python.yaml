@@ -133,7 +133,7 @@ jobs:
       - name: Upgrade sqlite3
         run: |
           apt-get update
-          apt-get install sqlite3
+          apt-get --assume-yes install sqlite3
       - name: Tests
         run: |
           poetry run coverage run -m pytest
