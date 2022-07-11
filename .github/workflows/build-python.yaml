@@ -171,6 +171,10 @@ jobs:
           path: |
             .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Install sqlite
+        run: |
+          apt-get update
+          apt-get install sqlite3
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
         with:
@@ -179,9 +183,6 @@ jobs:
           virtualenvs-in-project: true
       - name: Tests
         run: |
-          sudo apt update
-          sudo apt upgrade
-          sudo install sqlite3
           poetry run coverage run -m pytest
           poetry run coverage xml
       - name: Upload Coverage to Codecov
