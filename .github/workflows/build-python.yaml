@@ -5,7 +5,7 @@ on:
       python-version:
         type: string
         description: Python version
-        default: "3.9.12"
+        default: "3.9"
       poetry-version:
         type: string
         description: Poetry version
@@ -156,11 +156,6 @@ jobs:
     needs: [deps]
     runs-on: ubuntu-22.04
     steps:
-      - name: Upgrade sqlite
-        run: |
-          sudo apt-get update
-          sudo apt-get upgrade
-          sudo apt-get --assume-yes install sqlite3
       - name: Checkout
         if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
