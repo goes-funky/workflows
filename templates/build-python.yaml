@@ -126,6 +126,10 @@ jobs:
     if: "!inputs.skip-tests"
     <<: *runner-config
     steps:
+      - name: Upgrade sqlite
+        run: |
+          sudo apt-get update
+          sudo apt-get --assume-yes install sqlite
       - <<: *step-checkout
       - <<: *step-setup-python
       - <<: *step-setup-deps-cache

@@ -156,6 +156,10 @@ jobs:
     needs: [deps]
     runs-on: ubuntu-latest
     steps:
+      - name: Upgrade sqlite
+        run: |
+          sudo apt-get update
+          sudo apt-get --assume-yes install sqlite
       - name: Checkout
         if: "!inputs.skip-checkout"
         uses: actions/checkout@v2
