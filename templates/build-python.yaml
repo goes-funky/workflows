@@ -71,7 +71,7 @@ on:
         required: false
 jobs:
   deps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Dependencies
     steps:
       - <<: *step-checkout
