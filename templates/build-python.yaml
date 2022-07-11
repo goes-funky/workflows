@@ -132,8 +132,8 @@ jobs:
       - <<: *step-setup-poetry
       - name: Upgrade sqlite3
         run: |
-          apt-get update
-          apt-get --assume-yes install sqlite3
+          sudo apt-get update
+          sudo apt-get --assume-yes install sqlite3
       - name: Tests
         run: |
           poetry run coverage run -m pytest

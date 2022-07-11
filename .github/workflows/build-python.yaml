@@ -179,8 +179,8 @@ jobs:
           virtualenvs-in-project: true
       - name: Upgrade sqlite3
         run: |
-          apt-get update
-          apt-get install sqlite3
+          sudo apt-get update
+          sudo apt-get --assume-yes install sqlite3
       - name: Tests
         run: |
           poetry run coverage run -m pytest
