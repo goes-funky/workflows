@@ -27,7 +27,7 @@ fragments:
           skaffold: "${{ inputs.skaffold }}"
       - name: Deploy
         env:
-          SKAFFOLD_PROFILE: "${{ inputs.environment == inputs.production-environment && 'prod' || 'nonprod' }}"
+          SKAFFOLD_PROFILE: "${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}"
         run: |
           skaffold deploy --force --build-artifacts=build.json
   job-deploy-prod: &job-deploy-prod
