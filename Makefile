@@ -1,5 +1,5 @@
 YQ_VERSION ?= 4.16.2
-ACTIONLINT_VERSION ?= 1.6.8
+ACTIONLINT_VERSION ?= 1.6.15
 
 SHELL := env PATH=$(abspath bin):$(shell echo $$PATH) /bin/bash
 
