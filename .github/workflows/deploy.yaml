@@ -51,15 +51,15 @@ on:
       gke-cluster:
         description: "GKE Cluster Name"
         required: true
-      gke-location:
-        description: "GKE Cluster Location"
-        required: true
       gcp-gcr-project-id:
         description: "GCP GCR Project ID"
         required: true
       gcp-gcr-service-account:
         description: "GCP GCR Service Account Key"
         required: true
+      gke-location:
+        description: "GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)"
+        required: false
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
@@ -85,7 +85,6 @@ jobs:
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
-          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
@@ -118,7 +117,6 @@ jobs:
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
-          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
@@ -198,7 +196,6 @@ jobs:
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
-          location: ${{ secrets.gke-location }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
