@@ -71,7 +71,7 @@ fragments:
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
           credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
+      - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
           location: ${{ secrets.gke-location }}
