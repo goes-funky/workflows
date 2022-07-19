@@ -1,19 +1,18 @@
-YQ_VERSION ?= 4.16.2
 ACTIONLINT_VERSION ?= 1.6.8
+CUE_VERSION ?= 0.4.3
 
 SHELL := env PATH=$(abspath bin):$(shell echo $$PATH) /bin/bash
 
 _bullet := $(shell printf "\033[34;1m▶\033[0m")
 
-srcdir := templates
-commondir := $(srcdir)/common
+srcdir := pkg/workflows
 outdir := .github/workflows
 
 # find all templates
-srcs := $(wildcard $(srcdir)/*.yaml)
+srcs := $(wildcard $(srcdir)/*.cue)
 
 # generate output file names from templates
-outputs := $(patsubst $(srcdir)/%.yaml,$(outdir)/%.yaml,$(srcs))
+outputs := $(patsubst $(srcdir)/%.cue,$(outdir)/%.yaml,$(srcs))
 
 os := $(shell uname -s | tr [:upper:] [:lower:])
 arch := $(shell uname -m)
@@ -24,24 +23,23 @@ endif
 
 binary := $(os)_$(arch)
 
-YQ := bin/yq-$(YQ_VERSION)/yq_$(binary)
+CUE := bin/cue-$(CUE_VERSION)/cue
 ACTIONLINT := bin/actionlint-$(ACTIONLINT_VERSION)/actionlint
 
-.PHONY: all lint generate tools lint-workflows generate-workflows
-
-.PHONY: $(srcs)
+.PHONY: all lint generate tools lint-workflows generate-workflows $(srcs)
 
 all: generate lint
 
-tools: $(YQ) $(ACTIONLINT)
+tools: $(CUE) $(ACTIONLINT)
 
-# install yq
-$(YQ):
-	$(info $(_bullet) Installing <yq>)
-	@mkdir -p $(dir $(YQ))
-	@curl -s -L https://github.com/mikefarah/yq/releases/download/v$(YQ_VERSION)/yq_$(binary).tar.gz | \
-    tar xz -C $(dir $(YQ))
-	ln -s $(subst bin/,,$(YQ)) bin/yq
+# install cue
+$(CUE):
+	$(info $(_bullet) Installing <cue>)
+	@echo $(CUE)
+	@mkdir -p $(dir $(CUE))
+	@curl -s -L https://github.com/cue-lang/cue/releases/download/v$(CUE_VERSION)/cue_v$(CUE_VERSION)_$(binary).tar.gz | \
+    tar xz -C $(dir $(CUE))
+	ln -sf $(subst bin/,,$(CUE)) bin/cue
 
 # install actionlint
 $(ACTIONLINT):
@@ -51,26 +49,19 @@ $(ACTIONLINT):
     tar xz -C $(dir $(ACTIONLINT)) actionlint
 	ln -s $(subst bin/,,$(ACTIONLINT)) bin/actionlint
 
-# define workflow dependencies
-$(outdir)/build-go.yaml $(outdir)/build-python.yaml: $(commondir)/build.yaml $(commondir)/ssh-agent.yaml
-$(outdir)/deploy-git-flow.yaml $(outdir)/deploy.yaml: $(commondir)/deploy.yaml $(commondir)/ssh-agent.yaml
-$(outdir)/deploy-integration.yaml: $(commondir)/deploy-integration.yaml $(commondir)/ssh-agent.yaml $(commondir)/build.yaml
-
 lint: lint-workflows
 
 lint-workflows: $(ACTIONLINT)
 	$(info $(_bullet) Lint <workflows>)
-	actionlint
+	@actionlint
 
 generate: generate-workflows
 
 generate-workflows::
 	$(info $(_bullet) Generating <workflows>)
 
-generate-workflows:: $(YQ) $(outputs)
+generate-workflows:: $(CUE) $(outputs)
 
-$(outdir)/%.yaml: $(srcdir)/%.yaml
-	@echo $@
-	@yq eval-all '. as $$item ireduce ({}; . *+ $$item )' $^ | \
-	yq eval 'explode(.) | del (.fragments) | . headComment=""' - \
-	> $@
+$(outdir)/%.yaml: $(srcdir)/%.cue
+	@echo "$@"
+	@cue export $< --out yaml > $@
