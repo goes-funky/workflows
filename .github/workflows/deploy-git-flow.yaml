@@ -1,92 +1,92 @@
 name: Deploy
-on:
+"on":
   workflow_call:
     inputs:
-      development-branch:
-        type: string
-        description: "Development branch"
-        default: "develop"
-        required: false
-      production-branch:
-        type: string
-        description: "Production branch"
-        default: "master"
-        required: false
       skaffold:
         type: string
-        description: "Skaffold version"
-        default: "1.33.0"
+        description: Skaffold version
+        default: 1.33.0
       kubeval:
         type: string
-        description: "Kubeval version"
-        default: "0.16.1"
+        description: Kubeval version
+        default: 0.16.1
       environment:
         type: string
-        description: "Deployment environment"
+        description: Deployment environment
         required: false
       development-environment:
         type: string
-        description: "Development environment"
-        default: "dev"
+        description: Development environment
+        default: dev
         required: false
       production-environment:
         type: string
-        description: "Production environment"
-        default: "prod"
+        description: Production environment
+        default: prod
         required: false
       default-repo:
         type: string
-        description: "Default artifact repository"
-        default: "eu.gcr.io/y42-artifacts-ea47981a"
+        description: Default artifact repository
+        default: eu.gcr.io/y42-artifacts-ea47981a
       dist-artifact:
         type: string
-        description: "Dist artifact name"
+        description: Dist artifact name
+        required: false
+      development-branch:
+        type: string
+        description: Development branch
+        default: develop
         required: false
       skip-deploy:
         type: boolean
-        description: "Skip deployment to cluster"
+        description: Skip deployment to cluster
+        required: false
+      production-branch:
+        type: string
+        description: Production branch
+        default: master
         required: false
     secrets:
       gcp-project-id:
-        description: "GCP Project ID"
+        description: GCP Project ID
         required: true
       gcp-service-account:
-        description: "GCP Service Account Key"
+        description: GCP Service Account Key
         required: true
       gke-cluster:
-        description: "GKE Cluster Name"
+        description: GKE Cluster Name
         required: true
       gcp-gcr-project-id:
-        description: "GCP GCR Project ID"
+        description: GCP GCR Project ID
         required: true
       gcp-gcr-service-account:
-        description: "GCP GCR Service Account Key"
+        description: GCP GCR Service Account Key
         required: true
       gke-location:
-        description: "GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)"
+        description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
         required: false
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
 env:
-  SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch)}"
+  SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch)}
 jobs:
-  # deploy to development from inputs.development-branch
   deploy-development:
-    if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch))"
-    name: Deploy to development
-    needs: [build]
+    needs:
+      - build
+    if: '!inputs.skip-deploy && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || github.event.ref == format(''refs/heads/{0}'', inputs.production-branch))'
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
+    name: Deploy to development
     steps:
       - uses: actions/checkout@v2
-      - name: "Setup GCloud"
+      - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
-          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -97,28 +97,28 @@ jobs:
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
-          skaffold: "${{ inputs.skaffold }}"
+          skaffold: ${{ inputs.skaffold }}
       - name: Deploy
         env:
-          SKAFFOLD_PROFILE: "${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}"
-        run: |
-          skaffold deploy --force --build-artifacts=build.json
-  # deploy to production from inputs.production-branch
+          SKAFFOLD_PROFILE: ${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}
+        run: skaffold deploy --force --build-artifacts=build.json
   deploy-production:
-    if: "!inputs.skip-deploy && github.event.ref == format('refs/heads/{0}', inputs.production-branch)"
-    name: Deploy to production
-    needs: [build, deploy-development]
+    needs:
+      - build
+      - deploy-development
+    if: '!inputs.skip-deploy && github.event.ref == format(''refs/heads/{0}'', inputs.production-branch)'
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
+    name: Deploy to production
     steps:
       - uses: actions/checkout@v2
-      - name: "Setup GCloud"
+      - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
-          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -129,75 +129,70 @@ jobs:
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
-          skaffold: "${{ inputs.skaffold }}"
+          skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        run: |
-          skaffold deploy --profile prod --force --build-artifacts=build.json
+        run: skaffold deploy --profile prod --force --build-artifacts=build.json
   build:
-    name: Build Docker images
     runs-on: ubuntu-latest
+    name: Build Docker images
     steps:
       - uses: actions/checkout@v2
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
-          path: |
-            ~/.skaffold/cache
-          key: "${{ runner.os }}-skaffold"
+          path: ~/.skaffold/cache
+          key: ${{ runner.os }}-skaffold
       - uses: actions/download-artifact@master
-        if: "inputs.dist-artifact"
+        if: inputs.dist-artifact
         with:
           name: ${{ inputs.dist-artifact }}
           path: dist
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: "${{ secrets.ssh-private-key }}"
-      - name: "Setup GCloud"
+          ssh-private-key: ${{ secrets.ssh-private-key }}
+      - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
           project_id: ${{ secrets.gcp-gcr-project-id }}
           service_account_key: ${{ secrets.gcp-gcr-service-account }}
           export_default_credentials: true
-          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - name: Configure Docker Auth
-        run: |
-          gcloud --quiet auth configure-docker eu.gcr.io
+        run: gcloud --quiet auth configure-docker eu.gcr.io
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
-          setup-tools: |
+          setup-tools: |-
             skaffold
             kubeval
-          skaffold: "${{ inputs.skaffold }}"
-          kubeval: "${{ inputs.kubeval }}"
+          skaffold: ${{ inputs.skaffold }}
+          kubeval: ${{ inputs.kubeval }}
       - name: Configure Skaffold
-        run: |
-          skaffold config set default-repo "${{ inputs.default-repo }}"
+        run: skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
-        run: |
-          skaffold build --file-output=build.json
+        run: skaffold build --file-output=build.json
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
           name: build-ref
           path: build.json
-  # deploy to specified environment
   deploy-environment:
-    name: Deploy to environment
-    needs: [build]
-    if: "inputs.environment"
+    needs:
+      - build
+    if: inputs.environment
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    name: Deploy to environment
     steps:
       - uses: actions/checkout@v2
-      - name: "Setup GCloud"
+      - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
-          credentials_file_path: "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -208,9 +203,8 @@ jobs:
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
-          skaffold: "${{ inputs.skaffold }}"
+          skaffold: ${{ inputs.skaffold }}
       - name: Deploy
         env:
-          SKAFFOLD_PROFILE: "${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}"
-        run: |
-          skaffold deploy --force --build-artifacts=build.json
+          SKAFFOLD_PROFILE: ${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}
+        run: skaffold deploy --force --build-artifacts=build.json

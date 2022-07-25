@@ -1,19 +1,19 @@
 name: Draft Release
-on:
+"on":
   workflow_call:
     inputs:
       type:
-        description: "Type"
         type: string
+        description: Type
         required: true
     secrets:
       github-token:
-        description: "Github Token with repository write permissions"
+        description: Github Token with repository write permissions
         required: true
 jobs:
   create:
-    name: Create
     runs-on: ubuntu-latest
+    name: Create draft release
     steps:
       - uses: actions/checkout@v2
         with:

@@ -1,15 +1,15 @@
 name: Build Go
-on:
+"on":
   workflow_call:
     inputs:
-      go-version:
-        type: string
-        description: Go version
-        default: "1.17"
       skip-checkout:
         type: boolean
         description: Whether to skip checkout
         default: false
+      go-version:
+        type: string
+        description: Go version
+        default: "1.17"
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
@@ -20,7 +20,7 @@ jobs:
     name: Tools
     steps:
       - name: Checkout
-        if: "!inputs.skip-checkout"
+        if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
         with:
           submodules: true
@@ -28,101 +28,100 @@ jobs:
         id: tools-cache
         uses: actions/cache@v2
         with:
-          path: |
-            build/
-          key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
+          path: build/
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
       - name: Setup go
         uses: actions/setup-go@v2
         with:
-          go-version: "${{ inputs.go-version }}"
-        if: "!steps.tools-cache.outputs.cache-hit"
+          go-version: ${{ inputs.go-version }}
+        if: '!steps.tools-cache.outputs.cache-hit'
       - name: Download tools
-        if: "!steps.tools-cache.outputs.cache-hit"
+        if: '!steps.tools-cache.outputs.cache-hit'
         run: make tools
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
     steps:
       - name: Checkout
-        if: "!inputs.skip-checkout"
+        if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
       - name: Setup Go cache
         id: deps-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ~/go/pkg/mod
-          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
       - name: Setup go
         uses: actions/setup-go@v2
         with:
-          go-version: "${{ inputs.go-version }}"
-        if: "!steps.deps-cache.outputs.cache-hit"
+          go-version: ${{ inputs.go-version }}
+        if: '!steps.deps-cache.outputs.cache-hit'
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: "${{ secrets.ssh-private-key }}"
-        if: "!steps.deps-cache.outputs.cache-hit"
+          ssh-private-key: ${{ secrets.ssh-private-key }}
+        if: '!steps.deps-cache.outputs.cache-hit'
       - name: Download dependencies
-        if: "!steps.deps-cache.outputs.cache-hit"
-        run: |
+        if: '!steps.deps-cache.outputs.cache-hit'
+        run: |-
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           go mod download
   check:
-    needs: [tools, deps]
+    needs:
+      - tools
+      - deps
     runs-on: ubuntu-latest
     name: Check
     env:
       GOLANGCILINT_CONCURRENCY: "4"
     steps:
       - name: Checkout
-        if: "!inputs.skip-checkout"
+        if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
         with:
           submodules: true
       - name: Setup go
         uses: actions/setup-go@v2
         with:
-          go-version: "${{ inputs.go-version }}"
+          go-version: ${{ inputs.go-version }}
       - name: Setup tools cache
         id: tools-cache
         uses: actions/cache@v2
         with:
-          path: |
-            build/
-          key: "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
+          path: build/
+          key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
       - name: Setup Go cache
         id: deps-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ~/go/pkg/mod
-          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
       - name: Ensure code is formatted
         run: make format && make git-dirty
       - name: Lint
         run: make lint
   test:
-    needs: [tools, deps]
+    needs:
+      - tools
+      - deps
     runs-on: ubuntu-latest
     name: Test
     steps:
       - name: Checkout
-        if: "!inputs.skip-checkout"
+        if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
         with:
           submodules: true
       - name: Setup go
         uses: actions/setup-go@v2
         with:
-          go-version: "${{ inputs.go-version }}"
+          go-version: ${{ inputs.go-version }}
       - name: Setup Go cache
         id: deps-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ~/go/pkg/mod
-          key: "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
       - name: Unit test
         run: make test
       - name: Integration test with coverage
