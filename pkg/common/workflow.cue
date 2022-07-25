@@ -57,7 +57,13 @@ package common
 	env?: [string]: string
 	environment?: string
 	"runs-on":    string | *"ubuntu-latest"
-	name:         string
+	name?:         string
+	outputs?: [string]: string
+	strategy?: {
+		"fail-fast"?: bool
+		"max-parallel"?: int
+		matrix?: #string_map | =~ "^\\$\\{\\{.*\\}\\}$"
+	}
 	steps: [...#step]
 }
 
@@ -71,3 +77,5 @@ package common
 	env?: [string]:  string
 	run?: string
 }
+
+#string_map: [string]: [...string]
