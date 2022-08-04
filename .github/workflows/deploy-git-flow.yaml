@@ -80,13 +80,12 @@ jobs:
     name: Deploy to development
     steps:
       - uses: actions/checkout@v2
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0.2.1
+      - name: Authenticate to GCP
+        id: auth_gcp
+        uses: google-github-actions/auth@v0
         with:
           project_id: ${{ secrets.gcp-project-id }}
-          service_account_key: ${{ secrets.gcp-service-account }}
-          export_default_credentials: true
-          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
+          credentials_json: ${{ secrets.gcp-service-account }}
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -112,13 +111,12 @@ jobs:
     name: Deploy to production
     steps:
       - uses: actions/checkout@v2
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0.2.1
+      - name: Authenticate to GCP
+        id: auth_gcp
+        uses: google-github-actions/auth@v0
         with:
           project_id: ${{ secrets.gcp-project-id }}
-          service_account_key: ${{ secrets.gcp-service-account }}
-          export_default_credentials: true
-          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
+          credentials_json: ${{ secrets.gcp-service-account }}
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -151,15 +149,19 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0.2.1
+      - name: Authenticate to GCP
+        id: auth_gcp
+        uses: google-github-actions/auth@v0
         with:
           project_id: ${{ secrets.gcp-gcr-project-id }}
-          service_account_key: ${{ secrets.gcp-gcr-service-account }}
-          export_default_credentials: true
-          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
-      - name: Configure Docker Auth
-        run: gcloud --quiet auth configure-docker eu.gcr.io
+          credentials_json: ${{ secrets.gcp-gcr-service-account }}
+          token_format: access_token
+      - name: Authenticate to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: eu.gcr.io
+          username: oauth2accesstoken
+          password: ${{ steps.auth_gcp.outputs.access_token }}
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
@@ -186,13 +188,12 @@ jobs:
     name: Deploy to environment
     steps:
       - uses: actions/checkout@v2
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0.2.1
+      - name: Authenticate to GCP
+        id: auth_gcp
+        uses: google-github-actions/auth@v0
         with:
           project_id: ${{ secrets.gcp-project-id }}
-          service_account_key: ${{ secrets.gcp-service-account }}
-          export_default_credentials: true
-          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
+          credentials_json: ${{ secrets.gcp-service-account }}
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}

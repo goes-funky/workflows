@@ -123,19 +123,15 @@ import "list"
 			}
 		},
 		#step_setup_ssh_agent,
-		#step_setup_gcloud & {
+		#step_auth_gcp & {
 			with: {
 
-				project_id:                 "${{ secrets.gcp-gcr-project-id }}"
-				service_account_key:        "${{ secrets.gcp-gcr-service-account }}"
-				export_default_credentials: true
-				credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+				project_id:       "${{ secrets.gcp-gcr-project-id }}"
+				credentials_json: "${{ secrets.gcp-gcr-service-account }}"
+				token_format:     "access_token"
 			}
 		},
-		{
-			name: "Configure Docker Auth"
-			run:  "gcloud --quiet auth configure-docker eu.gcr.io"
-		},
+		#step_auth_gcr,
 		{
 			name: "Setup Kubernetes tools"
 			uses: "yokawasa/action-setup-kube-tools@v0.7.1"
@@ -197,12 +193,10 @@ import "list"
 		{
 		uses: "actions/checkout@v2"
 	},
-	#step_setup_gcloud & {
+	#step_auth_gcp & {
 		with: {
-			project_id:                 "${{ secrets.gcp-project-id }}"
-			service_account_key:        "${{ secrets.gcp-service-account }}"
-			export_default_credentials: true
-			credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+			project_id:       "${{ secrets.gcp-project-id }}"
+			credentials_json: "${{ secrets.gcp-service-account }}"
 		}
 	},
 	{
@@ -227,7 +221,18 @@ import "list"
 	},
 ]
 
-#step_setup_gcloud: #step & {
-	name: "Setup GCloud"
-	uses: "google-github-actions/setup-gcloud@v0.2.1"
+#step_auth_gcp: #step & {
+	id: "auth_gcp"
+	name: "Authenticate to GCP"
+	uses: "google-github-actions/auth@v0"
+}
+
+#step_auth_gcr: #step & {
+	name: "Authenticate to GCR"
+	uses: "docker/login-action@v1"
+	with: {
+		registry: "eu.gcr.io"
+		username: "oauth2accesstoken"
+		password: "${{ steps.auth_gcp.outputs.access_token }}"
+	}
 }
