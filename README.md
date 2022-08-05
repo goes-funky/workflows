@@ -61,3 +61,14 @@ Example:
 `git checkout -b hotfix-roles-config $(git tag --sort=committerdate | grep -E '^v.*' | tail -1)`
 
 `gh workflow run --ref hotfix-roles-config -f environment=production`\
+
+## Contributing
+
+We use [CUE](https://cuelang.org) to manage and generate actual workflows.
+Don't make any direct change in `.github/workflows` folder, it will be overrided.
+
+Contributing flow:
+- Changes should be made within `pkg/*`
+- Run `make` to generate actual workflows
+- Commit your change for both `pkg/*` and generated workflows in `.github/workflows`
+- PR time!
