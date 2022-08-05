@@ -65,7 +65,7 @@ Example:
 ## Contributing
 
 We use [CUE](https://cuelang.org) to manage and generate actual workflows.
-Don't make any direct change in `.github/workflows` folder, it's will be overrided.
+Don't make any direct change in `.github/workflows` folder, it will be overrided.
 
 Contributing flow:
 - Changes should be made within `pkg/*`
