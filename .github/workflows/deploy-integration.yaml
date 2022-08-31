@@ -110,11 +110,9 @@ env:
   SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }
 jobs:
   integration-schema-generate-development:
+    if: "!inputs.skip-integration-schema-generate && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
     name: Upload Integration Schema to dev
-    needs:
-      - deps
-      - build
-    if: '!inputs.skip-integration-schema-generate && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.event.ref, ''refs/tags/v''))'
+    needs: [deps]
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     steps:
@@ -161,13 +159,9 @@ jobs:
           destination: ${{ secrets.json-schema-bucket }}
           headers: 'cache-control: public, max-age=300'
   integration-schema-generate-production:
+    if: "!inputs.skip-integration-schema-generate && startsWith(github.event.ref, 'refs/tags/v')"
     name: Upload Integration Schema to prod
-    needs:
-      - deps
-      - build
-      - integration-schema-generate-development
-      - deploy-development
-    if: '!inputs.skip-integration-schema-generate && startsWith(github.event.ref, ''refs/tags/v'')'
+    needs: [deps, json-schema-generate-development, deploy-development]
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     steps:
@@ -345,10 +339,8 @@ jobs:
           poetry install
   integration-schema-generate-environment:
     name: Upload Integration Schema to env
-    needs:
-      - deps
-      - build
-    if: inputs.environment
+    needs: [deps]
+    if: "inputs.environment"
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
