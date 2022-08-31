@@ -176,7 +176,7 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Bandit
-        run: poetry run bandit -ll -b bandit-baseline.json -r .
+        run: poetry run bandit -ll --exclude '.venv' -b bandit-baseline.json -r .
   tests:
     name: Tests
     if: '!inputs.skip-tests'
