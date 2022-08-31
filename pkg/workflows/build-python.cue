@@ -172,7 +172,7 @@ common.#build_workflow & {
 				#step_setup_poetry,
 				{
 					name: "Bandit"
-					run:  "poetry run bandit -ll --exclude '.venv' -b bandit-baseline.json -r ."
+					run:  "poetry run bandit -ll --exclude './.venv' -b bandit-baseline.json -r ."
 				}
 			]
 		}
