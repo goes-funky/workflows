@@ -171,11 +171,11 @@ jobs:
           skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Export git commit
         run: |
-          COMMIT_HASH="$(git rev-parse HEAD)" export COMMIT_HASH echo COMMIT_HASH
+          SHORT_SHA="$(git rev-parse --short HEAD)" export SHORT_SHA
       - name: Build
         env:
           FONTAWESOME_KEY: ${{ secrets.font-awesome-key }}
-          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+          COMMIT_HASH: ${{ env.SHORT_SHA }}
         run: |
           skaffold build --file-output=build.json
       - id: verify
