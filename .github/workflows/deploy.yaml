@@ -5,16 +5,18 @@ name: Deploy
       development-branch:
         type: string
         description: "Development branch"
-        default: ""
+        default: ${{ github.event.repository.default_branch }}
         required: false
       skaffold:
         type: string
         description: Skaffold version
         default: 1.33.0
+        required: false
       kubeval:
         type: string
         description: Kubeval version
         default: 0.16.1
+        required: false
       environment:
         type: string
         description: Deployment environment
@@ -33,14 +35,10 @@ name: Deploy
         type: string
         description: Default artifact repository
         default: eu.gcr.io/y42-artifacts-ea47981a
+        required: false
       dist-artifact:
         type: string
         description: Dist artifact name
-        required: false
-      development-branch:
-        type: string
-        description: Development branch
-        default: ${{ github.event.repository.default_branch }}
         required: false
       skip-deploy:
         type: boolean
@@ -77,6 +75,7 @@ jobs:
   deploy-development:
     if: "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.event.ref, 'refs/tags/v') || github.event.ref == format('refs/heads/{0}', inputs.development-branch))"
     name: Deploy to development
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Setup GCloud
