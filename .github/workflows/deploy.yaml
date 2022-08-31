@@ -60,6 +60,9 @@ name: Deploy
       gke-location:
         description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
         required: false
+      font-awesome-key:
+        description: "Font awesome key required to build the frontend"
+        required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
@@ -164,7 +167,11 @@ jobs:
           skaffold: ${{ inputs.skaffold }}
           kubeval: ${{ inputs.kubeval }}
       - name: Configure Skaffold
-        run: skaffold config set default-repo "${{ inputs.default-repo }}"
+        run: |
+          skaffold config set default-repo "${{ inputs.default-repo }}"
+      - name: Export frontend Fontawesome key for build
+        run: |
+          FRONTEND_FONTAWESOME_KEY=${{ secrets.font-awesome-key }} export FRONTEND_FONTAWESOME_KEY
       - name: Build
         run: skaffold build --file-output=build.json
       - name: Archive build reference
