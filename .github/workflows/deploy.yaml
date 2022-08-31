@@ -171,7 +171,8 @@ jobs:
           skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
         env:
-          FRONTEND_FONTAWESOME_KEY: ${{ secrets.font-awesome-key }}
+          FONTAWESOME_KEY: ${{ secrets.font-awesome-key }}
+          SHORT_SHAR: "TEST_VALUE"
         run: |
           skaffold build --file-output=build.json
       - id: verify
