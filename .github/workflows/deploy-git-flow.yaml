@@ -57,7 +57,7 @@ name: Deploy
         required: true
       font-awesome-key:
         description: "Font awesome key required to build the frontend"
-        required: true
+        required: false
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
@@ -162,7 +162,7 @@ jobs:
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
-      - name: Export git commit hash
+      - name: Export git commit
         run: |
           COMMIT_HASH="$(git rev-parse HEAD)" export COMMIT_HASH
       - name: Build
