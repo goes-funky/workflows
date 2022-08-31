@@ -175,7 +175,6 @@ jobs:
       - name: Build
         env:
           FONTAWESOME_KEY: ${{ secrets.font-awesome-key }}
-          COMMIT_HASH: $COMMIT_HASH
         run: |
           skaffold build --file-output=build.json
       - id: verify
