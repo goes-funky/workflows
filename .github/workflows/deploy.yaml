@@ -169,10 +169,12 @@ jobs:
       - name: Configure Skaffold
         run: |
           skaffold config set default-repo "${{ inputs.default-repo }}"
+      - name: Export git commit hash
+        run: |
+          COMMIT_HASH="$(git rev-parse HEAD)" export COMMIT_HASH
       - name: Build
         env:
           FONTAWESOME_KEY: ${{ secrets.font-awesome-key }}
-          SHORT_SHAR: "TEST_VALUE"
         run: |
           skaffold build --file-output=build.json
       - id: verify
