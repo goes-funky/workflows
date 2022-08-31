@@ -161,6 +161,21 @@ common.#build_workflow & {
 				},
 			]
 		}
+		bandit: {
+			name: "Bandit"
+			needs: ["deps"]
+			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
+			steps: [
+				common.#step_checkout,
+				#step_setup_python,
+				#step_setup_deps_cache,
+				#step_setup_poetry,
+				{
+					name: "Bandit"
+					run:  "poetry run bandit -ll --exclude './.venv' -b bandit-baseline.json -r ."
+				}
+			]
+		}
 		tests: {
 			name: "Tests"
 			if:   "!inputs.skip-tests"
