@@ -1,4 +1,4 @@
-ACTIONLINT_VERSION ?= 1.6.8
+ACTIONLINT_VERSION ?= 1.6.15
 CUE_VERSION ?= 0.4.3
 
 SHELL := env PATH=$(abspath bin):$(shell echo $$PATH) /bin/bash
