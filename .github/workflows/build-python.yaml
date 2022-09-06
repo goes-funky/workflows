@@ -76,7 +76,7 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Setup SSH Agent
-        if: "${{ secrets.ssh-private-key != '' }}"
+        if: secrets.ssh-private-key
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}

@@ -35,5 +35,5 @@ package common
 	with: {
 		"ssh-private-key": "${{ secrets.ssh-private-key }}"
 	}
-	if: "${{ secrets.ssh-private-key != '' }}"
+	if: "secrets.ssh-private-key"
 }
