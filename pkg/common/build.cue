@@ -31,9 +31,9 @@ package common
 
 #step_setup_ssh_agent: #step & {
 	name: "Setup SSH Agent"
+	if: "!!secrets.ssh-private-key"
 	uses: "webfactory/ssh-agent@v0.5.4"
 	with: {
 		"ssh-private-key": "${{ secrets.ssh-private-key }}"
 	}
-	if: "secrets.ssh-private-key"
 }
