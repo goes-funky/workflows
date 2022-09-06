@@ -15,7 +15,7 @@ package common
 			secrets: {
 				"ssh-private-key": {
 					description: "SSH private key used to authenticate to GitHub with, in order to fetch private dependencies"
-					required:    false
+					required:    true
 				}
 				...
 			}
@@ -35,5 +35,4 @@ package common
 	with: {
 		"ssh-private-key": "${{ secrets.ssh-private-key }}"
 	}
-	if: "${{ secrets.ssh-private-key != '' }}"
 }
