@@ -46,7 +46,7 @@ name: Build Python
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: true
+        required: false
       codecov-token:
         description: Token to upload coverage reports to codecov
         required: false
@@ -76,6 +76,7 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Setup SSH Agent
+        if: ${{ secrets.ssh-private-key != '' }}
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
