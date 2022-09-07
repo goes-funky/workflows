@@ -10,6 +10,11 @@ package common
 					description: "Whether to skip checkout"
 					default:     false
 				}
+				"is-repo-public": {
+					type:        "boolean"
+					description: "Whether to skip ssh agent configuration"
+					default:     false
+				}
 				...
 			}
 			secrets: {
@@ -31,7 +36,7 @@ package common
 
 #step_setup_ssh_agent: #step & {
 	name: "Setup SSH Agent"
-	if: "!!secrets.ssh-private-key"
+	if: "!inputs.is-repo-public"
 	uses: "webfactory/ssh-agent@v0.5.4"
 	with: {
 		"ssh-private-key": "${{ secrets.ssh-private-key }}"

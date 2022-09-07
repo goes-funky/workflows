@@ -10,6 +10,10 @@ name: Build Go
         type: string
         description: Go version
         default: "1.17"
+      is-repo-public:
+        type: boolean
+        description: Whether to skip ssh agent configuration
+        default: false
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies

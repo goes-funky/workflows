@@ -6,6 +6,11 @@ import "list"
 	on: {
 		workflow_call: {
 			inputs: {
+				"is-repo-public": {
+					type:        "boolean"
+					description: "Whether to skip ssh agent configuration"
+					default:     false
+				}
 				"skaffold": {
 					type:        "string"
 					description: "Skaffold version"
