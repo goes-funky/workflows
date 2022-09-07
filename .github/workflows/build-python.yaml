@@ -52,7 +52,10 @@ name: Build Python
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
       sonar_token:
-        description: Sonar token
+        description: Token for sonarcloud.io scans
+        required: false
+      codecov-token:
+        description: Keep around until all workflows are migrated
         required: false
 jobs:
   deps:
