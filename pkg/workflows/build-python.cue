@@ -92,7 +92,11 @@ common.#build_workflow & {
 			}
 			secrets: {
 				"sonar_token": {
-					description: "Sonar token"
+					description: "Token for sonarcloud.io scans"
+					required:    false
+				}
+				"codecov-token": {
+					description: "Keep around until all workflows are migrated"
 					required:    false
 				}
 			}
