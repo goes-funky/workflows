@@ -84,10 +84,15 @@ common.#build_workflow & {
 					description: "Whether to skip checking type hints with mypy"
 					default:     true
 				}
+				"skip-sonar": {
+					type:        "boolean"
+					description: "Whether to skip sonarcloud scans"
+					default:     true
+				}
 			}
 			secrets: {
-				"codecov-token": {
-					description: "Token to upload coverage reports to codecov"
+				"sonar_token": {
+					description: "Sonar token"
 					required:    false
 				}
 			}
@@ -194,11 +199,20 @@ common.#build_workflow & {
 						"""
 				},
 				{
-					name: "Upload Coverage to Codecov"
-					env: CODECOV_TOKEN: "${{ secrets.codecov-token }}"
-					if:   "env.CODECOV_TOKEN != null"
-					uses: "codecov/codecov-action@v2"
-					with: token: "${{ secrets.codecov-token }}"
+					name: "Sonarcloud check"
+					env: {
+						GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+						SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
+					}
+					if: "!inputs.skip-sonar"
+					uses: "SonarSource/sonarcloud-github-action@master"
+					with: {
+						args: """
+							-Dsonar.python.coverage.reportPaths=coverage.xml
+							-Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}}
+							-Dsonar.organization=${{github.repository_owner}}
+							"""
+					}
 				},
 			]
 		}
