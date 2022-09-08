@@ -39,14 +39,14 @@ name: Build Python
         type: boolean
         description: Whether to skip running tests
         default: true
-      is-repo-public:
-        type: boolean
-        description: Whether to skip ssh agent configuration
-        default: false
       skip-mypy:
         type: boolean
         description: Whether to skip checking type hints with mypy
         default: true
+      is-repo-public:
+        type: boolean
+        description: Whether to skip ssh agent configuration
+        default: false
       skip-sonar:
         type: boolean
         description: Whether to skip sonarcloud scans
@@ -54,7 +54,7 @@ name: Build Python
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: true
+        required: false
       sonar_token:
         description: Token for sonarcloud.io scans
         required: false
