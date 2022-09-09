@@ -83,7 +83,7 @@ import "list"
 				"poetry-version": {
 					type:        "string"
 					description: "Poetry version"
-					default:     "1.1.12"
+					default:     "1.1.15"
 					required:    false
 				}
 				// Know issue installing some packages. Resolved past poetry v1.2 which is currently in beta https://github.com/python-poetry/poetry/issues/4511
