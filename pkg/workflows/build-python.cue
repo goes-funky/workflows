@@ -37,6 +37,7 @@ common.#workflow & {
 		workflow_call: {
 			inputs: {
 				common.#with.checkout.inputs
+				common.#with.ssh_agent.inputs
 				"python-version": {
 					type:        "string"
 					description: "Python version"

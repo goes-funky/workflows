@@ -8,6 +8,7 @@ import "list"
 			inputs: {
 				#with.checkout.inputs
 				#with.kube_tools.inputs
+				#with.ssh_agent.inputs
 				"environment": {
 					type:        "string"
 					description: "Deployment environment"
