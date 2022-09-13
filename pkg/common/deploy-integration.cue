@@ -6,23 +6,8 @@ import "list"
 	on: {
 		workflow_call: {
 			inputs: {
-				"is-repo-public": {
-					type:        "boolean"
-					description: "Whether to skip ssh agent configuration"
-					default:     false
-				}
-				"skaffold": {
-					type:        "string"
-					description: "Skaffold version"
-					default:     "1.33.0"
-					required:    false
-				}
-				"kubeval": {
-					type:        "string"
-					description: "Kubeval version"
-					default:     "0.16.1"
-					required:    false
-				}
+				#with.checkout.inputs
+				#with.kube_tools.inputs
 				"environment": {
 					type:        "string"
 					description: "Deployment environment"
@@ -88,7 +73,7 @@ import "list"
 				"poetry-version": {
 					type:        "string"
 					description: "Poetry version"
-					default:     "1.1.12"
+					default:     "1.1.15"
 					required:    false
 				}
 				// Know issue installing some packages. Resolved past poetry v1.2 which is currently in beta https://github.com/python-poetry/poetry/issues/4511
@@ -102,40 +87,17 @@ import "list"
 					description: "Whether to skip checkout"
 					default:     false
 				}
+				...
 			}
 			secrets: {
-				"gcp-project-id": {
-					description: "GCP Project ID"
-					required:    true
-				}
-				"gcp-service-account": {
-					description: "GCP Service Account Key"
-					required:    true
-				}
-				"gke-cluster": {
-					description: "GKE Cluster Name"
-					required:    true
-				}
-				"gcp-gcr-project-id": {
-					description: "GCP GCR Project ID"
-					required:    true
-				}
-				"gcp-gcr-service-account": {
-					description: "GCP GCR Service Account Key"
-					required:    true
-				}
-				"ssh-private-key": {
-					description: "SSH private key used to authenticate to GitHub with, in order to fetch private dependencies"
-					required:    true
-				}
+				#with.gcloud.secrets
+				#with.gke.secrets
+				#with.ssh_agent.secrets
 				"json-schema-bucket": {
 					description: "Required for json-schema upload. Name of the bucket to write integration schema to."
 					required:    false
 				}
-				"gke-location": {
-					description: "GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)"
-					required:    false
-				}
+				...
 			}
 		}
 
@@ -187,7 +149,7 @@ import "list"
 		build: {
 			name: "Build Docker images"
 			steps: [
-				#step_checkout,
+				#with.checkout.step,
 				{
 					name: "Setup skaffold cache"
 					uses: "actions/cache@v2"
@@ -205,8 +167,8 @@ import "list"
 						path: "dist"
 					}
 				},
-				#step_setup_ssh_agent,
-				#step_setup_gcloud & {
+				#with.ssh_agent.step,
+				#with.gcloud.step & {
 					with: {
 						project_id:                 "${{ secrets.gcp-gcr-project-id }}"
 						service_account_key:        "${{ secrets.gcp-gcr-service-account }}"
@@ -214,22 +176,8 @@ import "list"
 						credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
 					}
 				},
-				{
-					name: "Configure Docker Auth"
-					run:  "gcloud --quiet auth configure-docker eu.gcr.io"
-				},
-				{
-					name: "Setup Kubernetes tools"
-					uses: "yokawasa/action-setup-kube-tools@v0.7.1"
-					with: {
-						"setup-tools": """
-							skaffold
-							kubeval
-							"""
-						skaffold: "${{ inputs.skaffold }}"
-						kubeval:  "${{ inputs.kubeval }}"
-					}
-				},
+				#with.docker_auth.step,
+				#with.kube_tools.step,
 				{
 					name: "Export git build details"
 					env: REPO: "${{ inputs.default-repo }}"
@@ -283,7 +231,7 @@ import "list"
 			[
 				#steps_base,
 				[
-					#step_setup_ssh_agent,
+					#with.ssh_agent.step,
 					{
 					name: "Configure setup tools for poetry"
 					if:   "inputs.setuptools-version"
@@ -316,17 +264,7 @@ import "list"
 					eval "$GENERATE_SCHEMA_COMMAND"
 					"""
 			},
-				{
-					name: "Setup GCloud"
-					uses: "google-github-actions/setup-gcloud@v0.2.1"
-					with: {
-
-						project_id:                 "${{ secrets.gcp-project-id }}"
-						service_account_key:        "${{ secrets.gcp-service-account }}"
-						export_default_credentials: true
-					}
-
-				},
+				#with.gcloud.step,
 				{
 					name: "Upload Integration schema to JSON schema folder"
 					//pinning version till resolved https://github.com/google-github-actions/upload-cloud-storage/issues/248
@@ -341,9 +279,9 @@ import "list"
 		])
 
 	deploy_integration: [
-		#step_checkout,
-		#step_setup_ssh_agent,
-		#step_setup_gcloud & {
+		#with.checkout.step,
+		#with.ssh_agent.step,
+		#with.gcloud.step & {
 			with: {
 				project_id:                 "${{ secrets.gcp-project-id }}"
 				service_account_key:        "${{ secrets.gcp-service-account }}"
@@ -351,13 +289,7 @@ import "list"
 				credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
 			}
 		},
-		{
-			name: "get gke credential"
-			uses: "google-github-actions/get-gke-credentials@v0.8.0"
-			with: {
-				cluster_name: "${{ secrets.gke-cluster }}"
-			}
-		},
+		#with.gke.step,
 		{
 			name: "Download build reference"
 			uses: "actions/download-artifact@v2"
@@ -365,9 +297,8 @@ import "list"
 				name: "build-ref"
 			}
 		},
+		#with.kube_tools.step &
 		{
-			name: "setup kubetools"
-			uses: "yokawasa/action-setup-kube-tools@v0.7.1"
 			with: {
 				"setup-tools": "skaffold"
 				skaffold:      "${{ inputs.skaffold }}"
@@ -375,7 +306,6 @@ import "list"
 		},
 		{
 			name: "Deploy"
-			// uses: "yokawasa/action-setup-kube-tools@v0.7.1"
 			if:  "inputs.skip-job-template-build"
 			run: "skaffold deploy --force --build-artifacts=build.json"
 		},
@@ -395,7 +325,7 @@ import "list"
 }
 
 #steps_base: [
-	#step_checkout,
+	#with.checkout.step,
 	#step_setup_python,
 	#step_setup_deps_cache,
 	#step_setup_poetry,

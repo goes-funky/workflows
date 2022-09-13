@@ -30,16 +30,21 @@ import "github.com/goes-funky/workflows/pkg/common"
 	with: "go-version": "${{ inputs.go-version }}"
 }
 
-common.#build_workflow & {
+common.#workflow & {
 	name: "Build Go"
 	on: {
 		workflow_call: {
 			inputs: {
+				common.#with.checkout.inputs
 				"go-version": {
 					type:        "string"
 					description: "Go version"
 					default:     "1.17"
 				}
+			}
+
+			secrets: {
+				common.#with.ssh_agent.secrets
 			}
 		}
 	}
@@ -47,7 +52,7 @@ common.#build_workflow & {
 		tools: {
 			name: "Tools"
 			steps: [
-				common.#step_checkout & {
+				common.#with.checkout.step & {
 					with: submodules: true
 				},
 				#step_setup_tools_cache,
@@ -67,7 +72,7 @@ common.#build_workflow & {
 		deps: {
 			name: "Dependencies"
 			steps: [
-				common.#step_checkout,
+				common.#with.checkout.step,
 				#step_setup_deps_cache,
 				{
 					name: "Setup go"
@@ -75,12 +80,7 @@ common.#build_workflow & {
 					with: "go-version": "${{ inputs.go-version }}"
 					if: "!steps.deps-cache.outputs.cache-hit"
 				},
-				{
-					name: "Setup SSH Agent"
-					uses: "webfactory/ssh-agent@v0.5.4"
-					with: {
-						"ssh-private-key": "${{ secrets.ssh-private-key }}"
-					}
+				common.#with.ssh_agent.step & {
 					if: "!steps.deps-cache.outputs.cache-hit"
 				},
 				{
@@ -99,7 +99,7 @@ common.#build_workflow & {
 			name: "Check"
 			env: GOLANGCILINT_CONCURRENCY: "4"
 			steps: [
-				common.#step_checkout & {
+				common.#with.checkout.step & {
 					with: submodules: true
 				},
 				#step_setup_go,
@@ -119,7 +119,7 @@ common.#build_workflow & {
 			needs: ["tools", "deps"]
 			name: "Test"
 			steps: [
-				common.#step_checkout & {
+				common.#with.checkout.step & {
 					with: submodules: true
 				},
 				#step_setup_go,
