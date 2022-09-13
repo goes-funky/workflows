@@ -10,10 +10,14 @@ name: Build Go
         type: boolean
         description: Whether to skip checkout
         default: false
+      is-repo-public:
+        type: boolean
+        description: Whether to skip ssh agent configuration
+        default: false
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: true
+        required: false
 jobs:
   tools:
     runs-on: ubuntu-latest
@@ -57,7 +61,7 @@ jobs:
           go-version: ${{ inputs.go-version }}
         if: '!steps.deps-cache.outputs.cache-hit'
       - name: Setup SSH Agent
-        if: '!steps.deps-cache.outputs.cache-hit'
+        if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}

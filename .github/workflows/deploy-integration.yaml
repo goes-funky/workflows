@@ -66,6 +66,10 @@ name: Deploy Integration
         type: string
         description: Skaffold version
         default: 1.33.0
+      is-repo-public:
+        type: boolean
+        description: Whether to skip ssh agent configuration
+        default: false
       development-branch:
         type: string
         description: Development branch
@@ -97,7 +101,7 @@ name: Deploy Integration
         required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: true
+        required: false
       gcp-gcr-service-account:
         description: GCP GCR Service Account Key
         required: true
@@ -225,6 +229,7 @@ jobs:
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
       - name: Setup SSH Agent
+        if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
@@ -271,6 +276,7 @@ jobs:
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
       - name: Setup SSH Agent
+        if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
@@ -329,6 +335,7 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Setup SSH Agent
+        if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
@@ -412,6 +419,7 @@ jobs:
           name: ${{ inputs.dist-artifact }}
           path: dist
       - name: Setup SSH Agent
+        if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
@@ -468,6 +476,7 @@ jobs:
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
       - name: Setup SSH Agent
+        if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}

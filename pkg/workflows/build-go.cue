@@ -36,6 +36,7 @@ common.#workflow & {
 		workflow_call: {
 			inputs: {
 				common.#with.checkout.inputs
+				common.#with.ssh_agent.inputs
 				"go-version": {
 					type:        "string"
 					description: "Go version"
@@ -80,9 +81,7 @@ common.#workflow & {
 					with: "go-version": "${{ inputs.go-version }}"
 					if: "!steps.deps-cache.outputs.cache-hit"
 				},
-				common.#with.ssh_agent.step & {
-					if: "!steps.deps-cache.outputs.cache-hit"
-				},
+				common.#with.ssh_agent.step,
 				{
 					name: "Download dependencies"
 					if:   "!steps.deps-cache.outputs.cache-hit"

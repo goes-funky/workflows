@@ -43,6 +43,10 @@ name: Build Python
         type: boolean
         description: Whether to skip checkout
         default: false
+      is-repo-public:
+        type: boolean
+        description: Whether to skip ssh agent configuration
+        default: false
       skip-sonar:
         type: boolean
         description: Whether to skip sonarcloud scans
@@ -53,7 +57,7 @@ name: Build Python
         required: false
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: true
+        required: false
       codecov-token:
         description: Keep around until all workflows are migrated
         required: false
@@ -83,6 +87,7 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Setup SSH Agent
+        if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}

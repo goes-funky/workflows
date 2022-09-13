@@ -19,16 +19,25 @@ package common
 	}
 
 	ssh_agent: {
+	    inputs: {
+	    	"is-repo-public": {
+                type:        "boolean"
+                description: "Whether to skip ssh agent configuration"
+                default:     false
+            }
+	    }
+
 		secrets: {
 			"ssh-private-key": {
 				description: "SSH private key used to authenticate to GitHub with, in order to fetch private dependencies"
-				required:    true
+				required:    false
 			}
 		}
 
 		step: #step & {
 			name: "Setup SSH Agent"
 			uses: "webfactory/ssh-agent@v0.5.4"
+			if: "!inputs.is-repo-public"
 			with: {
 				"ssh-private-key": "${{ secrets.ssh-private-key }}"
 			}
