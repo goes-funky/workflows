@@ -2,16 +2,6 @@ name: Deploy Integration
 "on":
   workflow_call:
     inputs:
-      skaffold:
-        type: string
-        description: Skaffold version
-        default: 1.33.0
-        required: false
-      kubeval:
-        type: string
-        description: Kubeval version
-        default: 0.16.1
-        required: false
       environment:
         type: string
         description: Deployment environment
@@ -72,6 +62,10 @@ name: Deploy Integration
         type: string
         description: Force poetry setuptools version
         default: 57.5.0
+      skaffold:
+        type: string
+        description: Skaffold version
+        default: 1.33.0
       development-branch:
         type: string
         description: Development branch
@@ -81,28 +75,32 @@ name: Deploy Integration
         type: boolean
         description: Whether to skip checkout
         default: false
+      kubeval:
+        type: string
+        description: Kubeval version
+        default: 0.16.1
     secrets:
+      json-schema-bucket:
+        description: Required for json-schema upload. Name of the bucket to write integration schema to.
+        required: false
       gcp-project-id:
         description: GCP Project ID
         required: true
       gcp-service-account:
         description: GCP Service Account Key
         required: true
-      gke-cluster:
-        description: GKE Cluster Name
-        required: true
       gcp-gcr-project-id:
         description: GCP GCR Project ID
         required: true
-      gcp-gcr-service-account:
-        description: GCP GCR Service Account Key
+      gke-cluster:
+        description: GKE Cluster Name
         required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
-      json-schema-bucket:
-        description: Required for json-schema upload. Name of the bucket to write integration schema to.
-        required: false
+      gcp-gcr-service-account:
+        description: GCP GCR Service Account Key
+        required: true
       gke-location:
         description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
         required: false
@@ -154,6 +152,7 @@ jobs:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
+          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - name: Upload Integration schema to JSON schema folder
         uses: google-github-actions/upload-cloud-storage@v0.8.0
         with:
@@ -207,6 +206,7 @@ jobs:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
+          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - name: Upload Integration schema to JSON schema folder
         uses: google-github-actions/upload-cloud-storage@v0.8.0
         with:
@@ -235,15 +235,14 @@ jobs:
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
           credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
-      - name: get gke credential
-        uses: google-github-actions/get-gke-credentials@v0.8.0
+      - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-      - name: setup kubetools
+      - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
@@ -282,15 +281,14 @@ jobs:
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
           credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
-      - name: get gke credential
-        uses: google-github-actions/get-gke-credentials@v0.8.0
+      - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-      - name: setup kubetools
+      - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
@@ -388,6 +386,7 @@ jobs:
           project_id: ${{ secrets.gcp-project-id }}
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
+          credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - name: Upload Integration schema to JSON schema folder
         uses: google-github-actions/upload-cloud-storage@v0.8.0
         with:
@@ -479,15 +478,14 @@ jobs:
           service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
           credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
-      - name: get gke credential
-        uses: google-github-actions/get-gke-credentials@v0.8.0
+      - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-      - name: setup kubetools
+      - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold

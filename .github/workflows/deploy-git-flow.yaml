@@ -2,14 +2,6 @@ name: Deploy
 "on":
   workflow_call:
     inputs:
-      skaffold:
-        type: string
-        description: Skaffold version
-        default: 1.33.0
-      kubeval:
-        type: string
-        description: Kubeval version
-        default: 0.16.1
       environment:
         type: string
         description: Deployment environment
@@ -32,6 +24,14 @@ name: Deploy
         type: string
         description: Dist artifact name
         required: false
+      skip-checkout:
+        type: boolean
+        description: Whether to skip checkout
+        default: false
+      skaffold:
+        type: string
+        description: Skaffold version
+        default: 1.33.0
       development-branch:
         type: string
         description: Development branch
@@ -41,6 +41,10 @@ name: Deploy
         type: boolean
         description: Skip deployment to cluster
         required: false
+      kubeval:
+        type: string
+        description: Kubeval version
+        default: 0.16.1
       production-branch:
         type: string
         description: Production branch
@@ -53,11 +57,14 @@ name: Deploy
       gcp-service-account:
         description: GCP Service Account Key
         required: true
+      gcp-gcr-project-id:
+        description: GCP GCR Project ID
+        required: true
       gke-cluster:
         description: GKE Cluster Name
         required: true
-      gcp-gcr-project-id:
-        description: GCP GCR Project ID
+      ssh-private-key:
+        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
       gcp-gcr-service-account:
         description: GCP GCR Service Account Key
@@ -65,9 +72,6 @@ name: Deploy
       gke-location:
         description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
         required: false
-      ssh-private-key:
-        description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: true
 env:
   SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || github.event.ref == format('refs/heads/{0}', inputs.production-branch)}
 jobs:
@@ -79,7 +83,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to development
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: '!inputs.skip-checkout'
+        uses: actions/checkout@v2
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -94,7 +100,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+      - name: Setup Kubernetes tools
+        uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
@@ -111,7 +118,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to production
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: '!inputs.skip-checkout'
+        uses: actions/checkout@v2
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -126,7 +135,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+      - name: Setup Kubernetes tools
+        uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
@@ -136,7 +146,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Docker images
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: '!inputs.skip-checkout'
+        uses: actions/checkout@v2
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
@@ -185,7 +197,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to environment
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: '!inputs.skip-checkout'
+        uses: actions/checkout@v2
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -200,7 +214,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build-ref
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+      - name: Setup Kubernetes tools
+        uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}

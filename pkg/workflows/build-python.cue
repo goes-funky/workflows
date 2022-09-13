@@ -31,11 +31,12 @@ import "github.com/goes-funky/workflows/pkg/common"
 	}
 }
 
-common.#build_workflow & {
+common.#workflow & {
 	name: "Build Python"
 	on: {
 		workflow_call: {
 			inputs: {
+				common.#with.checkout.inputs
 				"python-version": {
 					type:        "string"
 					description: "Python version"
@@ -91,6 +92,7 @@ common.#build_workflow & {
 				}
 			}
 			secrets: {
+				common.#with.ssh_agent.secrets
 				"sonar_token": {
 					description: "Token for sonarcloud.io scans"
 					required:    false
@@ -107,11 +109,11 @@ common.#build_workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			name:      "Dependencies"
 			steps: [
-				common.#step_checkout,
+				common.#with.checkout.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
-				common.#step_setup_ssh_agent,
+				common.#with.ssh_agent.step,
 				{
 					name: "Configure setup tools for poetry"
 					//if: "!steps.deps-cache.outputs.cache-hit  && inputs.setuptools-version"
@@ -139,7 +141,7 @@ common.#build_workflow & {
 			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
-				common.#step_checkout,
+				common.#with.checkout.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -155,7 +157,7 @@ common.#build_workflow & {
 			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
-				common.#step_checkout,
+				common.#with.checkout.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -175,7 +177,7 @@ common.#build_workflow & {
 			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
-				common.#step_checkout,
+				common.#with.checkout.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -191,7 +193,7 @@ common.#build_workflow & {
 			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
-				common.#step_checkout,
+				common.#with.checkout.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -226,7 +228,7 @@ common.#build_workflow & {
 			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
-				common.#step_checkout,
+				common.#with.checkout.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,

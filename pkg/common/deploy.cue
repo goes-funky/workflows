@@ -6,16 +6,8 @@ import "list"
 	on: {
 		workflow_call: {
 			inputs: {
-				"skaffold": {
-					type:        "string"
-					description: "Skaffold version"
-					default:     "1.33.0"
-				}
-				"kubeval": {
-					type:        "string"
-					description: "Kubeval version"
-					default:     "0.16.1"
-				}
+				#with.checkout.inputs
+				#with.kube_tools.inputs
 				"environment": {
 					type:        "string"
 					description: "Deployment environment"
@@ -48,49 +40,30 @@ import "list"
 					description: "Skip deployment to cluster"
 					required:    false
 				}
+				...
 			}
 			secrets: {
-				"gcp-project-id": {
-					description: "GCP Project ID"
-					required:    true
-				}
-				"gcp-service-account": {
-					description: "GCP Service Account Key"
-					required:    true
-				}
-				"gke-cluster": {
-					description: "GKE Cluster Name"
-					required:    true
-				}
-				"gcp-gcr-project-id": {
-					description: "GCP GCR Project ID"
-					required:    true
-				}
-				"gcp-gcr-service-account": {
-					description: "GCP GCR Service Account Key"
-					required:    true
-				}
-				"gke-location": {
-					description: "GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)"
-					required:    false
-				}
-				"ssh-private-key": {
-					description: "SSH private key used to authenticate to GitHub with, in order to fetch private dependencies"
-					required:    true
-				}
+				#with.gcloud.secrets
+				#with.gke.secrets
+				#with.ssh_agent.secrets
+				...
 			}
 		}
 	}
 	jobs: {
+
 		"deploy-development": #job_deploy_nonprod & {
 			name: "Deploy to development"
 			needs: ["build"]
 		}
+
 		"deploy-production": #job_deploy_prod & {
 			name: "Deploy to production"
 			needs: ["build", "deploy-development"]
 		}
+
 		build:                #job_build
+
 		"deploy-environment": #job_deploy_nonprod & {
 			name:        "Deploy to environment"
 			if:          "inputs.environment"
@@ -103,9 +76,7 @@ import "list"
 #job_build: #job & {
 	name: "Build Docker images"
 	steps: [
-		{
-			uses: "actions/checkout@v2"
-		},
+		#with.checkout.step,
 		{
 			name: "Setup skaffold cache"
 			uses: "actions/cache@v2"
@@ -122,33 +93,17 @@ import "list"
 				path: "dist"
 			}
 		},
-		#step_setup_ssh_agent,
-		#step_setup_gcloud & {
+		#with.ssh_agent.step,
+		#with.gcloud.step & {
 			with: {
-
 				project_id:                 "${{ secrets.gcp-gcr-project-id }}"
 				service_account_key:        "${{ secrets.gcp-gcr-service-account }}"
 				export_default_credentials: true
 				credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
 			}
 		},
-		{
-			name: "Configure Docker Auth"
-			run:  "gcloud --quiet auth configure-docker eu.gcr.io"
-		},
-		{
-			name: "Setup Kubernetes tools"
-			uses: "yokawasa/action-setup-kube-tools@v0.7.1"
-
-			with: {
-				"setup-tools": """
-					skaffold
-					kubeval
-					"""
-				skaffold: "${{ inputs.skaffold }}"
-				kubeval:  "${{ inputs.kubeval }}"
-			}
-		},
+		#with.docker_auth.step,
+		#with.kube_tools.step,
 		{
 			name: "Configure Skaffold"
 			run:  "skaffold config set default-repo \"${{ inputs.default-repo }}\""
@@ -194,23 +149,9 @@ import "list"
 }
 
 #steps_deploy: [...#step] & [
-		{
-		uses: "actions/checkout@v2"
-	},
-	#step_setup_gcloud & {
-		with: {
-			project_id:                 "${{ secrets.gcp-project-id }}"
-			service_account_key:        "${{ secrets.gcp-service-account }}"
-			export_default_credentials: true
-			credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
-		}
-	},
-	{
-		uses: "google-github-actions/get-gke-credentials@v0.8.0"
-		with: {
-			cluster_name: "${{ secrets.gke-cluster }}"
-		}
-	},
+	#with.checkout.step,
+	#with.gcloud.step,
+	#with.gke.step,
 	{
 		name: "Download build reference"
 		uses: "actions/download-artifact@v2"
@@ -218,16 +159,11 @@ import "list"
 			name: "build-ref"
 		}
 	},
+	#with.kube_tools.step &
 	{
-		uses: "yokawasa/action-setup-kube-tools@v0.7.1"
 		with: {
 			"setup-tools": "skaffold"
 			skaffold:      "${{ inputs.skaffold }}"
 		}
 	},
 ]
-
-#step_setup_gcloud: #step & {
-	name: "Setup GCloud"
-	uses: "google-github-actions/setup-gcloud@v0.2.1"
-}
