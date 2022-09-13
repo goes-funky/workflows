@@ -153,8 +153,8 @@ jobs:
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ secrets.gcp-gcr-project-id }}
-          service_account_key: ${{ secrets.gcp-gcr-service-account }}
+          project_id: ${{ secrets.gcp-project-id }}
+          service_account_key: ${{ secrets.gcp-service-account }}
           export_default_credentials: true
           credentials_file_path: /tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e
       - name: Configure Docker Auth
