@@ -207,7 +207,7 @@ common.#workflow & {
 					run: """
 						poetry run coverage run -m pytest
 						poetry run coverage xml
-						sed -i "s/<source>\/home\/runner\/work\/lineage-service\/lineage-service<\/source>/<source>\/github\/workspace<\/source>/g" /home/runner/work/lineage-service/lineage-service/coverage.xml
+						sed -i "s/<source>\\/home\\/runner\\/work\\/lineage-service\\/lineage-service<\\/source>/<source>\\/github\\/workspace<\\/source>/g" /home/runner/work/lineage-service/lineage-service/coverage.xml
 						"""
 				},
 				{
