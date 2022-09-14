@@ -15,7 +15,7 @@ package common
 			if:   "!inputs.skip-checkout"
 			uses: "actions/checkout@v3"
 			with: {
-			    "fetch-depth": "2"
+			    "fetch-depth": 0
 			}
 		}
 
