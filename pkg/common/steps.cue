@@ -13,7 +13,7 @@ package common
 		step: #step & {
 			name: "Checkout"
 			if:   "!inputs.skip-checkout"
-			uses: "actions/checkout@v2"
+			uses: "actions/checkout@v3"
 		}
 
 	}

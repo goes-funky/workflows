@@ -194,7 +194,11 @@ common.#workflow & {
 			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
-				common.#with.checkout.step,
+				common.#with.checkout.step & {
+                    with: {
+                        "fetch-depth": 0
+                    }
+                },
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -203,24 +207,42 @@ common.#workflow & {
 					run: """
 						poetry run coverage run -m pytest
 						poetry run coverage xml
+						sed -i "s/<source>.*<\\/source>/<source>\\/github\\/workspace<\\/source>/g" /home/runner/work/lineage-service/lineage-service/coverage.xml
 						"""
 				},
 				{
-					name: "Sonarcloud check"
+					name: "Sonarcloud check Push"
 					env: {
 						GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 						SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
 					}
-					if: "!inputs.skip-sonar"
+					if: "!inputs.skip-sonar && github.event_name != 'pull_request'"
 					uses: "SonarSource/sonarcloud-github-action@master"
 					with: {
 						args: """
 							-Dsonar.python.coverage.reportPaths=coverage.xml
 							-Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}}
 							-Dsonar.organization=${{github.repository_owner}}
+							-Dsonar.projectVersion=${{github.sha}}
 							"""
 					}
 				},
+				{
+                	name: "Sonarcloud check PR"
+                	env: {
+                		GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                		SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
+                	}
+                	if: "!inputs.skip-sonar && github.event_name != 'push'"
+                	uses: "SonarSource/sonarcloud-github-action@master"
+                	with: {
+                		args: """
+                			-Dsonar.python.coverage.reportPaths=coverage.xml
+                			-Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}}
+                			-Dsonar.organization=${{github.repository_owner}}
+                			"""
+                	}
+                },
 			]
 		}
 		mypy: {
