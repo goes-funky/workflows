@@ -122,7 +122,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -176,7 +178,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -227,7 +231,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
@@ -274,7 +280,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
@@ -316,7 +324,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -359,7 +369,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -406,7 +418,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
@@ -474,7 +488,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4

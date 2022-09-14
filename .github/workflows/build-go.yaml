@@ -25,8 +25,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
+          fetch-depth: "2"
           submodules: true
       - name: Setup tools cache
         id: tools-cache
@@ -48,7 +49,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "2"
       - name: Setup Go cache
         id: deps-cache
         uses: actions/cache@v2
@@ -81,8 +84,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
+          fetch-depth: "2"
           submodules: true
       - name: Setup go
         uses: actions/setup-go@v2
@@ -113,8 +117,9 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
+          fetch-depth: "2"
           submodules: true
       - name: Setup go
         uses: actions/setup-go@v2
