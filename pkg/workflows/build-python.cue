@@ -210,13 +210,13 @@ common.#workflow & {
 						"""
 				},
 				{
-					name: "Sonarcloud check"
+					name: "Sonarcloud check Push"
 					env: {
 						GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 						SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
 						BUILD_NUMBER: "${{ github.run_number }}"
 					}
-					if: "!inputs.skip-sonar"
+					if: "!inputs.skip-sonar && github.event_name != 'pull_request'"
 					uses: "SonarSource/sonarcloud-github-action@master"
 					with: {
 						projectBaseDir: "."
@@ -224,9 +224,26 @@ common.#workflow & {
 							-Dsonar.python.coverage.reportPaths=coverage.xml
 							-Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}}
 							-Dsonar.organization=${{github.repository_owner}}
+							-Dsonar.projectVersion=${{github.sha}}
 							"""
 					}
 				},
+				{
+                	name: "Sonarcloud check PR"
+                	env: {
+                		GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                		SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
+                	}
+                	if: "!inputs.skip-sonar && github.event_name != 'push'"
+                	uses: "SonarSource/sonarcloud-github-action@master"
+                	with: {
+                		args: """
+                			-Dsonar.python.coverage.reportPaths=coverage.xml
+                			-Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}}
+                			-Dsonar.organization=${{github.repository_owner}}
+                			"""
+                	}
+                },
 			]
 		}
 		mypy: {
