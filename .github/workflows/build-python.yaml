@@ -69,8 +69,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -112,8 +110,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -143,8 +139,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -176,8 +170,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -251,8 +243,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2

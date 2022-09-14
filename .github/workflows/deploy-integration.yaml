@@ -123,8 +123,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -179,8 +177,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -232,8 +228,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
@@ -281,8 +275,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
@@ -325,8 +317,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -370,8 +360,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v2
@@ -419,8 +407,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
@@ -489,8 +475,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4

@@ -194,7 +194,11 @@ common.#workflow & {
 			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
-				common.#with.checkout.step,
+				common.#with.checkout.step & {
+                    with: {
+                        "fetch-depth": 0
+                    }
+                },
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,

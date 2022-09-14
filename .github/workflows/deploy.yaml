@@ -85,8 +85,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -122,8 +120,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
@@ -152,8 +148,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
@@ -206,8 +200,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:

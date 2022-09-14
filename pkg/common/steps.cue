@@ -14,9 +14,6 @@ package common
 			name: "Checkout"
 			if:   "!inputs.skip-checkout"
 			uses: "actions/checkout@v3"
-			with: {
-			    "fetch-depth": 0
-			}
 		}
 
 	}
