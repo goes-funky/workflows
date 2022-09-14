@@ -214,10 +214,12 @@ common.#workflow & {
 					env: {
 						GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 						SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
+						BUILD_NUMBER: "${{ github.run_number }}"
 					}
 					if: "!inputs.skip-sonar"
 					uses: "SonarSource/sonarcloud-github-action@master"
 					with: {
+						projectBaseDir: "."
 						args: """
 							-Dsonar.python.coverage.reportPaths=coverage.xml
 							-Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}}
