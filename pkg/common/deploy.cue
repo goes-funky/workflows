@@ -63,7 +63,7 @@ import "list"
 			needs: ["build", "deploy-development"]
 		}
 
-		build:                #job_build
+		build: #job_build
 
 		"deploy-environment": #job_deploy_nonprod & {
 			name:        "Deploy to environment"
@@ -78,6 +78,18 @@ import "list"
 	name: "Build Docker images"
 	steps: [
 		#with.checkout.step,
+		{
+			uses: "wei/curl@master"
+			with: {
+				args: "-LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx"
+			}
+		},
+		{
+			uses: "mikefarah/yq@master"
+			with: {
+				cmd: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
+			}
+		},
 		{
 			name: "Setup skaffold cache"
 			uses: "actions/cache@v2"
@@ -150,10 +162,10 @@ import "list"
 }
 
 #steps_deploy: [...#step] & [
-	#with.checkout.step,
-	#with.gcloud.step,
-	#with.gke.step,
-	{
+		#with.checkout.step,
+		#with.gcloud.step,
+		#with.gke.step,
+		{
 		name: "Download build reference"
 		uses: "actions/download-artifact@v2"
 		with: {

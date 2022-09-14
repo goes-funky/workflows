@@ -148,6 +148,12 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v2
+      - uses: wei/curl@master
+        with:
+          args: -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx
+      - uses: mikefarah/yq@master
+        with:
+          cmd: 'yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "./docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
