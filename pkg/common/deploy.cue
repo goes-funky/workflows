@@ -63,7 +63,7 @@ import "list"
 			needs: ["build", "deploy-development"]
 		}
 
-		build:                #job_build
+		build: #job_build
 
 		"deploy-environment": #job_deploy_nonprod & {
 			name:        "Deploy to environment"
@@ -79,11 +79,23 @@ import "list"
 	steps: [
 		#with.checkout.step,
 		{
-			name: "Setup skaffold cache"
-			uses: "actions/cache@v2"
+			name: "Setup buildkit"
+			id:   "setup-buildkit"
+			uses: "docker/setup-buildx-action@v1"
+		},
+		{
+			name: "Expose Github Action runtime"
+			uses: "crazy-max/ghaction-github-runtime@v2"
+		},
+		{
+			name: "Download docker-buildx"
+			run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
+		},
+		{
+			name: "Configure skaffold to build with buildkit"
+			uses: "mikefarah/yq@master"
 			with: {
-				path: "~/.skaffold/cache"
-				key:  "${{ runner.os }}-skaffold"
+				cmd: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
 			}
 		},
 		{
@@ -106,12 +118,13 @@ import "list"
 		#with.docker_auth.step,
 		#with.kube_tools.step,
 		{
-			name: "Configure Skaffold"
-			run:  "skaffold config set default-repo \"${{ inputs.default-repo }}\""
-		},
-		{
 			name: "Build"
-			run:  "skaffold build --file-output=build.json"
+			env: {
+				SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
+				SKAFFOLD_CACHE_ARTIFACTS: "false"
+				DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
+			}
+			run: "skaffold build --file-output=build.json"
 		},
 		{
 			name: "Archive build reference"
@@ -150,10 +163,10 @@ import "list"
 }
 
 #steps_deploy: [...#step] & [
-	#with.checkout.step,
-	#with.gcloud.step,
-	#with.gke.step,
-	{
+		#with.checkout.step,
+		#with.gcloud.step,
+		#with.gke.step,
+		{
 		name: "Download build reference"
 		uses: "actions/download-artifact@v2"
 		with: {

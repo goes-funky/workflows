@@ -109,7 +109,7 @@ import "list"
 			name: "Upload Integration Schema to dev"
 			needs: ["deps", "build"]
 			environment: "${{ inputs.development-environment }}"
-			steps: #integration_steps.json_scheme_generate
+			steps:       #integration_steps.json_scheme_generate
 		}
 
 		"integration-schema-generate-production": {
@@ -117,25 +117,25 @@ import "list"
 			needs: ["deps", "build", "integration-schema-generate-development", "deploy-development"]
 			if:          string | *"inputs.environment"
 			environment: "${{ inputs.production-environment }}"
-			steps: #integration_steps.json_scheme_generate
+			steps:       #integration_steps.json_scheme_generate
 		}
 
 		"deploy-development": {
 			name: "Deploy to development"
 			needs: ["build"]
 			environment: "${{ inputs.development-environment }}"
-			steps: #integration_steps.deploy_integration
+			steps:       #integration_steps.deploy_integration
 		}
 
 		"deploy-production": {
 			name: "Deploy to production"
 			needs: ["build", "deploy-development"]
 			environment: "${{ inputs.production-environment }}"
-			steps: #integration_steps.deploy_integration
+			steps:       #integration_steps.deploy_integration
 		}
 
 		deps: {
-			name: "Dependencies"
+			name:  "Dependencies"
 			steps: #integration_steps.dependencies
 		}
 
@@ -144,7 +144,7 @@ import "list"
 			needs: ["deps", "build"]
 			if:          "inputs.environment"
 			environment: "${{ inputs.environment }}"
-			steps: #integration_steps.json_scheme_generate
+			steps:       #integration_steps.json_scheme_generate
 		}
 
 		build: {
@@ -152,11 +152,23 @@ import "list"
 			steps: [
 				#with.checkout.step,
 				{
-					name: "Setup skaffold cache"
-					uses: "actions/cache@v2"
+					name: "Setup buildkit"
+					id:   "setup-buildkit"
+					uses: "docker/setup-buildx-action@v1"
+				},
+				{
+					name: "Expose Github Action runtime"
+					uses: "crazy-max/ghaction-github-runtime@v2"
+				},
+				{
+					name: "Download docker-buildx"
+					run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
+				},
+				{
+					name: "Configure skaffold to build with buildkit"
+					uses: "mikefarah/yq@master"
 					with: {
-						path: "~/.skaffold/cache"
-						key:  "${{ runner.os }}-skaffold"
+						cmd: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
 					}
 				},
 				{
@@ -190,18 +202,16 @@ import "list"
 						"""
 				},
 				{
-					name: "Configure Skaffold"
-					// env: REPO: "${{ inputs.default-repo }}"
-					run: "skaffold config set default-repo '${{ inputs.default-repo }}'"
-				},
-				{
 					name: "Build"
 					if:   "!inputs.skip-build"
 					env: {
-						CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
-						SHORT_SHA:      "${{ env.SHORT_SHA }}"
-						COMMIT_SHA:     "${{ env.COMMIT_SHA }}"
-						IMAGE_NAME:     "${{ env.IMAGE_NAME }}"
+						CONTAINER_NAME:           "${{ env.CONTAINER_NAME }}"
+						SHORT_SHA:                "${{ env.SHORT_SHA }}"
+						COMMIT_SHA:               "${{ env.COMMIT_SHA }}"
+						IMAGE_NAME:               "${{ env.IMAGE_NAME }}"
+						SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
+						SKAFFOLD_CACHE_ARTIFACTS: "false"
+						DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
 					}
 					run: "skaffold build --file-output=build.json"
 				},
@@ -222,7 +232,7 @@ import "list"
 			needs: ["build"]
 			if:          "inputs.environment"
 			environment: "${{ inputs.environment }}"
-			steps: #integration_steps.deploy_integration
+			steps:       #integration_steps.deploy_integration
 		}
 	}
 }
@@ -307,8 +317,8 @@ import "list"
 		},
 		{
 			name: "Deploy"
-			if:  "inputs.skip-job-template-build"
-			run: "skaffold deploy --force --build-artifacts=build.json"
+			if:   "inputs.skip-job-template-build"
+			run:  "skaffold deploy --force --build-artifacts=build.json"
 		},
 		{
 			name: "Deploy tap container with job-template"
