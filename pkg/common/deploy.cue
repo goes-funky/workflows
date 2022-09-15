@@ -79,21 +79,25 @@ import "list"
 	steps: [
 		#with.checkout.step,
 		{
+			name: "Setup buildkit"
+			id: "setup-buildkit"
+			uses: "docker/setup-buildx-action@v1"
+
+		},
+		{
+			name: "Expose Github Action runtime"
+			uses: "crazy-max/ghaction-github-runtime@v2"
+
+		},
+		{
 			name: "Download docker-buildx"
 			run: "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
 		},
 		{
+			name: "Configure skaffold to build with buildkit"
 			uses: "mikefarah/yq@master"
 			with: {
 				cmd: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
-			}
-		},
-		{
-			name: "Setup skaffold cache"
-			uses: "actions/cache@v2"
-			with: {
-				path: "~/.skaffold/cache"
-				key:  "${{ runner.os }}-skaffold"
 			}
 		},
 		{
@@ -116,12 +120,13 @@ import "list"
 		#with.docker_auth.step,
 		#with.kube_tools.step,
 		{
-			name: "Configure Skaffold"
-			run:  "skaffold config set default-repo \"${{ inputs.default-repo }}\""
-		},
-		{
 			name: "Build"
-			run:  "skaffold build --file-output=build.json"
+			run:  """
+					export SKAFFOLD_DEFAULT_REPO="${{ inputs.default-repo }}"
+					export SKAFFOLD_CACHE_ARTIFACTS="false"
+					export DOCKER_BUILDKIT_BUILDER="${{ steps.setup-buildkit.outputs.name }}"
+					skaffold build --file-output=build.json
+					"""
 		},
 		{
 			name: "Archive build reference"
