@@ -79,15 +79,13 @@ import "list"
 	steps: [
 		#with.checkout.step,
 		{
-			uses: "wei/curl@master"
-			with: {
-				args: "-LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx"
-			}
+			name: "Download docker-buildx"
+			run: "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
 		},
 		{
 			uses: "mikefarah/yq@master"
 			with: {
-				cmd: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"chmod +x ./docker-buildx && ./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
+				cmd: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
 			}
 		},
 		{
