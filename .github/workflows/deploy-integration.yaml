@@ -415,9 +415,7 @@ jobs:
       - name: Download docker-buildx
         run: curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx
       - name: Configure skaffold to build with buildkit
-        uses: mikefarah/yq@master
-        with:
-          cmd: 'yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "./docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
+        run: 'yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "./docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
       - name: Download artifact
         uses: actions/download-artifact@master
         if: inputs.dist-artifact
