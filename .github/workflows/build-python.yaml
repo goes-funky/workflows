@@ -161,34 +161,6 @@ jobs:
       - name: Isort
         if: '!inputs.skip-isort'
         run: poetry run isort --profile black --check .
-  bandit:
-    name: Bandit
-    needs:
-      - deps
-    runs-on: ubuntu-${{ inputs.ubuntu-version }}
-    steps:
-      - name: Checkout
-        if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
-      - name: Setup python
-        id: setup-python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ inputs.python-version }}
-      - name: Setup cache
-        id: deps-cache
-        uses: actions/cache@v2
-        with:
-          path: .venv/
-          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: ${{ inputs.poetry-version }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Bandit
-        run: poetry run bandit -ll --exclude './.venv' -b bandit-baseline.json -r .
   tests:
     name: Tests
     if: '!inputs.skip-tests'
