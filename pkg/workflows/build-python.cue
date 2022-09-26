@@ -61,6 +61,11 @@ common.#workflow & {
 					default:    ""
 					required: false
 				}
+				"docker-compose-version": {
+					type:        "string"
+					description: "Docker-compose version"
+					default:     "1.29.2"
+				}
 				"skip-lint": {
 					type:        "boolean"
 					description: "Whether to skip code linting with flake8"
@@ -79,6 +84,11 @@ common.#workflow & {
 				"skip-tests": {
 					type:        "boolean"
 					description: "Whether to skip running tests"
+					default:     true
+				}
+				"skip-docker-compose-up": {
+					type:        "boolean"
+					description: "Whether to skip starting containers"
 					default:     true
 				}
 				"skip-mypy": {
@@ -187,6 +197,22 @@ common.#workflow & {
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
+				{
+					name: "Install docker-compose"
+					if: "!inputs.skip-docker-compose-up"
+					uses: "KengoTODA/actions-setup-docker-compose@main"
+					with: {
+						"version": "${{ inputs.docker-compose-version }}"
+					}
+				},
+				{
+					name: "Start containers"
+					if: "!inputs.skip-docker-compose-up"
+					env: {
+						DOCKER_BUILDKIT: "1"
+					}
+					run: "docker-compose up -d"
+				},
 				{
 					name: "Tests"
 					run: """
