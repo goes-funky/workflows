@@ -156,17 +156,14 @@ import "list"
 					id:   "setup-buildkit"
 					uses: "docker/setup-buildx-action@v1"
 				},
-				{
-					name: "Expose Github Action runtime"
-					uses: "crazy-max/ghaction-github-runtime@v2"
-				},
+				#with.expose_action_env.step,
 				{
 					name: "Download docker-buildx"
 					run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
 				},
 				{
 					name: "Configure skaffold to build with buildkit"
-					run: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
+					run:  "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
 				},
 				{
 					name: "Download artifact"
