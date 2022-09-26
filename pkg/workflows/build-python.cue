@@ -61,11 +61,6 @@ common.#workflow & {
 					default:    ""
 					required: false
 				}
-				"docker-compose-version": {
-					type:        "string"
-					description: "Docker-compose version"
-					default:     "1.29.2"
-				}
 				"skip-lint": {
 					type:        "boolean"
 					description: "Whether to skip code linting with flake8"
@@ -197,14 +192,6 @@ common.#workflow & {
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
-				{
-					name: "Install docker-compose"
-					if: "!inputs.skip-docker-compose-up"
-					uses: "KengoTODA/actions-setup-docker-compose@main"
-					with: {
-						"version": "${{ inputs.docker-compose-version }}"
-					}
-				},
 				{
 					name: "Start containers"
 					if: "!inputs.skip-docker-compose-up"
