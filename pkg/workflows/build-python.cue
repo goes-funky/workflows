@@ -81,6 +81,11 @@ common.#workflow & {
 					description: "Whether to skip running tests"
 					default:     true
 				}
+				"skip-docker-compose-up": {
+					type:        "boolean"
+					description: "Whether to skip starting containers"
+					default:     true
+				}
 				"skip-mypy": {
 					type:        "boolean"
 					description: "Whether to skip checking type hints with mypy"
@@ -187,6 +192,14 @@ common.#workflow & {
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
+				{
+					name: "Start containers"
+					if: "!inputs.skip-docker-compose-up"
+					env: {
+						DOCKER_BUILDKIT: "1"
+					}
+					run: "docker-compose up -d"
+				},
 				{
 					name: "Tests"
 					run: """
