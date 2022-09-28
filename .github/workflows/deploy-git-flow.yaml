@@ -153,27 +153,11 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-      - name: Setup buildkit
-        id: setup-buildkit
-        uses: docker/setup-buildx-action@v1
-      - name: Expose Github Action runtime
-        uses: actions/github-script@v6
+      - name: Setup skaffold cache
+        uses: actions/cache@v2
         with:
-          script: |-
-            try {
-            	Object.keys(process.env).forEach(function (key) {
-            		if (key.startsWith('ACTIONS_')) {
-            			core.info(`${key}=${process.env[key]}`);
-            			core.exportVariable(key, process.env[key]);
-            		}
-            	});
-            } catch (error) {
-            	core.setFailed(error.message);
-            }
-      - name: Download docker-buildx
-        run: curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx
-      - name: Configure skaffold to build with buildkit
-        run: 'yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "./docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
+          path: ~/.skaffold/cache
+          key: ${{ runner.os }}-skaffold
       - uses: actions/download-artifact@master
         if: inputs.dist-artifact
         with:
@@ -201,11 +185,9 @@ jobs:
             kubeval
           skaffold: ${{ inputs.skaffold }}
           kubeval: ${{ inputs.kubeval }}
+      - name: Configure Skaffold
+        run: skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
-        env:
-          SKAFFOLD_DEFAULT_REPO: ${{ inputs.default-repo }}
-          SKAFFOLD_CACHE_ARTIFACTS: "false"
-          DOCKER_BUILDKIT_BUILDER: ${{ steps.setup-buildkit.outputs.name }}
         run: skaffold build --file-output=build.json
       - name: Archive build reference
         uses: actions/upload-artifact@v2
