@@ -19,13 +19,13 @@ package common
 	}
 
 	ssh_agent: {
-	    inputs: {
-	    	"is-repo-public": {
-                type:        "boolean"
-                description: "Whether to skip ssh agent configuration"
-                default:     false
-            }
-	    }
+		inputs: {
+			"is-repo-public": {
+				type:        "boolean"
+				description: "Whether to skip ssh agent configuration"
+				default:     false
+			}
+		}
 
 		secrets: {
 			"ssh-private-key": {
@@ -37,7 +37,7 @@ package common
 		step: #step & {
 			name: "Setup SSH Agent"
 			uses: "webfactory/ssh-agent@v0.5.4"
-			if: "!inputs.is-repo-public"
+			if:   "!inputs.is-repo-public"
 			with: {
 				"ssh-private-key": "${{ secrets.ssh-private-key }}"
 			}
@@ -128,6 +128,31 @@ package common
 		step: #step & {
 			name: "Configure Docker Auth"
 			run:  "gcloud --quiet auth configure-docker eu.gcr.io"
+		}
+	}
+
+	// For some reasons, some action's envs like ACTIONS_CACHE_URL,
+	// ACTIONS_RUNTIME_TOKEN not being exposed to workflow steps so we use this
+	// step as a workround to expose those envs for subsequent steps. It's
+	// needed so that skaffold can work with buildkit + github action cache
+	expose_action_env: {
+		step: #step & {
+			name: "Expose Github Action runtime"
+			uses: "actions/github-script@v6"
+			with: {
+				script: """
+						try {
+							Object.keys(process.env).forEach(function (key) {
+								if (key.startsWith('ACTIONS_')) {
+									core.info(`${key}=${process.env[key]}`);
+									core.exportVariable(key, process.env[key]);
+								}
+							});
+						} catch (error) {
+							core.setFailed(error.message);
+						}
+						"""
+			}
 		}
 	}
 }
