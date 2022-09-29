@@ -193,10 +193,6 @@ common.#workflow & {
 				#step_setup_deps_cache,
 				#step_setup_poetry,
 				{
-					name: "Reset HOME variable"
-          run: "echo HOME=/root | tee -a $GITHUB_ENV"
-				},
-				{
 					name: "Start containers"
 					if: "!inputs.skip-docker-compose-up"
 					env: {
