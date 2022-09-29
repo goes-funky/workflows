@@ -198,7 +198,7 @@ common.#workflow & {
 					env: {
 						DOCKER_BUILDKIT: "1"
 					}
-					run: "docker-compose up"
+					run: "docker-compose up --wait"
 				},
 				{
 					name: "Print docker-compose logs"
