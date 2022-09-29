@@ -201,6 +201,11 @@ common.#workflow & {
 					run: "docker-compose up"
 				},
 				{
+					name: "Print docker-compose logs"
+					if: "always()"
+					run: "docker-compose logs"
+				},
+				{
 					name: "Tests"
 					run: """
 						poetry run coverage run -m pytest
