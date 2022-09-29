@@ -194,6 +194,8 @@ jobs:
           version: ${{ inputs.poetry-version }}
           virtualenvs-create: true
           virtualenvs-in-project: true
+      - name: Reset HOME variable
+        run: echo HOME=/root | tee -a $GITHUB_ENV
       - name: Start containers
         if: '!inputs.skip-docker-compose-up'
         env:
