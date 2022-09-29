@@ -198,7 +198,7 @@ common.#workflow & {
 					env: {
 						DOCKER_BUILDKIT: "1"
 					}
-					run: "docker-compose up -d"
+					run: "docker-compose up"
 				},
 				{
 					name: "Tests"

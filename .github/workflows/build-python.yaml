@@ -198,7 +198,7 @@ jobs:
         if: '!inputs.skip-docker-compose-up'
         env:
           DOCKER_BUILDKIT: "1"
-        run: docker-compose up -d
+        run: docker-compose up
       - name: Tests
         run: |-
           poetry run coverage run -m pytest
