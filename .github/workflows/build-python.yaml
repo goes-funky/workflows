@@ -198,8 +198,8 @@ jobs:
         if: '!inputs.skip-docker-compose-up'
         env:
           DOCKER_BUILDKIT: "1"
-        run: docker-compose up
-      - name: Print docker-compose logs
+        run: docker-compose up --wait
+      - name: Print containers logs
         if: always()
         run: docker-compose logs
       - name: Tests

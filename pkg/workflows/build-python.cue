@@ -201,7 +201,7 @@ common.#workflow & {
 					run: "docker-compose up --wait"
 				},
 				{
-					name: "Print docker-compose logs"
+					name: "Print containers logs"
 					if: "always()"
 					run: "docker-compose logs"
 				},
