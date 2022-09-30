@@ -246,8 +246,6 @@ common.#workflow & {
 										"fetch-depth": 0
 								}
 						},
-				#step_setup_python,
-				#step_setup_deps_cache,
 				{
 					name: "Build"
 					env: {
