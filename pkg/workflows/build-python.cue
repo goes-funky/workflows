@@ -81,9 +81,9 @@ common.#workflow & {
 					description: "Whether to skip running tests"
 					default:     true
 				}
-				"skip-docker-compose-up": {
+				"skip-integration-tests": {
 					type:        "boolean"
-					description: "Whether to skip starting containers"
+					description: "Whether to skip running integration tests"
 					default:     true
 				}
 				"skip-mypy": {
@@ -193,14 +193,6 @@ common.#workflow & {
 				#step_setup_deps_cache,
 				#step_setup_poetry,
 				{
-					name: "Start containers"
-					if: "!inputs.skip-docker-compose-up"
-					env: {
-						DOCKER_BUILDKIT: "1"
-					}
-					run: "docker-compose up -d"
-				},
-				{
 					name: "Tests"
 					run: """
 						poetry run coverage run -m pytest
@@ -241,6 +233,40 @@ common.#workflow & {
                 			"""
                 	}
                 },
+			]
+		}
+		integration_tests: {
+			name: "Integration tests"
+			if:   "!inputs.skip-integration-tests"
+			needs: ["deps"]
+			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
+			steps: [
+				common.#with.checkout.step & {
+								with: {
+										"fetch-depth": 0
+								}
+						},
+				{
+					name: "Build"
+					env: {
+						DOCKER_BUILDKIT: "1"
+					}
+					run: "docker-compose build"
+				},
+				{
+					name: "Integration tests"
+					run: "docker-compose up -d"
+				},
+				{
+					name: "Stop"
+					if: "success() || failure()"
+					run: "docker-compose stop"
+				},
+				{
+					name: "Print logs"
+					if: "success() || failure()"
+					run: "docker-compose logs"
+				},
 			]
 		}
 		mypy: {
