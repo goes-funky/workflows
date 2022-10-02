@@ -238,7 +238,6 @@ common.#workflow & {
 		integration_tests: {
 			name: "Integration tests"
 			if:   "!inputs.skip-integration-tests"
-			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step & {
@@ -246,6 +245,7 @@ common.#workflow & {
 										"fetch-depth": 0
 								}
 						},
+				common.#with.ssh_agent.step,
 				{
 					name: "Build"
 					env: {
