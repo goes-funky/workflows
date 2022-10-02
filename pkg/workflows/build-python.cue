@@ -248,7 +248,7 @@ common.#workflow & {
 				common.#with.ssh_agent.step,
 				{
 					name: "Update docker-compose"
-					uses: "KengoTODA/actions-setup-docker-compose@main"
+					uses: "KengoTODA/actions-setup-docker-compose@62da66e273e37258ddfb9ccc55f7934bdd25b57d"
 					with: {
 						version: "v2.10.2"
 					}
