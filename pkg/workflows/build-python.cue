@@ -238,7 +238,6 @@ common.#workflow & {
 		integration_tests: {
 			name: "Integration tests"
 			if:   "!inputs.skip-integration-tests"
-			needs: ["deps"]
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step & {
@@ -246,6 +245,14 @@ common.#workflow & {
 										"fetch-depth": 0
 								}
 						},
+				common.#with.ssh_agent.step,
+				{
+					name: "Update docker-compose"
+					uses: "KengoTODA/actions-setup-docker-compose@62da66e273e37258ddfb9ccc55f7934bdd25b57d"
+					with: {
+						version: "v2.10.2"
+					}
+				},
 				{
 					name: "Build"
 					env: {

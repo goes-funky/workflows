@@ -225,8 +225,6 @@ jobs:
   integration_tests:
     name: Integration tests
     if: '!inputs.skip-integration-tests'
-    needs:
-      - deps
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     steps:
       - name: Checkout
@@ -234,6 +232,15 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Setup SSH Agent
+        if: '!inputs.is-repo-public'
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.ssh-private-key }}
+      - name: Update docker-compose
+        uses: KengoTODA/actions-setup-docker-compose@62da66e273e37258ddfb9ccc55f7934bdd25b57d
+        with:
+          version: v2.10.2
       - name: Build
         env:
           DOCKER_BUILDKIT: "1"
