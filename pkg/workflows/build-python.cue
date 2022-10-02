@@ -247,6 +247,13 @@ common.#workflow & {
 						},
 				common.#with.ssh_agent.step,
 				{
+					name: "Update docker-compose"
+					uses: "KengoTODA/actions-setup-docker-compose@main"
+					with: {
+						version: "v2.10.2"
+					}
+				},
+				{
 					name: "Build"
 					env: {
 						DOCKER_BUILDKIT: "1"

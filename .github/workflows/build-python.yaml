@@ -237,6 +237,10 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
+      - name: Update docker-compose
+        uses: KengoTODA/actions-setup-docker-compose@main
+        with:
+          version: v2.10.2
       - name: Build
         env:
           DOCKER_BUILDKIT: "1"
