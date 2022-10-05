@@ -63,7 +63,7 @@ import "list"
 			needs: ["build", "deploy-development"]
 		}
 
-		build:                #job_build
+		build: #job_build
 
 		"deploy-environment": #job_deploy_nonprod & {
 			name:        "Deploy to environment"
@@ -97,10 +97,9 @@ import "list"
 		#with.ssh_agent.step,
 		#with.gcloud.step & {
 			with: {
-				project_id:                 "${{ secrets.gcp-gcr-project-id }}"
-				service_account_key:        "${{ secrets.gcp-gcr-service-account }}"
-				export_default_credentials: true
-				credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+				project_id:       "${{ secrets.gcp-gcr-project-id }}"
+				credentials_json: "${{ secrets.gcp-gcr-service-account }}"
+				token_format:     "access_token"
 			}
 		},
 		#with.docker_auth.step,
@@ -150,10 +149,10 @@ import "list"
 }
 
 #steps_deploy: [...#step] & [
-	#with.checkout.step,
-	#with.gcloud.step,
-	#with.gke.step,
-	{
+		#with.checkout.step,
+		#with.gcloud.step,
+		#with.gke.step,
+		{
 		name: "Download build reference"
 		uses: "actions/download-artifact@v2"
 		with: {
