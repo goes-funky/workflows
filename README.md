@@ -7,10 +7,9 @@ To automate deployment process DevOps team has created [reusable workflow](https
 ### Flow
 
 - push to default branch (`master` or `main`) triggers deployment to `development`
-- creating `v[semver]` tag triggers deployment to `development` first, if it succeeded then deployment to `production` follows.
+- creating `v[semver]` tag triggers deployment to `development` first, if it succeeded then deployment to `production` follows, requiring a manual approval from `group-backend-deployers`.
 - hotfixes can be deployed to `production` by checking out branch from tagged release and manually triggering workflow
 - arbitrary branches can be deployed to `development`/`demo` by triggering workflow
-- `production` releases require approval from `group-backend-deployers`
 
 ### Stages
 
@@ -65,7 +64,7 @@ Example:
 ## Contributing
 
 We use [CUE](https://cuelang.org) to manage and generate actual workflows.
-Don't make any direct change in `.github/workflows` folder, it will be overrided.
+Don't make any direct change in `.github/workflows` folder, it will be overwritten.
 
 Contributing flow:
 - Changes should be made within `pkg/*`
