@@ -109,7 +109,7 @@ import "list"
 			name: "Upload Integration Schema to dev"
 			needs: ["deps", "build"]
 			environment: "${{ inputs.development-environment }}"
-			steps: #integration_steps.json_scheme_generate
+			steps:       #integration_steps.json_scheme_generate
 		}
 
 		"integration-schema-generate-production": {
@@ -117,25 +117,25 @@ import "list"
 			needs: ["deps", "build", "integration-schema-generate-development", "deploy-development"]
 			if:          string | *"inputs.environment"
 			environment: "${{ inputs.production-environment }}"
-			steps: #integration_steps.json_scheme_generate
+			steps:       #integration_steps.json_scheme_generate
 		}
 
 		"deploy-development": {
 			name: "Deploy to development"
 			needs: ["build"]
 			environment: "${{ inputs.development-environment }}"
-			steps: #integration_steps.deploy_integration
+			steps:       #integration_steps.deploy_integration
 		}
 
 		"deploy-production": {
 			name: "Deploy to production"
 			needs: ["build", "deploy-development"]
 			environment: "${{ inputs.production-environment }}"
-			steps: #integration_steps.deploy_integration
+			steps:       #integration_steps.deploy_integration
 		}
 
 		deps: {
-			name: "Dependencies"
+			name:  "Dependencies"
 			steps: #integration_steps.dependencies
 		}
 
@@ -144,7 +144,7 @@ import "list"
 			needs: ["deps", "build"]
 			if:          "inputs.environment"
 			environment: "${{ inputs.environment }}"
-			steps: #integration_steps.json_scheme_generate
+			steps:       #integration_steps.json_scheme_generate
 		}
 
 		build: {
@@ -171,10 +171,9 @@ import "list"
 				#with.ssh_agent.step,
 				#with.gcloud.step & {
 					with: {
-						project_id:                 "${{ secrets.gcp-gcr-project-id }}"
-						service_account_key:        "${{ secrets.gcp-gcr-service-account }}"
-						export_default_credentials: true
-						credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+						project_id:       "${{ secrets.gcp-gcr-project-id }}"
+						credentials_json: "${{ secrets.gcp-gcr-service-account }}"
+						token_format:     "access_token"
 					}
 				},
 				#with.docker_auth.step,
@@ -222,7 +221,7 @@ import "list"
 			needs: ["build"]
 			if:          "inputs.environment"
 			environment: "${{ inputs.environment }}"
-			steps: #integration_steps.deploy_integration
+			steps:       #integration_steps.deploy_integration
 		}
 	}
 }
@@ -284,10 +283,8 @@ import "list"
 		#with.ssh_agent.step,
 		#with.gcloud.step & {
 			with: {
-				project_id:                 "${{ secrets.gcp-project-id }}"
-				service_account_key:        "${{ secrets.gcp-service-account }}"
-				export_default_credentials: true
-				credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+				project_id:       "${{ secrets.gcp-project-id }}"
+				credentials_json: "${{ secrets.gcp-service-account }}"
 			}
 		},
 		#with.gke.step,
@@ -307,8 +304,8 @@ import "list"
 		},
 		{
 			name: "Deploy"
-			if:  "inputs.skip-job-template-build"
-			run: "skaffold deploy --force --build-artifacts=build.json"
+			if:   "inputs.skip-job-template-build"
+			run:  "skaffold deploy --force --build-artifacts=build.json"
 		},
 		{
 			name: "Deploy tap container with job-template"

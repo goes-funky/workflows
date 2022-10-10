@@ -93,13 +93,12 @@ package common
 		}
 
 		step: #step & {
-			name: "Setup GCloud"
-			uses: "google-github-actions/setup-gcloud@v0.2.1"
+			id: "auth_gcp"
+			name: "Authenticate to Google Cloud"
+			uses: "google-github-actions/auth@v0"
 			with: {} | *{
 				project_id:                 "${{ secrets.gcp-project-id }}"
-				service_account_key:        "${{ secrets.gcp-service-account }}"
-				export_default_credentials: true
-				credentials_file_path:      "/tmp/2143f99e-4ec1-11ec-9d55-cbf168cabc9e"
+				credentials_json:           "${{ secrets.gcp-service-account }}"
 			}
 		}
 	}
@@ -126,8 +125,14 @@ package common
 
 	docker_auth: {
 		step: #step & {
-			name: "Configure Docker Auth"
-			run:  "gcloud --quiet auth configure-docker eu.gcr.io"
+			id: "auth_gcr"
+			name: "Authenticate to Google Container Registry"
+			uses: "docker/login-action@v1"
+			with: {
+				    registry: "eu.gcr.io"
+				    username: "oauth2accesstoken"
+				    password: "${{ steps.auth_gcp.outputs.access_token }}"
+			}
 		}
 	}
 }
