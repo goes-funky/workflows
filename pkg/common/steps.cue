@@ -49,7 +49,7 @@ package common
 			"skaffold": {
 				type:        "string"
 				description: "Skaffold version"
-				default:     "1.33.0"
+				default:     "1.39.2"
 			}
 			"kubeval": {
 				type:        "string"

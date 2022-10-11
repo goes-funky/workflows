@@ -65,7 +65,7 @@ name: Deploy Integration
       skaffold:
         type: string
         description: Skaffold version
-        default: 1.33.0
+        default: 1.39.2
       is-repo-public:
         type: boolean
         description: Whether to skip ssh agent configuration
