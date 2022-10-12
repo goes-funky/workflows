@@ -135,4 +135,32 @@ package common
 			}
 		}
 	}
+
+	skaffold_deploy: {
+		step: #step & {
+			name: "Deploy"
+					run: """
+						cd "k8s/overlays/${SKAFFOLD_PROFILE}"
+
+						# create patch file
+						cat >patches.yaml <<EOF
+						\(#skaffold_kustomize_patch_yaml)
+						EOF
+
+						# kustomize edit add patch
+						kustomize edit add patch --path ./patches.yaml --group apps --version v1 --kind Deployment
+
+						cd "${GITHUB_WORKSPACE}"
+
+						# deploy
+						skaffold deploy --force --build-artifacts=build.json
+						"""
+		}
+	}
 }
+
+#skaffold_kustomize_patch_yaml: """
+- op: add
+  path: "/spec/template/metadata/labels/tags.datadog.com~1service.version"
+  value: "$GITHUB_SHA"
+"""
