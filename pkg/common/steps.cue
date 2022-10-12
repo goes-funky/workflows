@@ -140,7 +140,7 @@ package common
 		step: #step & {
 			name: "Deploy"
 					run: """
-						cd k8s/overlays/${SKAFFOLD_PROFILE}
+						cd "k8s/overlays/${SKAFFOLD_PROFILE}"
 
 						# create patch file
 						cat >patches.yaml <<EOF
@@ -150,7 +150,7 @@ package common
 						# kustomize edit add patch
 						kustomize edit add patch --path ./patches.yaml --group apps --version v1 --kind Deployment
 
-						cd ${GITHUB_WORKSPACE}
+						cd "${GITHUB_WORKSPACE}"
 
 						# deploy
 						skaffold deploy --force --build-artifacts=build.json
