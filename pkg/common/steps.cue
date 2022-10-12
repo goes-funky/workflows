@@ -167,6 +167,9 @@ package common
     name: OTEL_RESOURCE_ATTRIBUTES
     value: "service.version=$GITHUB_SHA"
 - op: add
+  path: "/spec/template/metadata/labels/tags.datadog.com~1service.version"
+  value: "$GITHUB_SHA"
+- op: add
   path: "/metadata/labels/tags.datadog.com~1service.version"
   value: "$GITHUB_SHA"
 """
