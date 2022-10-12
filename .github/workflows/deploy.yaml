@@ -107,7 +107,7 @@ jobs:
         env:
           SKAFFOLD_PROFILE: ${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}
         run: |-
-          cd "k8s/overlays/${SKAFFOLD_PROFILE}"
+          cd k8s/overlays/${SKAFFOLD_PROFILE}
 
           # create patch file
           cat >patches.yaml <<EOF
@@ -117,6 +117,9 @@ jobs:
               name: OTEL_RESOURCE_ATTRIBUTES
               value: "service.version=$GITHUB_SHA"
           - op: add
+            path: "/spec/template/metadata/labels/tags.datadog.com~1service.version"
+            value: "$GITHUB_SHA"
+          - op: add
             path: "/metadata/labels/tags.datadog.com~1service.version"
             value: "$GITHUB_SHA"
           EOF
@@ -124,7 +127,7 @@ jobs:
           # kustomize edit add patch
           kustomize edit add patch --path ./patches.yaml --group apps --version v1 --kind Deployment
 
-          cd "${GITHUB_WORKSPACE}"
+          cd ${GITHUB_WORKSPACE}
 
           # deploy
           skaffold deploy --force --build-artifacts=build.json
@@ -246,7 +249,7 @@ jobs:
         env:
           SKAFFOLD_PROFILE: ${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}
         run: |-
-          cd "k8s/overlays/${SKAFFOLD_PROFILE}"
+          cd k8s/overlays/${SKAFFOLD_PROFILE}
 
           # create patch file
           cat >patches.yaml <<EOF
@@ -256,6 +259,9 @@ jobs:
               name: OTEL_RESOURCE_ATTRIBUTES
               value: "service.version=$GITHUB_SHA"
           - op: add
+            path: "/spec/template/metadata/labels/tags.datadog.com~1service.version"
+            value: "$GITHUB_SHA"
+          - op: add
             path: "/metadata/labels/tags.datadog.com~1service.version"
             value: "$GITHUB_SHA"
           EOF
@@ -263,7 +269,7 @@ jobs:
           # kustomize edit add patch
           kustomize edit add patch --path ./patches.yaml --group apps --version v1 --kind Deployment
 
-          cd "${GITHUB_WORKSPACE}"
+          cd ${GITHUB_WORKSPACE}
 
           # deploy
           skaffold deploy --force --build-artifacts=build.json
