@@ -148,7 +148,7 @@ package common
 						EOF
 
 						# kustomize edit add patch
-						kustomize edit add patch --path ./patches.yaml
+						kustomize edit add patch --path ./patches.yaml --group apps --version v1 --kind Deployment
 
 						cd ${GITHUB_WORKSPACE}
 
