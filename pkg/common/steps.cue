@@ -135,4 +135,39 @@ package common
 			}
 		}
 	}
+
+	skaffold_deploy: {
+		step: #step & {
+			name: "Deploy"
+					run: """
+						cd k8s/overlays/${SKAFFOLD_PROFILE}
+
+						# create patch file
+						cat >patches.yaml <<EOF
+						\(#skaffold_kustomize_patch_yaml)
+						EOF
+
+						# kustomize edit add patch
+						kustomize edit add patch --path ./patches.yaml
+
+						cd ${GITHUB_WORKSPACE}
+
+						# deploy
+						skaffold deploy --force --build-artifacts=build.json
+						"""
+		}
+	}
 }
+
+//NOTE: Currently only add env to first container of pod
+#skaffold_kustomize_patch_yaml: """
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: OTEL_RESOURCE_ATTRIBUTES
+    value: "service.version=$GITHUB_SHA"
+- op: add
+  path: "/metadata/labels/tags.datadog.com~1service.version"
+  value: "$GITHUB_SHA"
+}
+"""

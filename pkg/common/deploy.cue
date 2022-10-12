@@ -127,12 +127,10 @@ import "list"
 	steps: list.Concat(
 		[
 			#steps_deploy, [
-				{
-					name: "Deploy"
+				#with.skaffold_deploy.step & {
 					env: {
 						SKAFFOLD_PROFILE: "${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}"
 					}
-					run: "skaffold deploy --force --build-artifacts=build.json"
 				},
 			]])
 }
