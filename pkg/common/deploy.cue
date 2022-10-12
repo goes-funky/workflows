@@ -37,9 +37,14 @@ import "list"
 					required:    false
 				}
 				"skip-deploy": {
-					type:        "boolean"
-					description: "Skip deployment to cluster"
-					required:    false
+                	type:        "boolean"
+                	description: "Skip deployment to cluster"
+                	required:    false
+                }
+				"skaffold-file": {
+					type:        "string"
+					description: "Skaffold file to use"
+					default:    "skaffold.yaml"
 				}
 				...
 			}
@@ -110,7 +115,7 @@ import "list"
 		},
 		{
 			name: "Build"
-			run:  "skaffold build --file-output=build.json"
+			run:  "skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json"
 		},
 		{
 			name: "Archive build reference"
@@ -132,7 +137,7 @@ import "list"
 					env: {
 						SKAFFOLD_PROFILE: "${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}"
 					}
-					run: "skaffold deploy --force --build-artifacts=build.json"
+					run: "skaffold deploy --filename=${{ inputs.skaffold-file }} --force --build-artifacts=build.json"
 				},
 			]])
 }
@@ -143,7 +148,7 @@ import "list"
 			#steps_deploy, [
 				{
 					name: "Deploy"
-					run:  "skaffold deploy --profile prod --force --build-artifacts=build.json"
+					run:  "skaffold deploy --filename=${{ inputs.skaffold-file }} --profile prod --force --build-artifacts=build.json"
 				},
 			]])
 }

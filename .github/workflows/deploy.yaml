@@ -24,6 +24,10 @@ name: Deploy
         type: string
         description: Dist artifact name
         required: false
+      skip-deploy:
+        type: boolean
+        description: Skip deployment to cluster
+        required: false
       skip-checkout:
         type: boolean
         description: Whether to skip checkout
@@ -41,10 +45,10 @@ name: Deploy
         description: Development branch
         default: ${{ github.event.repository.default_branch }}
         required: false
-      skip-deploy:
-        type: boolean
-        description: Skip deployment to cluster
-        required: false
+      skaffold-file:
+        type: string
+        description: Skaffold file to use
+        default: skaffold.yaml
       kubeval:
         type: string
         description: Kubeval version
@@ -106,7 +110,7 @@ jobs:
       - name: Deploy
         env:
           SKAFFOLD_PROFILE: ${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}
-        run: skaffold deploy --force --build-artifacts=build.json
+        run: skaffold deploy --filename=${{ inputs.skaffold-file }} --force --build-artifacts=build.json
   deploy-production:
     needs:
       - build
@@ -138,7 +142,7 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        run: skaffold deploy --profile prod --force --build-artifacts=build.json
+        run: skaffold deploy --filename=${{ inputs.skaffold-file }} --profile prod --force --build-artifacts=build.json
   build:
     runs-on: ubuntu-latest
     name: Build Docker images
@@ -186,7 +190,7 @@ jobs:
       - name: Configure Skaffold
         run: skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
-        run: skaffold build --file-output=build.json
+        run: skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
@@ -224,4 +228,4 @@ jobs:
       - name: Deploy
         env:
           SKAFFOLD_PROFILE: ${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}
-        run: skaffold deploy --force --build-artifacts=build.json
+        run: skaffold deploy --filename=${{ inputs.skaffold-file }} --force --build-artifacts=build.json
