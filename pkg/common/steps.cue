@@ -169,5 +169,4 @@ package common
 - op: add
   path: "/metadata/labels/tags.datadog.com~1service.version"
   value: "$GITHUB_SHA"
-}
 """
