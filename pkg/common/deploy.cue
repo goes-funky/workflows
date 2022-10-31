@@ -82,13 +82,6 @@ import "list"
 #job_build: #job & {
 	name: "Build Docker images"
 	steps: [
-		#with.gcloud.step & {
-			with: {
-				project_id:       "${{ secrets.gcp-gcr-project-id }}"
-				credentials_json: "${{ secrets.gcp-gcr-service-account }}"
-				token_format:     "access_token"
-			}
-		},
 		#with.checkout.step,
 		{
 			name: "Setup skaffold cache"
@@ -107,6 +100,13 @@ import "list"
 			}
 		},
 		#with.ssh_agent.step,
+		#with.gcloud.step & {
+			with: {
+				project_id:       "${{ secrets.gcp-gcr-project-id }}"
+				credentials_json: "${{ secrets.gcp-gcr-service-account }}"
+				token_format:     "access_token"
+			}
+		},
 		#with.docker_auth.step,
 		#with.kube_tools.step,
 		{
@@ -154,8 +154,8 @@ import "list"
 }
 
 #steps_deploy: [...#step] & [
-		#with.gcloud.step,
 		#with.checkout.step,
+		#with.gcloud.step,
 		#with.gke.step,
 		{
 		name: "Download build reference"
