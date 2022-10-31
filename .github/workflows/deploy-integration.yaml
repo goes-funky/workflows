@@ -425,6 +425,8 @@ jobs:
           project_id: ${{ secrets.gcp-gcr-project-id }}
           credentials_json: ${{ secrets.gcp-gcr-service-account }}
           token_format: access_token
+          create_credentials_file: false
+          export_environment_variables: true
       - name: Authenticate to Google Container Registry
         id: auth_gcr
         uses: docker/login-action@v1

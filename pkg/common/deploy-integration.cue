@@ -174,6 +174,8 @@ import "list"
 						project_id:       "${{ secrets.gcp-gcr-project-id }}"
 						credentials_json: "${{ secrets.gcp-gcr-service-account }}"
 						token_format:     "access_token"
+						create_credentials_file: false
+						export_environment_variables: true
 					}
 				},
 				#with.docker_auth.step,
