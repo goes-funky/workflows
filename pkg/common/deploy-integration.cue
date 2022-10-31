@@ -150,7 +150,14 @@ import "list"
 		build: {
 			name: "Build Docker images"
 			steps: [
-				#with.checkout.step,
+				{
+					name: "Checkout"
+					if:   "!inputs.skip-checkout"
+					uses: "actions/checkout@v3"
+					with: {
+						path: "./code"
+					}
+				},
 				{
 					name: "Setup skaffold cache"
 					uses: "actions/cache@v2"
@@ -174,8 +181,6 @@ import "list"
 						project_id:       "${{ secrets.gcp-gcr-project-id }}"
 						credentials_json: "${{ secrets.gcp-gcr-service-account }}"
 						token_format:     "access_token"
-						create_credentials_file: false
-						export_environment_variables: true
 					}
 				},
 				#with.docker_auth.step,
@@ -204,7 +209,7 @@ import "list"
 						COMMIT_SHA:     "${{ env.COMMIT_SHA }}"
 						IMAGE_NAME:     "${{ env.IMAGE_NAME }}"
 					}
-					run: "skaffold build --file-output=build.json"
+					run: "cd ./code && skaffold build --file-output=build.json"
 				},
 				{
 					name: "Archive build reference"

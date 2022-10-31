@@ -155,6 +155,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          path: ./code
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
@@ -177,8 +179,6 @@ jobs:
           project_id: ${{ secrets.gcp-gcr-project-id }}
           credentials_json: ${{ secrets.gcp-gcr-service-account }}
           token_format: access_token
-          create_credentials_file: false
-          export_environment_variables: true
       - name: Authenticate to Google Container Registry
         id: auth_gcr
         uses: docker/login-action@v1
@@ -197,7 +197,7 @@ jobs:
       - name: Configure Skaffold
         run: skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
-        run: skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json
+        run: cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
