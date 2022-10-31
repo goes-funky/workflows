@@ -91,15 +91,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to development
     steps:
-      - name: Checkout
-        if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
       - name: Authenticate to Google Cloud
         id: auth_gcp
         uses: google-github-actions/auth@v0
         with:
           project_id: ${{ secrets.gcp-project-id }}
           credentials_json: ${{ secrets.gcp-service-account }}
+      - name: Checkout
+        if: '!inputs.skip-checkout'
+        uses: actions/checkout@v3
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -125,15 +125,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to production
     steps:
-      - name: Checkout
-        if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
       - name: Authenticate to Google Cloud
         id: auth_gcp
         uses: google-github-actions/auth@v0
         with:
           project_id: ${{ secrets.gcp-project-id }}
           credentials_json: ${{ secrets.gcp-service-account }}
+      - name: Checkout
+        if: '!inputs.skip-checkout'
+        uses: actions/checkout@v3
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -152,6 +152,13 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Docker images
     steps:
+      - name: Authenticate to Google Cloud
+        id: auth_gcp
+        uses: google-github-actions/auth@v0
+        with:
+          project_id: ${{ secrets.gcp-gcr-project-id }}
+          credentials_json: ${{ secrets.gcp-gcr-service-account }}
+          token_format: access_token
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
@@ -170,13 +177,6 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v0
-        with:
-          project_id: ${{ secrets.gcp-gcr-project-id }}
-          credentials_json: ${{ secrets.gcp-gcr-service-account }}
-          token_format: access_token
       - name: Authenticate to Google Container Registry
         id: auth_gcr
         uses: docker/login-action@v1
@@ -209,15 +209,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to environment
     steps:
-      - name: Checkout
-        if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
       - name: Authenticate to Google Cloud
         id: auth_gcp
         uses: google-github-actions/auth@v0
         with:
           project_id: ${{ secrets.gcp-project-id }}
           credentials_json: ${{ secrets.gcp-service-account }}
+      - name: Checkout
+        if: '!inputs.skip-checkout'
+        uses: actions/checkout@v3
       - uses: google-github-actions/get-gke-credentials@v0.8.0
         with:
           cluster_name: ${{ secrets.gke-cluster }}
