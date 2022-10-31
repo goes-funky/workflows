@@ -129,7 +129,7 @@ import "list"
 			uses: "actions/upload-artifact@v2"
 			with: {
 				name: "build-ref"
-				path: "build.json"
+				path: "./code/build.json"
 			}
 		},
 	]
