@@ -162,7 +162,7 @@ import "list"
 					name: "Setup skaffold cache"
 					uses: "actions/cache@v2"
 					with: {
-						path: "~/.skaffold/cache"
+						path: "./code/.skaffold/cache"
 						key:  "${{ runner.os }}-skaffold"
 					}
 				},
@@ -172,7 +172,7 @@ import "list"
 					if:   "inputs.dist-artifact"
 					with: {
 						name: "${{ inputs.dist-artifact }}"
-						path: "dist"
+						path: "./code/dist"
 					}
 				},
 				#with.ssh_agent.step,
@@ -358,7 +358,7 @@ import "list"
 	id:   "deps-cache"
 	uses: "actions/cache@v2"
 	with: {
-		path: ".venv/"
+		path: "./code.venv/"
 		key:  "${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}"
 	}
 }
