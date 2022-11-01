@@ -155,7 +155,7 @@ jobs:
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
-          path: ./code/.skaffold/cache
+          path: ~/.skaffold/cache
           key: ${{ runner.os }}-skaffold
       - uses: actions/download-artifact@master
         if: inputs.dist-artifact

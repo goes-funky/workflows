@@ -407,7 +407,7 @@ jobs:
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
-          path: ./code/.skaffold/cache
+          path: ~/.skaffold/cache
           key: ${{ runner.os }}-skaffold
       - name: Download artifact
         uses: actions/download-artifact@master

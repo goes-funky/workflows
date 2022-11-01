@@ -94,7 +94,7 @@ import "list"
 			name: "Setup skaffold cache"
 			uses: "actions/cache@v2"
 			with: {
-				path: "./code/.skaffold/cache"
+				path: "~/.skaffold/cache"
 				key:  "${{ runner.os }}-skaffold"
 			}
 		},
