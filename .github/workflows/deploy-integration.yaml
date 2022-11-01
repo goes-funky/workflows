@@ -132,7 +132,7 @@ jobs:
         id: deps-cache
         uses: actions/cache@v2
         with:
-          path: .venv/
+          path: ./code.venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
@@ -185,7 +185,7 @@ jobs:
         id: deps-cache
         uses: actions/cache@v2
         with:
-          path: .venv/
+          path: ./code.venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
@@ -322,7 +322,7 @@ jobs:
         id: deps-cache
         uses: actions/cache@v2
         with:
-          path: .venv/
+          path: ./code.venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
@@ -365,7 +365,7 @@ jobs:
         id: deps-cache
         uses: actions/cache@v2
         with:
-          path: .venv/
+          path: ./code.venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
@@ -407,14 +407,14 @@ jobs:
       - name: Setup skaffold cache
         uses: actions/cache@v2
         with:
-          path: ~/.skaffold/cache
+          path: ./code/.skaffold/cache
           key: ${{ runner.os }}-skaffold
       - name: Download artifact
         uses: actions/download-artifact@master
         if: inputs.dist-artifact
         with:
           name: ${{ inputs.dist-artifact }}
-          path: dist
+          path: ./code/dist
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4

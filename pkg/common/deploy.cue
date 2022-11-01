@@ -94,7 +94,7 @@ import "list"
 			name: "Setup skaffold cache"
 			uses: "actions/cache@v2"
 			with: {
-				path: "~/.skaffold/cache"
+				path: "./code/.skaffold/cache"
 				key:  "${{ runner.os }}-skaffold"
 			}
 		},
@@ -103,7 +103,7 @@ import "list"
 			if:   "inputs.dist-artifact"
 			with: {
 				name: "${{ inputs.dist-artifact }}"
-				path: "dist"
+				path: "./code/dist"
 			}
 		},
 		#with.ssh_agent.step,
