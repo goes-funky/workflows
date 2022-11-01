@@ -358,7 +358,7 @@ import "list"
 	id:   "deps-cache"
 	uses: "actions/cache@v2"
 	with: {
-		path: "./code.venv/"
+		path: ".venv/"
 		key:  "${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}"
 	}
 }
