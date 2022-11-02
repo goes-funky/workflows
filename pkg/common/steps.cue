@@ -135,4 +135,17 @@ package common
 			}
 		}
 	}
+
+	docker_artifacts_auth: {
+    	step: #step & {
+    		id: "auth_docker_pkg_dev"
+    		name: "Authenticate to Google Artifact Registry"
+    		uses: "docker/login-action@v1"
+    		with: {
+    			    registry: "europe-west3-docker.pkg.dev"
+    			    username: "oauth2accesstoken"
+    			    password: "${{ steps.auth_gcp.outputs.access_token }}"
+    		}
+    	}
+    }
 }

@@ -99,6 +99,16 @@ common.#workflow & {
 			}
 			secrets: {
 				common.#with.ssh_agent.secrets
+				// include manually to make them optional.
+				"gcp-gcr-project-id": {
+                	description: "GCP GCR Project ID. Required for integration_tests."
+                	required:    false
+                }
+                "gcp-gcr-service-account": {
+                	description: "GCP GCR Service Account Key. Required for integration_tests."
+                	required:    false
+                }
+                // end of manual include
 				"sonar_token": {
 					description: "Token for sonarcloud.io scans"
 					required:    false
@@ -246,6 +256,15 @@ common.#workflow & {
 								}
 						},
 				common.#with.ssh_agent.step,
+				common.#with.gcloud.step & {
+                	with: {
+                		project_id:       "${{ secrets.gcp-gcr-project-id }}"
+                		credentials_json: "${{ secrets.gcp-gcr-service-account }}"
+                		token_format:     "access_token"
+                	}
+                },
+                common.#with.docker_auth.step,
+                common.#with.docker_artifacts_auth.step,
 				{
 					name: "Update docker-compose"
 					uses: "KengoTODA/actions-setup-docker-compose@62da66e273e37258ddfb9ccc55f7934bdd25b57d"
