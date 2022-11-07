@@ -47,7 +47,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: set-matrix
-        run: echo "::set-output name=matrix::{\"php-version\":[\"8.1\"],\"extensions\":[\"${{ inputs.extensions }}\"],\"database\":[\"${{ inputs.database }}\"]}"
+        run: echo "matrix={\"php-version\":[\"8.1\"],\"extensions\":[\"${{ inputs.extensions }}\"],\"database\":[\"${{ inputs.database }}\"]}" >> $GITHUB_OUTPUT
   prepare:
     needs:
       - matrix
