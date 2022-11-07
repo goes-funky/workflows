@@ -106,7 +106,7 @@ jobs:
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
-          name: build-ref
+          name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
@@ -140,7 +140,7 @@ jobs:
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
-          name: build-ref
+          name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
@@ -201,7 +201,7 @@ jobs:
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
-          name: build-ref
+          name: build-${{ inputs.skaffold-file }}
           path: ./code/build.json
   deploy-environment:
     needs:
@@ -226,7 +226,7 @@ jobs:
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
-          name: build-ref
+          name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
