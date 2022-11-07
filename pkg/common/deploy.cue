@@ -92,7 +92,7 @@ import "list"
 		},
 		{
 			name: "Setup skaffold cache"
-			uses: "actions/cache@v2"
+			uses: "actions/cache@v3"
 			with: {
 				path: "~/.skaffold/cache"
 				key:  "${{ runner.os }}-skaffold"

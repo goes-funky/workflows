@@ -47,7 +47,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: set-matrix
-        run: echo "::set-output name=matrix::{\"php-version\":[\"8.1\"],\"extensions\":[\"${{ inputs.extensions }}\"],\"database\":[\"${{ inputs.database }}\"]}"
+        run: echo "matrix={\"php-version\":[\"8.1\"],\"extensions\":[\"${{ inputs.extensions }}\"],\"database\":[\"${{ inputs.database }}\"]}" >> "$GITHUB_OUTPUT"
   prepare:
     needs:
       - matrix
@@ -59,7 +59,7 @@ jobs:
       key: cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         name: Checkout
       - uses: dkhunt27/action-conventional-commits@master
         with:
@@ -73,7 +73,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -93,7 +93,7 @@ jobs:
         run: composer validate
       - name: Cache Composer packages
         id: composer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -114,7 +114,7 @@ jobs:
       key: cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         name: Checkout
       - name: Setup cache environment
         id: extcache
@@ -124,7 +124,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -136,7 +136,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
       - name: Composer packages from cache
         id: restore-composer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -167,7 +167,7 @@ jobs:
       key: cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         name: Checkout
       - name: Setup cache environment
         id: extcache
@@ -177,7 +177,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -191,7 +191,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
       - name: Composer packages from cache
         id: restore-composer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}

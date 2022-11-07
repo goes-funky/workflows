@@ -56,7 +56,7 @@ common.#workflow & {
 			steps: [{
 				id: "set-matrix"
 				run: """
-					echo \"::set-output name=matrix::{\\\"php-version\\\":[\\\"8.1\\\"],\\\"extensions\\\":[\\\"${{ inputs.extensions }}\\\"],\\\"database\\\":[\\\"${{ inputs.database }}\\\"]}\"
+					echo \"matrix={\\\"php-version\\\":[\\\"8.1\\\"],\\\"extensions\\\":[\\\"${{ inputs.extensions }}\\\"],\\\"database\\\":[\\\"${{ inputs.database }}\\\"]}\" >> "$GITHUB_OUTPUT"
 					"""
 			}]
 		}
@@ -70,7 +70,7 @@ common.#workflow & {
 			}
 			env: key: "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
 			steps: [{
-				uses: "actions/checkout@v2"
+				uses: "actions/checkout@v3"
 				name: "Checkout"
 			}, {
 				uses: "dkhunt27/action-conventional-commits@master"
@@ -87,7 +87,7 @@ common.#workflow & {
 				}
 			}, {
 				name: "Cache extensions"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path:           "${{ steps.extcache.outputs.dir }}"
 					key:            "${{ steps.extcache.outputs.key }}"
@@ -112,7 +112,7 @@ common.#workflow & {
 			}, {
 				name: "Cache Composer packages"
 				id:   "composer-cache"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path: "vendor"
 					key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"
@@ -137,7 +137,7 @@ common.#workflow & {
 			}
 			env: key: "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
 			steps: [{
-				uses: "actions/checkout@v2"
+				uses: "actions/checkout@v3"
 				name: "Checkout"
 			}, {
 				name: "Setup cache environment"
@@ -150,7 +150,7 @@ common.#workflow & {
 				}
 			}, {
 				name: "Cache extensions"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path:           "${{ steps.extcache.outputs.dir }}"
 					key:            "${{ steps.extcache.outputs.key }}"
@@ -166,7 +166,7 @@ common.#workflow & {
 			}, {
 				name: "Composer packages from cache"
 				id:   "restore-composer-cache"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path: "vendor"
 					key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"
@@ -206,7 +206,7 @@ common.#workflow & {
 				key:     "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
 			}
 			steps: [{
-				uses: "actions/checkout@v2"
+				uses: "actions/checkout@v3"
 				name: "Checkout"
 			}, {
 				name: "Setup cache environment"
@@ -219,7 +219,7 @@ common.#workflow & {
 				}
 			}, {
 				name: "Cache extensions"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path:           "${{ steps.extcache.outputs.dir }}"
 					key:            "${{ steps.extcache.outputs.key }}"
@@ -237,7 +237,7 @@ common.#workflow & {
 			}, {
 				name: "Composer packages from cache"
 				id:   "restore-composer-cache"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path: "vendor"
 					key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"
