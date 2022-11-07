@@ -87,7 +87,7 @@ common.#workflow & {
 				}
 			}, {
 				name: "Cache extensions"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path:           "${{ steps.extcache.outputs.dir }}"
 					key:            "${{ steps.extcache.outputs.key }}"
@@ -112,7 +112,7 @@ common.#workflow & {
 			}, {
 				name: "Cache Composer packages"
 				id:   "composer-cache"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path: "vendor"
 					key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"
@@ -150,7 +150,7 @@ common.#workflow & {
 				}
 			}, {
 				name: "Cache extensions"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path:           "${{ steps.extcache.outputs.dir }}"
 					key:            "${{ steps.extcache.outputs.key }}"
@@ -166,7 +166,7 @@ common.#workflow & {
 			}, {
 				name: "Composer packages from cache"
 				id:   "restore-composer-cache"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path: "vendor"
 					key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"
@@ -219,7 +219,7 @@ common.#workflow & {
 				}
 			}, {
 				name: "Cache extensions"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path:           "${{ steps.extcache.outputs.dir }}"
 					key:            "${{ steps.extcache.outputs.key }}"
@@ -237,7 +237,7 @@ common.#workflow & {
 			}, {
 				name: "Composer packages from cache"
 				id:   "restore-composer-cache"
-				uses: "actions/cache@v2"
+				uses: "actions/cache@v3"
 				with: {
 					path: "vendor"
 					key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"

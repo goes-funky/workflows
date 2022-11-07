@@ -24,7 +24,7 @@ common.#workflow & {
 				{
 					name: "Setup tools cache"
 					id: "cache"
-					uses: "actions/cache@v2"
+					uses: "actions/cache@v3"
 					with: {
 						path: "bin"
 						key: "${{ runner.os }}-tools-${{ hashFiles('Makefile') }}"

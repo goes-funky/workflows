@@ -73,7 +73,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -93,7 +93,7 @@ jobs:
         run: composer validate
       - name: Cache Composer packages
         id: composer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -124,7 +124,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -136,7 +136,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
       - name: Composer packages from cache
         id: restore-composer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -177,7 +177,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -191,7 +191,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
       - name: Composer packages from cache
         id: restore-composer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}

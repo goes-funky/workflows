@@ -160,7 +160,7 @@ import "list"
 				},
 				{
 					name: "Setup skaffold cache"
-					uses: "actions/cache@v2"
+					uses: "actions/cache@v3"
 					with: {
 						path: "~/.skaffold/cache"
 						key:  "${{ runner.os }}-skaffold"
@@ -356,7 +356,7 @@ import "list"
 #step_setup_deps_cache: {
 	name: "Setup cache"
 	id:   "deps-cache"
-	uses: "actions/cache@v2"
+	uses: "actions/cache@v3"
 	with: {
 		path: ".venv/"
 		key:  "${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}"
