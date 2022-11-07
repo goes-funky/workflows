@@ -70,7 +70,7 @@ common.#workflow & {
 			}
 			env: key: "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
 			steps: [{
-				uses: "actions/checkout@v2"
+				uses: "actions/checkout@v3"
 				name: "Checkout"
 			}, {
 				uses: "dkhunt27/action-conventional-commits@master"
@@ -137,7 +137,7 @@ common.#workflow & {
 			}
 			env: key: "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
 			steps: [{
-				uses: "actions/checkout@v2"
+				uses: "actions/checkout@v3"
 				name: "Checkout"
 			}, {
 				name: "Setup cache environment"
@@ -206,7 +206,7 @@ common.#workflow & {
 				key:     "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
 			}
 			steps: [{
-				uses: "actions/checkout@v2"
+				uses: "actions/checkout@v3"
 				name: "Checkout"
 			}, {
 				name: "Setup cache environment"
