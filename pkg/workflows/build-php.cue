@@ -56,7 +56,7 @@ common.#workflow & {
 			steps: [{
 				id: "set-matrix"
 				run: """
-					echo \"matrix={\\\"php-version\\\":[\\\"8.1\\\"],\\\"extensions\\\":[\\\"${{ inputs.extensions }}\\\"],\\\"database\\\":[\\\"${{ inputs.database }}\\\"]}\" >> $GITHUB_OUTPUT
+					echo \"matrix={\\\"php-version\\\":[\\\"8.1\\\"],\\\"extensions\\\":[\\\"${{ inputs.extensions }}\\\"],\\\"database\\\":[\\\"${{ inputs.database }}\\\"]}\" >> "$GITHUB_OUTPUT"
 					"""
 			}]
 		}
