@@ -128,7 +128,7 @@ import "list"
 			name: "Archive build reference"
 			uses: "actions/upload-artifact@v2"
 			with: {
-				name: "build-ref"
+				name: "build-${{ inputs.skaffold-file }}"
 				path: "./code/build.json"
 			}
 		},
@@ -168,7 +168,7 @@ import "list"
 		name: "Download build reference"
 		uses: "actions/download-artifact@v2"
 		with: {
-			name: "build-ref"
+			name: "build-${{ inputs.skaffold-file }}"
 		}
 	},
 	#with.kube_tools.step &
