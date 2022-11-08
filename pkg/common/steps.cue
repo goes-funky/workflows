@@ -127,7 +127,7 @@ package common
 		step: #step & {
 			id: "auth_gcr"
 			name: "Authenticate to Google Container Registry"
-			uses: "docker/login-action@v1"
+			uses: "docker/login-action@v2"
 			with: {
 				    registry: "eu.gcr.io"
 				    username: "oauth2accesstoken"
