@@ -101,7 +101,7 @@ jobs:
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
-          name: build-ref
+          name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
@@ -135,7 +135,7 @@ jobs:
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
-          name: build-ref
+          name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
@@ -150,8 +150,10 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          path: ./code
       - name: Setup skaffold cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.skaffold/cache
           key: ${{ runner.os }}-skaffold
@@ -159,7 +161,7 @@ jobs:
         if: inputs.dist-artifact
         with:
           name: ${{ inputs.dist-artifact }}
-          path: dist
+          path: ./code/dist
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
@@ -174,7 +176,7 @@ jobs:
           token_format: access_token
       - name: Authenticate to Google Container Registry
         id: auth_gcr
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: eu.gcr.io
           username: oauth2accesstoken
@@ -197,12 +199,12 @@ jobs:
       - name: Configure Skaffold
         run: skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Build
-        run: skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json
+        run: cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json
       - name: Archive build reference
         uses: actions/upload-artifact@v2
         with:
-          name: build-ref
-          path: build.json
+          name: build-${{ inputs.skaffold-file }}
+          path: ./code/build.json
   deploy-environment:
     needs:
       - build
@@ -226,7 +228,7 @@ jobs:
       - name: Download build reference
         uses: actions/download-artifact@v2
         with:
-          name: build-ref
+          name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:

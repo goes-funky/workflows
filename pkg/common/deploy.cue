@@ -82,10 +82,17 @@ import "list"
 #job_build: #job & {
 	name: "Build Docker images"
 	steps: [
-		#with.checkout.step,
+		{
+			name: "Checkout"
+			if:   "!inputs.skip-checkout"
+			uses: "actions/checkout@v3"
+			with: {
+				path: "./code"
+			}
+		},
 		{
 			name: "Setup skaffold cache"
-			uses: "actions/cache@v2"
+			uses: "actions/cache@v3"
 			with: {
 				path: "~/.skaffold/cache"
 				key:  "${{ runner.os }}-skaffold"
@@ -96,7 +103,7 @@ import "list"
 			if:   "inputs.dist-artifact"
 			with: {
 				name: "${{ inputs.dist-artifact }}"
-				path: "dist"
+				path: "./code/dist"
 			}
 		},
 		#with.ssh_agent.step,
@@ -116,14 +123,14 @@ import "list"
 		},
 		{
 			name: "Build"
-			run:  "skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json"
+			run:  "cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json"
 		},
 		{
 			name: "Archive build reference"
 			uses: "actions/upload-artifact@v2"
 			with: {
-				name: "build-ref"
-				path: "build.json"
+				name: "build-${{ inputs.skaffold-file }}"
+				path: "./code/build.json"
 			}
 		},
 	]
@@ -162,7 +169,7 @@ import "list"
 		name: "Download build reference"
 		uses: "actions/download-artifact@v2"
 		with: {
-			name: "build-ref"
+			name: "build-${{ inputs.skaffold-file }}"
 		}
 	},
 	#with.kube_tools.step &

@@ -150,10 +150,17 @@ import "list"
 		build: {
 			name: "Build Docker images"
 			steps: [
-				#with.checkout.step,
+				{
+					name: "Checkout"
+					if:   "!inputs.skip-checkout"
+					uses: "actions/checkout@v3"
+					with: {
+						path: "./code"
+					}
+				},
 				{
 					name: "Setup skaffold cache"
-					uses: "actions/cache@v2"
+					uses: "actions/cache@v3"
 					with: {
 						path: "~/.skaffold/cache"
 						key:  "${{ runner.os }}-skaffold"
@@ -165,7 +172,7 @@ import "list"
 					if:   "inputs.dist-artifact"
 					with: {
 						name: "${{ inputs.dist-artifact }}"
-						path: "dist"
+						path: "./code/dist"
 					}
 				},
 				#with.ssh_agent.step,
@@ -203,7 +210,7 @@ import "list"
 						COMMIT_SHA:     "${{ env.COMMIT_SHA }}"
 						IMAGE_NAME:     "${{ env.IMAGE_NAME }}"
 					}
-					run: "skaffold build --file-output=build.json"
+					run: "cd ./code && skaffold build --file-output=build.json"
 				},
 				{
 					name: "Archive build reference"
@@ -211,7 +218,7 @@ import "list"
 					uses: "actions/upload-artifact@v2"
 					with: {
 						name: "build-ref"
-						path: "build.json"
+						path: "./code/build.json"
 					}
 				},
 			]
@@ -350,7 +357,7 @@ import "list"
 #step_setup_deps_cache: {
 	name: "Setup cache"
 	id:   "deps-cache"
-	uses: "actions/cache@v2"
+	uses: "actions/cache@v3"
 	with: {
 		path: ".venv/"
 		key:  "${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}"

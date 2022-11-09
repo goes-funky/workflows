@@ -130,7 +130,7 @@ jobs:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -183,7 +183,7 @@ jobs:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -320,7 +320,7 @@ jobs:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -363,7 +363,7 @@ jobs:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -402,8 +402,10 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          path: ./code
       - name: Setup skaffold cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.skaffold/cache
           key: ${{ runner.os }}-skaffold
@@ -412,7 +414,7 @@ jobs:
         if: inputs.dist-artifact
         with:
           name: ${{ inputs.dist-artifact }}
-          path: dist
+          path: ./code/dist
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.5.4
@@ -427,7 +429,7 @@ jobs:
           token_format: access_token
       - name: Authenticate to Google Container Registry
         id: auth_gcr
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: eu.gcr.io
           username: oauth2accesstoken
@@ -464,13 +466,13 @@ jobs:
           SHORT_SHA: ${{ env.SHORT_SHA }}
           COMMIT_SHA: ${{ env.COMMIT_SHA }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
-        run: skaffold build --file-output=build.json
+        run: cd ./code && skaffold build --file-output=build.json
       - name: Archive build reference
         if: '!inputs.skip-build'
         uses: actions/upload-artifact@v2
         with:
           name: build-ref
-          path: build.json
+          path: ./code/build.json
   deploy-environment:
     name: Deploy to environment
     needs:
