@@ -115,6 +115,7 @@ import "list"
 			}
 		},
 		#with.docker_auth.step,
+		#with.docker_artifacts_auth.step,
 		#with.kube_tools.step,
 		{
 			name: "Configure Skaffold"
