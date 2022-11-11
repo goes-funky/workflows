@@ -104,7 +104,7 @@ jobs:
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
@@ -138,7 +138,7 @@ jobs:
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools
@@ -162,7 +162,7 @@ jobs:
         with:
           path: ~/.skaffold/cache
           key: ${{ runner.os }}-skaffold
-      - uses: actions/download-artifact@master
+      - uses: actions/download-artifact@v3
         if: inputs.dist-artifact
         with:
           name: ${{ inputs.dist-artifact }}
@@ -206,7 +206,7 @@ jobs:
       - name: Build
         run: cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json
       - name: Archive build reference
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-${{ inputs.skaffold-file }}
           path: ./code/build.json
@@ -231,7 +231,7 @@ jobs:
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build-${{ inputs.skaffold-file }}
       - name: Setup Kubernetes tools

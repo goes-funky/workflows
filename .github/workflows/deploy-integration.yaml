@@ -125,7 +125,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
@@ -178,7 +178,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
@@ -241,7 +241,7 @@ jobs:
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build-ref
       - name: Setup Kubernetes tools
@@ -287,7 +287,7 @@ jobs:
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build-ref
       - name: Setup Kubernetes tools
@@ -315,7 +315,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
@@ -358,7 +358,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
@@ -410,7 +410,7 @@ jobs:
           path: ~/.skaffold/cache
           key: ${{ runner.os }}-skaffold
       - name: Download artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v3
         if: inputs.dist-artifact
         with:
           name: ${{ inputs.dist-artifact }}
@@ -469,7 +469,7 @@ jobs:
         run: cd ./code && skaffold build --file-output=build.json
       - name: Archive build reference
         if: '!inputs.skip-build'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-ref
           path: ./code/build.json
@@ -499,7 +499,7 @@ jobs:
         with:
           cluster_name: ${{ secrets.gke-cluster }}
       - name: Download build reference
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build-ref
       - name: Setup Kubernetes tools

@@ -26,7 +26,7 @@ import "github.com/goes-funky/workflows/pkg/common"
 
 #step_setup_go: common.#step & {
 	name: "Setup go"
-	uses: "actions/setup-go@v2"
+	uses: "actions/setup-go@v3"
 	with: "go-version": "${{ inputs.go-version }}"
 }
 
@@ -59,7 +59,7 @@ common.#workflow & {
 				#step_setup_tools_cache,
 				{
 					name: "Setup go"
-					uses: "actions/setup-go@v2"
+					uses: "actions/setup-go@v3"
 					with: "go-version": "${{ inputs.go-version }}"
 					if: "!steps.tools-cache.outputs.cache-hit"
 				},
@@ -77,7 +77,7 @@ common.#workflow & {
 				#step_setup_deps_cache,
 				{
 					name: "Setup go"
-					uses: "actions/setup-go@v2"
+					uses: "actions/setup-go@v3"
 					with: "go-version": "${{ inputs.go-version }}"
 					if: "!steps.deps-cache.outputs.cache-hit"
 				},

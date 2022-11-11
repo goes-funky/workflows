@@ -99,7 +99,7 @@ import "list"
 			}
 		},
 		{
-			uses: "actions/download-artifact@master"
+			uses: "actions/download-artifact@v3"
 			if:   "inputs.dist-artifact"
 			with: {
 				name: "${{ inputs.dist-artifact }}"
@@ -127,7 +127,7 @@ import "list"
 		},
 		{
 			name: "Archive build reference"
-			uses: "actions/upload-artifact@v2"
+			uses: "actions/upload-artifact@v3"
 			with: {
 				name: "build-${{ inputs.skaffold-file }}"
 				path: "./code/build.json"
@@ -167,7 +167,7 @@ import "list"
 		#with.gke.step,
 		{
 		name: "Download build reference"
-		uses: "actions/download-artifact@v2"
+		uses: "actions/download-artifact@v3"
 		with: {
 			name: "build-${{ inputs.skaffold-file }}"
 		}

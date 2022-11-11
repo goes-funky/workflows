@@ -5,7 +5,7 @@ import "github.com/goes-funky/workflows/pkg/common"
 #step_setup_python: common.#step & {
 	name: "Setup python"
 	id:   "setup-python"
-	uses: "actions/setup-python@v2"
+	uses: "actions/setup-python@v4"
 	with: {
 		"python-version": "${{ inputs.python-version }}"
 	}
