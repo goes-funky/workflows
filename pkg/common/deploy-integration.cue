@@ -168,7 +168,7 @@ import "list"
 				},
 				{
 					name: "Download artifact"
-					uses: "actions/download-artifact@master"
+					uses: "actions/download-artifact@v3"
 					if:   "inputs.dist-artifact"
 					with: {
 						name: "${{ inputs.dist-artifact }}"
@@ -215,7 +215,7 @@ import "list"
 				{
 					name: "Archive build reference"
 					if:   "!inputs.skip-build"
-					uses: "actions/upload-artifact@v2"
+					uses: "actions/upload-artifact@v3"
 					with: {
 						name: "build-ref"
 						path: "./code/build.json"
@@ -298,7 +298,7 @@ import "list"
 		#with.gke.step,
 		{
 			name: "Download build reference"
-			uses: "actions/download-artifact@v2"
+			uses: "actions/download-artifact@v3"
 			with: {
 				name: "build-ref"
 			}
@@ -340,7 +340,7 @@ import "list"
 #step_setup_python: {
 	name: "Setup python"
 	id:   "setup-python"
-	uses: "actions/setup-python@v2"
+	uses: "actions/setup-python@v4"
 	with: "python-version": "${{ inputs.python-version }}"
 }
 
