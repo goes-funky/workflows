@@ -40,7 +40,7 @@ common.#workflow & {
 			outputs: should_skip: "${{ steps.skip_check.outputs.should_skip }}"
 			steps: [{
 				id:   "skip_check"
-				uses: "fkirc/skip-duplicate-actions@v4"
+				uses: "fkirc/skip-duplicate-actions@v5"
 				with: {
 					concurrent_skipping:             "never"
 					skip_after_successful_duplicate: "true"
