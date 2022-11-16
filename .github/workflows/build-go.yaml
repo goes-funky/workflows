@@ -62,7 +62,7 @@ jobs:
         if: '!steps.deps-cache.outputs.cache-hit'
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
       - name: Download dependencies

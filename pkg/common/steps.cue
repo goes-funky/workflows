@@ -36,7 +36,7 @@ package common
 
 		step: #step & {
 			name: "Setup SSH Agent"
-			uses: "webfactory/ssh-agent@v0.5.4"
+			uses: "webfactory/ssh-agent@v0.7.0"
 			if: "!inputs.is-repo-public"
 			with: {
 				"ssh-private-key": "${{ secrets.ssh-private-key }}"
@@ -140,7 +140,7 @@ package common
     	step: #step & {
     		id: "auth_docker_pkg_dev"
     		name: "Authenticate to Google Artifact Registry"
-    		uses: "docker/login-action@v1"
+    		uses: "docker/login-action@v2"
     		with: {
     			    registry: "europe-west3-docker.pkg.dev"
     			    username: "oauth2accesstoken"

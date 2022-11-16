@@ -104,7 +104,7 @@ common.#workflow & {
 				}
 			}, {
 				name: "Setup SSH Agent"
-				uses: "webfactory/ssh-agent@v0.5.4"
+				uses: "webfactory/ssh-agent@v0.7.0"
 				with: "ssh-private-key": "${{ secrets.ssh-private-key }}"
 			}, {
 				name: "Validate composer.json and composer.lock"
