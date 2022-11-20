@@ -61,6 +61,12 @@ common.#workflow & {
 					default:    ""
 					required: false
 				}
+				"print-logs-for-services": {
+					type:        "string"
+					description: "Which services logs are shown in integrations tests. All by default"
+					default:    ""
+					required: false
+				}
 				"skip-lint": {
 					type:        "boolean"
 					description: "Whether to skip code linting with flake8"
@@ -273,6 +279,14 @@ common.#workflow & {
 					}
 				},
 				{
+					name: "Pull images"
+					run: "docker-compose pull"
+				},
+				{
+					name: "Setup cache"
+					uses: "jpribyl/action-docker-layer-caching@v0.1.0"
+				},
+				{
 					name: "Build"
 					env: {
 						DOCKER_BUILDKIT: "1"
@@ -291,7 +305,7 @@ common.#workflow & {
 				{
 					name: "Print logs"
 					if: "success() || failure()"
-					run: "docker-compose logs"
+					run: "docker-compose logs ${{ inputs.print-logs-for-services }}"
 				},
 			]
 		}
