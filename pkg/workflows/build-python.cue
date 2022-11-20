@@ -287,14 +287,10 @@ common.#workflow & {
 					uses: "jpribyl/action-docker-layer-caching@v0.1.0"
 				},
 				{
-					name: "Build"
+					name: "Integration tests"
 					env: {
 						DOCKER_BUILDKIT: "1"
 					}
-					run: "docker-compose build"
-				},
-				{
-					name: "Integration tests"
 					run: "docker-compose up -d"
 				},
 				{
