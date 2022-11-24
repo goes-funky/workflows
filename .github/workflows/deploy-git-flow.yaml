@@ -205,8 +205,8 @@ jobs:
         run: skaffold config set default-repo "${{ inputs.default-repo }}"
       - name: Export git build details
         run: |-
-          CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
-          SHORT_SHA="$(git rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+          CONTAINER_NAME=$(basename -s -C ./code .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
+          SHORT_SHA="$(git -C ./code rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
       - name: Build
         env:
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
