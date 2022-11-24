@@ -122,7 +122,18 @@ import "list"
 			run:  "skaffold config set default-repo \"${{ inputs.default-repo }}\""
 		},
 		{
+			name: "Export git build details"
+			run: """
+				CONTAINER_NAME=$(cd ./code && basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
+				SHORT_SHA="$(git -C ./code rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+				"""
+		},
+		{
 			name: "Build"
+			env: {
+				CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
+				SHORT_SHA:      "${{ env.SHORT_SHA }}"
+			}
 			run:  "cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json"
 		},
 		{
