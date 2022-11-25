@@ -75,6 +75,7 @@ jobs:
   deps:
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     name: Dependencies
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -116,6 +117,7 @@ jobs:
     needs:
       - deps
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -145,6 +147,7 @@ jobs:
     needs:
       - deps
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -177,6 +180,7 @@ jobs:
     needs:
       - deps
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -232,6 +236,7 @@ jobs:
     name: Integration tests
     if: '!inputs.skip-integration-tests'
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -286,6 +291,7 @@ jobs:
     needs:
       - deps
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'

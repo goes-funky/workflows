@@ -119,6 +119,7 @@ jobs:
     if: '!inputs.skip-integration-schema-generate && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.event.ref, ''refs/tags/v''))'
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -172,6 +173,7 @@ jobs:
     if: '!inputs.skip-integration-schema-generate && startsWith(github.event.ref, ''refs/tags/v'')'
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -222,6 +224,7 @@ jobs:
     if: '!inputs.skip-deploy && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.event.ref, ''refs/tags/v''))'
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -268,6 +271,7 @@ jobs:
     if: '!inputs.skip-deploy && startsWith(github.event.ref, ''refs/tags/v'')'
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -309,6 +313,7 @@ jobs:
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -352,6 +357,7 @@ jobs:
     if: inputs.environment
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -398,6 +404,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build Docker images
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -480,6 +487,7 @@ jobs:
     if: inputs.environment
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'

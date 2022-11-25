@@ -22,6 +22,7 @@ jobs:
   tools:
     runs-on: ubuntu-latest
     name: Tools
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -45,6 +46,7 @@ jobs:
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -78,6 +80,7 @@ jobs:
     name: Check
     env:
       GOLANGCILINT_CONCURRENCY: "4"
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -110,6 +113,7 @@ jobs:
       - deps
     runs-on: ubuntu-latest
     name: Test
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
