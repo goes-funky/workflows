@@ -231,6 +231,7 @@ jobs:
   integration_tests:
     name: Integration tests
     if: '!inputs.skip-integration-tests'
+    timeout-minutes: 10
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     steps:
       - name: Checkout
