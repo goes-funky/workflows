@@ -285,12 +285,12 @@ common.#workflow & {
 				},
 				{
 					name: "Stop"
-					if: "success() || failure()"
+					if: "always()"
 					run: "docker-compose stop"
 				},
 				{
 					name: "Print logs"
-					if: "success() || failure()"
+					if: "always()"
 					run: "docker-compose logs"
 				},
 			]
