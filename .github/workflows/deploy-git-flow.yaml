@@ -90,6 +90,7 @@ jobs:
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     name: Deploy to development
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -124,6 +125,7 @@ jobs:
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     name: Deploy to production
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -151,6 +153,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build Docker images
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -217,6 +220,7 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     name: Deploy to environment
+    timeout-minutes: 15
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
