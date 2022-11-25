@@ -280,10 +280,10 @@ jobs:
       - name: Integration tests
         run: docker-compose up -d
       - name: Stop
-        if: success() || failure()
+        if: always()
         run: docker-compose stop
       - name: Print logs
-        if: success() || failure()
+        if: always()
         run: docker-compose logs
   mypy:
     name: Mypy
