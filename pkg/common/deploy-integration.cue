@@ -158,14 +158,7 @@ import "list"
 						path: "./code"
 					}
 				},
-				{
-					name: "Setup skaffold cache"
-					uses: "actions/cache@v3"
-					with: {
-						path: "~/.skaffold/cache"
-						key:  "${{ runner.os }}-skaffold"
-					}
-				},
+				#with.skaffold_cache.step,
 				{
 					name: "Download artifact"
 					uses: "actions/download-artifact@v3"

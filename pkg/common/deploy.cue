@@ -90,14 +90,7 @@ import "list"
 				path: "./code"
 			}
 		},
-		{
-			name: "Setup skaffold cache"
-			uses: "actions/cache@v3"
-			with: {
-				path: "~/.skaffold/cache"
-				key:  "${{ runner.os }}-skaffold"
-			}
-		},
+		#with.skaffold_cache.step,
 		{
 			uses: "actions/download-artifact@v3"
 			if:   "inputs.dist-artifact"
