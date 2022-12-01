@@ -148,4 +148,18 @@ package common
     		}
     	}
     }
+    skaffold_cache: {
+        step: #step & {
+            name: "Setup skaffold cache"
+            uses: "actions/cache@v3"
+            with: {
+                path: "~/.skaffold/cache"
+                key:  "${{ runner.os }}-skaffold-${{ github.sha }}"
+                "restore-keys": """
+                    ${{ runner.os }}-skaffold-${{ github.sha }}
+                    ${{ runner.os }}-skaffold
+                    """
+            }
+        }
+    }
 }

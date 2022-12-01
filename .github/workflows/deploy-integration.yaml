@@ -415,7 +415,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.skaffold/cache
-          key: ${{ runner.os }}-skaffold
+          key: ${{ runner.os }}-skaffold-${{ github.sha }}
+          restore-keys: |-
+            ${{ runner.os }}-skaffold-${{ github.sha }}
+            ${{ runner.os }}-skaffold
       - name: Download artifact
         uses: actions/download-artifact@v3
         if: inputs.dist-artifact

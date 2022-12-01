@@ -90,14 +90,7 @@ import "list"
 				path: "./code"
 			}
 		},
-		{
-			name: "Setup skaffold cache"
-			uses: "actions/cache@v3"
-			with: {
-				path: "~/.skaffold/cache"
-				key:  "${{ runner.os }}-skaffold"
-			}
-		},
+		#with.skaffold_cache.step,
 		{
 			uses: "actions/download-artifact@v3"
 			if:   "inputs.dist-artifact"
@@ -134,7 +127,7 @@ import "list"
 				CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
 				SHORT_SHA:      "${{ env.SHORT_SHA }}"
 			}
-			run:  "cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json"
+			run:  "cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json -v debug"
 		},
 		{
 			name: "Archive build reference"

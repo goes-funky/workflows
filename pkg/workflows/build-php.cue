@@ -22,6 +22,11 @@ common.#workflow & {
 				description: "Whether to skip php artisan migrate"
 				default:     false
 			}
+			"skip-duplicate-actions-on-manual-runs": {
+				type:        "boolean"
+				description: "Whether to skip duplicate actions on manual workflow runs"
+				default:     true
+			}
 		}
 		secrets: "ssh-private-key": {
 			description: "SSH private key used to authenticate to GitHub with, in order to fetch private dependencies"
@@ -45,7 +50,7 @@ common.#workflow & {
 					concurrent_skipping:             "never"
 					skip_after_successful_duplicate: "true"
 					//paths_ignore: '["**/README.md", "**/docs/**"]'
-					do_not_skip: "[\"pull_request\", \"workflow_dispatch\", \"schedule\"]"
+					do_not_skip: "[\"pull_request\", \"schedule\" ${{ !inputs.skip-duplicate-actions-on-manual-runs && ', \"workflow_dispatch\"' || '' }} ]"
 				}
 			}]
 		}
@@ -176,9 +181,31 @@ common.#workflow & {
 						"""
 				}
 			}, {
+                name: "PHPStan cache"
+                uses: "actions/cache@v3"
+                with: {
+                    path: "/tmp/phpstan"
+                    key:  "${{ runner.os }}-phpstan-${{ github.sha }}"
+                    "restore-keys": """
+                        ${{ runner.os }}-phpstan-${{ github.sha }}
+                        ${{ runner.os }}-phpstan
+                        """
+                }
+            }, {
+                name: "Psalm cache"
+                uses: "actions/cache@v3"
+                with: {
+                    path: "~/.cache/psalm"
+                    key:  "${{ runner.os }}-psalm-${{ github.sha }}"
+                    "restore-keys": """
+                        ${{ runner.os }}-psalm-${{ github.sha }}
+                        ${{ runner.os }}-psalm
+                        """
+                }
+            }, {
 				name: "Changed PHP files"
 				id:   "changed-php-files"
-				uses: "tj-actions/changed-files@v23.1"
+				uses: "tj-actions/changed-files@v34"
 				with: files: """
 					**/*.php
 

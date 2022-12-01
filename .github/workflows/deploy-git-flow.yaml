@@ -164,7 +164,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.skaffold/cache
-          key: ${{ runner.os }}-skaffold
+          key: ${{ runner.os }}-skaffold-${{ github.sha }}
+          restore-keys: |-
+            ${{ runner.os }}-skaffold-${{ github.sha }}
+            ${{ runner.os }}-skaffold
       - uses: actions/download-artifact@v3
         if: inputs.dist-artifact
         with:
@@ -214,7 +217,7 @@ jobs:
         env:
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
           SHORT_SHA: ${{ env.SHORT_SHA }}
-        run: cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json
+        run: cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json -v debug
       - name: Archive build reference
         uses: actions/upload-artifact@v3
         with:
