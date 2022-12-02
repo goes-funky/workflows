@@ -36,6 +36,11 @@ import "list"
 					description: "Dist artifact name"
 					required:    false
 				}
+				"untar-artifact-name": {
+				    type:        "string"
+				    description: "Name of the input artifact to untar"
+				    required:    false
+				}
 				"skip-deploy": {
                 	type:        "boolean"
                 	description: "Skip deployment to cluster"
@@ -99,6 +104,11 @@ import "list"
 				path: "./code/dist"
 			}
 		},
+		{
+            name: "Untar build artifact"
+            if: "inputs.untar-artifact-name"
+            run: "tar -xf ./code/dist/${{ inputs.untar-artifact-name }} -C ./code/dist"
+        },
 		#with.ssh_agent.step,
 		#with.gcloud.step & {
 			with: {
