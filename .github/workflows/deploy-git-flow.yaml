@@ -24,6 +24,10 @@ name: Deploy
         type: string
         description: Dist artifact name
         required: false
+      untar-artifact-name:
+        type: string
+        description: Name of the input artifact to untar
+        required: false
       skip-deploy:
         type: boolean
         description: Skip deployment to cluster
@@ -173,6 +177,9 @@ jobs:
         with:
           name: ${{ inputs.dist-artifact }}
           path: ./code/dist
+      - name: Untar build artifact
+        if: inputs.untar-artifact-name
+        run: tar -xf ./code/dist/${{ inputs.untar-artifact-name }} -C ./code/dist
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.7.0
