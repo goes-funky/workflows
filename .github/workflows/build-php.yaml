@@ -32,7 +32,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   matrix:
-    needs: [check-pr]
+    needs:
+      - check-pr
     if: ${{ always() && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}
     runs-on: ubuntu-latest
     outputs:
