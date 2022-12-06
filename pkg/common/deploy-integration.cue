@@ -269,7 +269,7 @@ import "list"
 				{
 					name: "Upload Integration schema to JSON schema folder"
 					//pinning version till resolved https://github.com/google-github-actions/upload-cloud-storage/issues/248
-					uses: "google-github-actions/upload-cloud-storage@v0.8.0"
+					uses: "google-github-actions/upload-cloud-storage@v1"
 					with: {
 						path:        "integrations"
 						destination: "${{ secrets.json-schema-bucket }}"

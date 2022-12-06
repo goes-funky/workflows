@@ -95,7 +95,7 @@ package common
 		step: #step & {
 			id: "auth_gcp"
 			name: "Authenticate to Google Cloud"
-			uses: "google-github-actions/auth@v0"
+			uses: "google-github-actions/auth@v1"
 			with: {} | *{
 				project_id:                 "${{ secrets.gcp-project-id }}"
 				credentials_json:           "${{ secrets.gcp-service-account }}"
@@ -116,7 +116,7 @@ package common
 		}
 
 		step: #step & {
-			uses: "google-github-actions/get-gke-credentials@v0.8.0"
+			uses: "google-github-actions/get-gke-credentials@v1"
 			with: {
 				cluster_name: "${{ secrets.gke-cluster }}"
 			}
