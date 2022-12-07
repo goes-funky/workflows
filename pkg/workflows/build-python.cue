@@ -268,6 +268,14 @@ common.#workflow & {
 										"fetch-depth": 0
 								}
 						},
+				{
+					name: "Download artifact"
+					uses: "actions/download-artifact@master"
+					if:   "inputs.dist-artifact"
+					with: {
+						name: "${{ inputs.dist-artifact }}"
+					}
+				},
 				common.#with.ssh_agent.step,
 				common.#with.gcloud.step & {
                 	with: {
