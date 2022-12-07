@@ -41,22 +41,9 @@ common.#workflow & {
 				env: GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 			}]
 		}
-		"pre-job": {
-			outputs: should_skip: "${{ steps.skip_check.outputs.should_skip }}"
-			steps: [{
-				id:   "skip_check"
-				uses: "fkirc/skip-duplicate-actions@v5"
-				with: {
-					concurrent_skipping:             "never"
-					skip_after_successful_duplicate: "true"
-					//paths_ignore: '["**/README.md", "**/docs/**"]'
-					do_not_skip: "[\"pull_request\", \"schedule\" ${{ !inputs.skip-duplicate-actions-on-manual-runs && ', \"workflow_dispatch\"' || '' }} ]"
-				}
-			}]
-		}
 		matrix: {
-			needs: ["check-pr", "pre-job"]
-			if: "${{ always() && needs.pre-job.outputs.should_skip != 'true' && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}"
+			needs: ["check-pr"]
+			if: "${{ always() && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}"
 			outputs: matrix: "${{ steps.set-matrix.outputs.matrix }}"
 			steps: [{
 				id: "set-matrix"

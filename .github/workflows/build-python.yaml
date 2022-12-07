@@ -250,7 +250,7 @@ jobs:
           ssh-private-key: ${{ secrets.ssh-private-key }}
       - name: Authenticate to Google Cloud
         id: auth_gcp
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           project_id: ${{ secrets.gcp-gcr-project-id }}
           credentials_json: ${{ secrets.gcp-gcr-service-account }}
