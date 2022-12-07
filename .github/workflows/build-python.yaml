@@ -86,7 +86,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -133,7 +133,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -168,7 +168,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -208,7 +208,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -269,7 +269,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup SSH Agent
@@ -327,7 +327,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
