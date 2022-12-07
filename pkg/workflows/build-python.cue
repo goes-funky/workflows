@@ -37,6 +37,7 @@ common.#workflow & {
 		workflow_call: {
 			inputs: {
 				common.#with.checkout.inputs
+				common.#with.load_artifact.inputs
 				common.#with.ssh_agent.inputs
 				"python-version": {
 					type:        "string"
@@ -126,6 +127,7 @@ common.#workflow & {
 			name:      "Dependencies"
 			steps: [
 				common.#with.checkout.step,
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -158,6 +160,7 @@ common.#workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step,
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -174,6 +177,7 @@ common.#workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step,
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -199,6 +203,7 @@ common.#workflow & {
                         "fetch-depth": 0
                     }
                 },
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -255,6 +260,7 @@ common.#workflow & {
 										"fetch-depth": 0
 								}
 						},
+				common.#with.load_artifact.step,
 				common.#with.ssh_agent.step,
 				common.#with.gcloud.step & {
                 	with: {
@@ -302,6 +308,7 @@ common.#workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step,
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
