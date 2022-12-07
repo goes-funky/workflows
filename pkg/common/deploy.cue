@@ -157,7 +157,7 @@ import "list"
 				{
 					name: "Deploy"
 					env: {
-						SKAFFOLD_PROFILE: "${{ (inputs.environment == inputs.production-environment && github.event.ref != format('refs/heads/{0}', inputs.development-branch)) && 'prod' || 'nonprod' }}"
+						SKAFFOLD_PROFILE: "${{ (inputs.environment == inputs.production-environment) && 'prod' || 'nonprod' }}"
 					}
 					run: "skaffold deploy --filename=${{ inputs.skaffold-file }} --force --build-artifacts=build.json"
 				},
