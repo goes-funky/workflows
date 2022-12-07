@@ -37,6 +37,7 @@ common.#workflow & {
 		workflow_call: {
 			inputs: {
 				common.#with.checkout.inputs
+				common.#with.load_artifact.inputs
 				common.#with.ssh_agent.inputs
 				"python-version": {
 					type:        "string"
@@ -52,11 +53,6 @@ common.#workflow & {
 					type:        "string"
 					description: "Poetry version"
 					default:     "1.1.12"
-				}
-				"dist-artifact": {
-					type:        "string"
-					description: "Artifact"
-					default:     ""
 				}
 				// Know issue installing some packages. Resolved past poetry v1.2 which is
 				// currently in beta https://github.com/python-poetry/poetry/issues/4511
@@ -131,14 +127,7 @@ common.#workflow & {
 			name:      "Dependencies"
 			steps: [
 				common.#with.checkout.step,
-				{
-					name: "Download artifact"
-					uses: "actions/download-artifact@master"
-					if:   "inputs.dist-artifact"
-					with: {
-						name: "${{ inputs.dist-artifact }}"
-					}
-				},
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -171,6 +160,7 @@ common.#workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step,
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -187,6 +177,7 @@ common.#workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step,
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -212,6 +203,7 @@ common.#workflow & {
                         "fetch-depth": 0
                     }
                 },
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
@@ -268,14 +260,7 @@ common.#workflow & {
 										"fetch-depth": 0
 								}
 						},
-				{
-					name: "Download artifact"
-					uses: "actions/download-artifact@master"
-					if:   "inputs.dist-artifact"
-					with: {
-						name: "${{ inputs.dist-artifact }}"
-					}
-				},
+				common.#with.load_artifact.step,
 				common.#with.ssh_agent.step,
 				common.#with.gcloud.step & {
                 	with: {

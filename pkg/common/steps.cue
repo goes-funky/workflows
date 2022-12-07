@@ -15,7 +15,25 @@ package common
 			if:   "!inputs.skip-checkout"
 			uses: "actions/checkout@v3"
 		}
+	}
 
+	load_artifact: {
+		inputs: {
+			"project-artifact": {
+				type:        "string"
+				description: "Use project from artifact (instead of checking out repo)"
+				default:     ""
+			}
+		}
+
+		step: #step & {
+			name: "Download artifact"
+			uses: "actions/download-artifact@master"
+			if:   "inputs.project-artifact"
+			with: {
+				name: "${{ inputs.project-artifact }}"
+			}
+		}
 	}
 
 	ssh_agent: {
