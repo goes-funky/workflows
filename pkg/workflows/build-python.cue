@@ -308,6 +308,7 @@ common.#workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			steps: [
 				common.#with.checkout.step,
+				common.#with.load_artifact.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,
