@@ -325,6 +325,11 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Download artifact
+        if: inputs.project-artifact
+        uses: actions/download-artifact@master
+        with:
+          name: ${{ inputs.project-artifact }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
