@@ -5,7 +5,7 @@ package common
 		workflow_call: {
 			inputs: {
 				#with.checkout.inputs
-				#with.kube_tools.inputs
+				#with.flux_tools.inputs
 				#with.ssh_agent.inputs
 				"environment": {
 					type:        "string"
@@ -35,7 +35,7 @@ package common
 				...
 			}
 			secrets: {
-				#with.gcloud.secrets
+				#with.gcloud_flux.secrets
 				#with.ssh_agent.secrets
 				...
 			}
@@ -48,6 +48,7 @@ package common
 
 #job_flux_build: #job & {
 	name: "Build Docker images"
+    "timeout-minutes": 10
 	steps: [
 		{
 			name: "Checkout"

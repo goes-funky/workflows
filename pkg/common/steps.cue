@@ -142,6 +142,29 @@ package common
 		}
 	}
 
+	gcloud_flux: {
+		secrets: {
+			"gcp-project-id": {
+				description: "GCP Project ID of the artifact repo"
+				required:    true
+			}
+			"gcp-service-account": {
+				description: "GCP Service Account Key, has permission to artifact repo"
+				required:    true
+			}
+		}
+
+		step: #step & {
+			id: "auth_gcp"
+			name: "Authenticate to Google Cloud"
+			uses: "google-github-actions/auth@v1"
+			with: {} | *{
+				project_id:                 "${{ secrets.gcp-project-id }}"
+				credentials_json:           "${{ secrets.gcp-service-account }}"
+			}
+		}
+	}
+
 	gke: {
 		secrets: {
 			"gke-cluster": {

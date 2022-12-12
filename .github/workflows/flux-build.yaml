@@ -39,31 +39,21 @@ name: Flux Skaffold Build
         type: string
         description: Skaffold file to use
         default: skaffold.yaml
-      kubeval:
-        type: string
-        description: Kubeval version
-        default: 0.16.1
     secrets:
       gcp-project-id:
-        description: GCP Project ID
-        required: true
-      gcp-service-account:
-        description: GCP Service Account Key
-        required: true
-      gcp-gcr-project-id:
-        description: GCP GCR Project ID
+        description: GCP Project ID of the artifact repo
         required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
-      gcp-gcr-service-account:
-        description: GCP GCR Service Account Key
+      gcp-service-account:
+        description: GCP Service Account Key, has permission to artifact repo
         required: true
 jobs:
   build:
     runs-on: ubuntu-latest
     name: Build Docker images
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
