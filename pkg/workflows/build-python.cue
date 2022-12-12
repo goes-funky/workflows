@@ -127,10 +127,6 @@ common.#workflow & {
      		steps: [{
      			id:   "skip_check"
      			uses: "fkirc/skip-duplicate-actions@v5"
-     			with: {
-     			    // TODO: Will be removed
-     				do_not_skip: "[]"
-     			}
      		}]
      	}
 		deps: {
