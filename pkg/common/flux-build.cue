@@ -73,7 +73,13 @@ package common
             run: "tar -xf ./code/dist/${{ inputs.untar-artifact-name }} -C ./code/dist"
         },
 		#with.ssh_agent.step,
-		#with.gcloud.step,
+        #with.gcloud.step & {
+			with: {
+				project_id:       "${{ secrets.gcp-project-id }}"
+				credentials_json: "${{ secrets.gcp-service-account }}"
+				token_format:     "access_token"
+			}
+		},
 		#with.docker_artifacts_auth.step,
 		#with.flux_tools.step,
 		{
