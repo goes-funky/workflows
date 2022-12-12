@@ -34,6 +34,13 @@ common.#workflow & {
 		}
 	}
 	jobs: {
+		"pre-job": {
+            outputs: should_skip: "${{ steps.skip_check.outputs.should_skip }}"
+            steps: [{
+        	    id:   "skip_check"
+        	    uses: "fkirc/skip-duplicate-actions@v5"
+            }]
+        }
 		"check-pr": {
 			if: "${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}"
 			steps: [{
@@ -42,8 +49,8 @@ common.#workflow & {
 			}]
 		}
 		matrix: {
-			needs: ["check-pr"]
-			if: "${{ always() && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}"
+			needs: ["check-pr", "pre-job"]
+			if: "${{ needs.pre-job.outputs.should_skip != 'true' && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}"
 			outputs: matrix: "${{ steps.set-matrix.outputs.matrix }}"
 			steps: [{
 				id: "set-matrix"
