@@ -90,6 +90,27 @@ package common
 		}
 	}
 
+	flux_tools: {
+		inputs: {
+			"skaffold": {
+				type:        "string"
+				description: "Skaffold version"
+				default:     "1.39.2"
+			}
+		}
+
+		step: #step & {
+			name: "Setup Flux build tools"
+			uses: "yokawasa/action-setup-kube-tools@v0.9.2"
+			with: {} | *{
+				"setup-tools": """
+					skaffold
+					"""
+				skaffold: "${{ inputs.skaffold }}"
+			}
+		}
+	}
+	
 	gcloud: {
 		secrets: {
 			"gcp-project-id": {
