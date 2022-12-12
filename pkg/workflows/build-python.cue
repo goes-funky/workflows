@@ -122,9 +122,17 @@ common.#workflow & {
 		}
 	}
 	jobs: {
+	    "pre-job": {
+     		outputs: should_skip: "${{ steps.skip_check.outputs.should_skip }}"
+     		steps: [{
+     			id:   "skip_check"
+     			uses: "fkirc/skip-duplicate-actions@v5"
+     		}]
+     	}
 		deps: {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			name:      "Dependencies"
+			needs: ["pre-job"]
 			steps: [
 				common.#with.checkout.step,
 				common.#with.load_artifact.step,
@@ -254,6 +262,7 @@ common.#workflow & {
 			name: "Integration tests"
 			if:   "!inputs.skip-integration-tests"
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
+			needs: ["pre-job"]
 			steps: [
 				common.#with.checkout.step & {
 								with: {

@@ -22,11 +22,6 @@ common.#workflow & {
 				description: "Whether to skip php artisan migrate"
 				default:     false
 			}
-			"skip-duplicate-actions-on-manual-runs": {
-				type:        "boolean"
-				description: "Whether to skip duplicate actions on manual workflow runs"
-				default:     true
-			}
 		}
 		secrets: "ssh-private-key": {
 			description: "SSH private key used to authenticate to GitHub with, in order to fetch private dependencies"
