@@ -91,6 +91,7 @@ jobs:
     name: Dependencies
     needs:
       - pre-job
+    if: needs.pre-job.outputs.should_skip != 'true'
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -270,7 +271,7 @@ jobs:
             -Dsonar.organization=${{github.repository_owner}}
   integration_tests:
     name: Integration tests
-    if: '!inputs.skip-integration-tests'
+    if: '!inputs.skip-integration-tests && needs.pre-job.outputs.should_skip != ''true'''
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     needs:
       - pre-job

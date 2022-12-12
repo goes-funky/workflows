@@ -137,6 +137,7 @@ common.#workflow & {
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			name:      "Dependencies"
 			needs: ["pre-job"]
+			if: "needs.pre-job.outputs.should_skip != 'true'"
 			steps: [
 				common.#with.checkout.step,
 				common.#with.load_artifact.step,
@@ -264,7 +265,7 @@ common.#workflow & {
 		}
 		integration_tests: {
 			name: "Integration tests"
-			if:   "!inputs.skip-integration-tests"
+			if:   "!inputs.skip-integration-tests && needs.pre-job.outputs.should_skip != 'true'"
 			"runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
 			needs: ["pre-job"]
 			steps: [
