@@ -171,6 +171,14 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
+      - name: Scan for Secrets
+        continue-on-error: true
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4

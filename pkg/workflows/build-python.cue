@@ -178,6 +178,7 @@ common.#workflow & {
 			steps: [
 				common.#with.checkout.step,
 				common.#with.load_artifact.step,
+				common.#with.trufflehog.step,
 				#step_setup_python,
 				#step_setup_deps_cache,
 				#step_setup_poetry,

@@ -155,7 +155,9 @@ common.#workflow & {
 					"php-version": "${{ matrix.php-version }}"
 					extensions:    "${{ matrix.extensions }}"
 				}
-			}, {
+			},
+			common.#with.trufflehog.step,
+			{
 				name: "Composer packages from cache"
 				id:   "restore-composer-cache"
 				uses: "actions/cache@v3"

@@ -130,6 +130,14 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: ${{ matrix.extensions }}
+      - name: Scan for Secrets
+        continue-on-error: true
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
       - name: Composer packages from cache
         id: restore-composer-cache
         uses: actions/cache@v3

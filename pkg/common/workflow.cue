@@ -72,6 +72,7 @@ package common
 	name?: string
 	if?:   string
 	id?:   string
+	"continue-on-error"?: bool
 	needs?: [...string]
 	uses?: string
 	with?: [string]: string | bool | int
