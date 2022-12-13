@@ -66,7 +66,7 @@ package common
 		{
 			name: "Setup buildkit"
 			id:   "setup-buildkit"
-			uses: "docker/setup-buildx-action@v1"
+			uses: "docker/setup-buildx-action@v2"
 		},
 		#with.expose_action_env.step,
 		{
