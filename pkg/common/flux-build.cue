@@ -75,7 +75,7 @@ package common
 		},
 		{
 			name: "Configure skaffold to build with buildkit"
-			run: "yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ./code/${{ inputs.skaffold-file }}"
+			run: "cp ./code/${{ inputs.skaffold-file }} . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ${{ inputs.skaffold-file }}"
 		},
 		{
             name: "Untar build artifact"
@@ -112,7 +112,7 @@ package common
 				CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
 				SHORT_SHA:      "${{ env.SHORT_SHA }}"
 			}
-			run:  "cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json"
+			run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json"
 		},
 		{
 			name: "Archive build reference"
