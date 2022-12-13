@@ -14,15 +14,19 @@ name: PHP Linting & Testing
         type: boolean
         description: Whether to skip php artisan migrate
         default: false
-      skip-duplicate-actions-on-manual-runs:
-        type: boolean
-        description: Whether to skip duplicate actions on manual workflow runs
-        default: true
     secrets:
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: true
 jobs:
+  pre-job:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    timeout-minutes: 15
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
   check-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
     runs-on: ubuntu-latest
@@ -34,7 +38,8 @@ jobs:
   matrix:
     needs:
       - check-pr
-    if: ${{ always() && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}
+      - pre-job
+    if: ${{ needs.pre-job.outputs.should_skip != 'true' && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
