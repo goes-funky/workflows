@@ -177,6 +177,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
