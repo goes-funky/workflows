@@ -184,7 +184,7 @@ jobs:
           name: ${{ inputs.project-artifact }}
       - name: Scan for Secrets
         continue-on-error: true
-        uses: trufflesecurity/trufflehog@v3
+        uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}

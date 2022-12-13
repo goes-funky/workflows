@@ -65,7 +65,7 @@ package common
 	trufflehog: {
 	    step: #step & {
 	        name: "Scan for Secrets"
-	        uses: "trufflesecurity/trufflehog@v3"
+	        uses: "trufflesecurity/trufflehog@main"
 	        "continue-on-error": true
 	        with: {
 	            path: "./"
