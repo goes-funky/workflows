@@ -3,110 +3,110 @@ package common
 import "list"
 
 #deploy_integration_workflow: #workflow & {
-	on: {
-		workflow_call: {
-			inputs: {
-				#with.checkout.inputs
-				#with.kube_tools.inputs
-				#with.ssh_agent.inputs
-				"environment": {
-					type:        "string"
-					description: "Deployment environment"
-					required:    false
-				}
-				"development-environment": {
-					type:        "string"
-					description: "Development environment"
-					default:     "dev"
-					required:    false
-				}
-				"production-environment": {
-					type:        "string"
-					description: "Production environment"
-					default:     "prod"
-					required:    false
-				}
-				"default-repo": {
-					type:        "string"
-					description: "Default artifact repository"
-					default:     "eu.gcr.io/y42-artifacts-ea47981a"
-					required:    false
-				}
-				"dist-artifact": {
-					type:        "string"
-					description: "Dist artifact name"
-					required:    false
-				}
-				"skip-deploy": {
-					type:        "boolean"
-					description: "Skip deployment to cluster"
-					required:    false
-				}
-				"skip-build": {
-					type:        "boolean"
-					description: "Skip build to cluster"
-					required:    false
-				}
-				"skip-job-template-build": {
-					type:        "boolean"
-					description: "Job-template configmap building for deploy of tap containers"
-					default:     false
-					required:    false
-				}
-				"skip-integration-schema-generate": {
-					type:        "boolean"
-					description: "Whether to skip integration json schema generation & upload"
-					default:     false
-					required:    false
-				}
-				"integration-schema-command": {
-					type:        "string"
-					description: "The command to run to generate the integration schema"
-					default:     "poetry run python -m datos_integrations.commands.generate_schemas --outpath=./integrations --version=0.0.0"
-					required:    false
-				}
-				"python-version": {
-					type:        "string"
-					description: "Python version"
-					default:     "3.9"
-					required:    false
-				}
-				"poetry-version": {
-					type:        "string"
-					description: "Poetry version"
-					default:     "1.1.15"
-					required:    false
-				}
-				// Know issue installing some packages. Resolved past poetry v1.2 which is currently in beta https://github.com/python-poetry/poetry/issues/4511
-				"setuptools-version": {
-					type:        "string"
-					description: "Force poetry setuptools version"
-					default:     "57.5.0"
-				}
-				"skip-checkout": {
-					type:        "boolean"
-					description: "Whether to skip checkout"
-					default:     false
-				}
-				"use-skaffold-cache": {
-					type: "boolean"
-					required: false
-					default: false
-					description: "Setup skaffold cache before build"
-				}
-				...
-			}
-			secrets: {
-				#with.gcloud.secrets
-				#with.gke.secrets
-				#with.ssh_agent.secrets
-				"json-schema-bucket": {
-					description: "Required for json-schema upload. Name of the bucket to write integration schema to."
-					required:    false
-				}
-				...
-			}
-		}
+    on: {
+        workflow_call: {
+            inputs: {
+                #with.checkout.inputs
+                #with.kube_tools.inputs
+                #with.ssh_agent.inputs
+                "environment": {
+                    type:        "string"
+                    description: "Deployment environment"
+                    required:    false
+                }
+                "development-environment": {
+                    type:        "string"
+                    description: "Development environment"
+                    default:     "dev"
+                    required:    false
+                }
+                "production-environment": {
+                    type:        "string"
+                    description: "Production environment"
+                    default:     "prod"
+                    required:    false
+                }
+                "default-repo": {
+                    type:        "string"
+                    description: "Default artifact repository"
+                    default:     "eu.gcr.io/y42-artifacts-ea47981a"
+                    required:    false
+                }
+                "dist-artifact": {
+                    type:        "string"
+                    description: "Dist artifact name"
+                    required:    false
+                }
+                "skip-deploy": {
+                    type:        "boolean"
+                    description: "Skip deployment to cluster"
+                    required:    false
+                }
+                "skip-build": {
+                    type:        "boolean"
+                    description: "Skip build to cluster"
+                    required:    false
+                }
+                "skip-job-template-build": {
+                    type:        "boolean"
+                    description: "Job-template configmap building for deploy of tap containers"
+                    default:     false
+                    required:    false
+                }
+                "skip-integration-schema-generate": {
+                    type:        "boolean"
+                    description: "Whether to skip integration json schema generation & upload"
+                    default:     false
+                    required:    false
+                }
+                "integration-schema-command": {
+                    type:        "string"
+                    description: "The command to run to generate the integration schema"
+                    default:     "poetry run python -m datos_integrations.commands.generate_schemas --outpath=./integrations --version=0.0.0"
+                    required:    false
+                }
+                "python-version": {
+                    type:        "string"
+                    description: "Python version"
+                    default:     "3.9"
+                    required:    false
+                }
+                "poetry-version": {
+                    type:        "string"
+                    description: "Poetry version"
+                    default:     "1.1.15"
+                    required:    false
+                }
+                // Know issue installing some packages. Resolved past poetry v1.2 which is currently in beta https://github.com/python-poetry/poetry/issues/4511
+                "setuptools-version": {
+                    type:        "string"
+                    description: "Force poetry setuptools version"
+                    default:     "57.5.0"
+                }
+                "skip-checkout": {
+                    type:        "boolean"
+                    description: "Whether to skip checkout"
+                    default:     false
+                }
+                "use-skaffold-cache": {
+                    type: "boolean"
+                    required: false
+                    default: false
+                    description: "Setup skaffold cache before build"
+                }
+                ...
+            }
+            secrets: {
+                #with.gcloud.secrets
+                #with.gke.secrets
+                #with.ssh_agent.secrets
+                "json-schema-bucket": {
+                    description: "Required for json-schema upload. Name of the bucket to write integration schema to."
+                    required:    false
+                }
+                ...
+            }
+        }
 
     }
 
@@ -153,92 +153,92 @@ import "list"
             steps:       #integration_steps.json_scheme_generate
         }
 
-		build: {
-			name: "Build Docker images"
-			steps: [
-				{
-					name: "Checkout"
-					if:   "!inputs.skip-checkout"
-					uses: "actions/checkout@v3"
-					with: {
-						path: "./code"
-					}
-				},
-				{
-					name: "Setup buildkit"
-					id:   "setup-buildkit"
-					uses: "docker/setup-buildx-action@v2"
-				},
-				#with.expose_action_env.step,
-				{
-					name: "Download docker-buildx"
-					run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
-				},
-				{
-					name: "Configure skaffold to build with buildkit"
-					run:  "cp ./code/skaffold.yaml . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
-				},
-				#with.skaffold_cache.step,
-				{
-					name: "Download artifact"
-					uses: "actions/download-artifact@v3"
-					if:   "inputs.dist-artifact"
-					with: {
-						name: "${{ inputs.dist-artifact }}"
-						path: "./code/dist"
-					}
-				},
-				#with.ssh_agent.step,
-				#with.gcloud.step & {
-					with: {
-						project_id:       "${{ secrets.gcp-gcr-project-id }}"
-						credentials_json: "${{ secrets.gcp-gcr-service-account }}"
-						token_format:     "access_token"
-					}
-				},
-				#with.docker_auth.step,
-				#with.docker_artifacts_auth.step,
-				#with.kube_tools.step,
-				{
-					name: "Export git build details"
-					env: REPO: "${{ inputs.default-repo }}"
-					run: """
-						CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
-						SHORT_SHA="$(git rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
-						COMMIT_SHA="$(git rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
-						IMAGE_NAME="$REPO/$CONTAINER_NAME:$SHORT_SHA" && echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
-						"""
-				},
-				{
-					name: "Configure Skaffold"
-					// env: REPO: "${{ inputs.default-repo }}"
-					run: "skaffold config set default-repo '${{ inputs.default-repo }}'"
-				},
-				{
-					name: "Build"
-					if:   "!inputs.skip-build"
-					env: {
-						CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
-						SHORT_SHA:      "${{ env.SHORT_SHA }}"
-						COMMIT_SHA:     "${{ env.COMMIT_SHA }}"
-						IMAGE_NAME:     "${{ env.IMAGE_NAME }}"
-						SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
-						SKAFFOLD_CACHE_ARTIFACTS: "${{ inputs.use-skaffold-cache }}"
-						DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
-					}
-					run: "cd ./code && skaffold build -filename=../skaffold.yaml --file-output=build.json"
-				},
-				{
-					name: "Archive build reference"
-					if:   "!inputs.skip-build"
-					uses: "actions/upload-artifact@v3"
-					with: {
-						name: "build-ref"
-						path: "./code/build.json"
-					}
-				},
-			]
-		}
+        build: {
+            name: "Build Docker images"
+            steps: [
+                {
+                    name: "Checkout"
+                    if:   "!inputs.skip-checkout"
+                    uses: "actions/checkout@v3"
+                    with: {
+                        path: "./code"
+                    }
+                },
+                {
+                    name: "Setup buildkit"
+                    id:   "setup-buildkit"
+                    uses: "docker/setup-buildx-action@v2"
+                },
+                #with.expose_action_env.step,
+                {
+                    name: "Download docker-buildx"
+                    run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
+                },
+                {
+                    name: "Configure skaffold to build with buildkit"
+                    run:  "cp ./code/skaffold.yaml . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
+                },
+                #with.skaffold_cache.step,
+                {
+                    name: "Download artifact"
+                    uses: "actions/download-artifact@v3"
+                    if:   "inputs.dist-artifact"
+                    with: {
+                        name: "${{ inputs.dist-artifact }}"
+                        path: "./code/dist"
+                    }
+                },
+                #with.ssh_agent.step,
+                #with.gcloud.step & {
+                    with: {
+                        project_id:       "${{ secrets.gcp-gcr-project-id }}"
+                        credentials_json: "${{ secrets.gcp-gcr-service-account }}"
+                        token_format:     "access_token"
+                    }
+                },
+                #with.docker_auth.step,
+                #with.docker_artifacts_auth.step,
+                #with.kube_tools.step,
+                {
+                    name: "Export git build details"
+                    env: REPO: "${{ inputs.default-repo }}"
+                    run: """
+                        CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
+                        SHORT_SHA="$(git rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+                        COMMIT_SHA="$(git rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
+                        IMAGE_NAME="$REPO/$CONTAINER_NAME:$SHORT_SHA" && echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
+                        """
+                },
+                {
+                    name: "Configure Skaffold"
+                    // env: REPO: "${{ inputs.default-repo }}"
+                    run: "skaffold config set default-repo '${{ inputs.default-repo }}'"
+                },
+                {
+                    name: "Build"
+                    if:   "!inputs.skip-build"
+                    env: {
+                        CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
+                        SHORT_SHA:      "${{ env.SHORT_SHA }}"
+                        COMMIT_SHA:     "${{ env.COMMIT_SHA }}"
+                        IMAGE_NAME:     "${{ env.IMAGE_NAME }}"
+                        SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
+                        SKAFFOLD_CACHE_ARTIFACTS: "${{ inputs.use-skaffold-cache }}"
+                        DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
+                    }
+                    run: "cd ./code && skaffold build -filename=../skaffold.yaml --file-output=build.json"
+                },
+                {
+                    name: "Archive build reference"
+                    if:   "!inputs.skip-build"
+                    uses: "actions/upload-artifact@v3"
+                    with: {
+                        name: "build-ref"
+                        path: "./code/build.json"
+                    }
+                },
+            ]
+        }
 
         "deploy-environment": {
             name: "Deploy to environment"
