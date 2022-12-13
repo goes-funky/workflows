@@ -79,7 +79,7 @@ jobs:
       - name: Download docker-buildx
         run: curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx
       - name: Configure skaffold to build with buildkit
-        run: 'yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "./docker-buildx", "dependencies": {"dockerfile": {"path": "${{ inputs.docker-file }}"}}}}'' ./code/${{ inputs.skaffold-file }}'
+        run: 'yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "../docker-buildx", "dependencies": {"dockerfile": {"path": "${{ inputs.docker-file }}"}}}}'' ./code/${{ inputs.skaffold-file }}'
       - name: Untar build artifact
         if: inputs.untar-artifact-name
         run: tar -xf ./code/dist/${{ inputs.untar-artifact-name }} -C ./code/dist
