@@ -61,7 +61,7 @@ jobs:
           path: ./code
       - name: Setup buildkit
         id: setup-buildkit
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Expose Github Action runtime
         uses: actions/github-script@v6
         with:
