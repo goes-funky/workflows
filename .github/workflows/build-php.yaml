@@ -138,7 +138,6 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: ${{ matrix.extensions }}
       - name: Scan for Secrets
-        continue-on-error: true
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
