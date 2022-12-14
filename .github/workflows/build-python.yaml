@@ -185,7 +185,6 @@ jobs:
         with:
           name: ${{ inputs.project-artifact }}
       - name: Scan for Secrets
-        continue-on-error: true
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./

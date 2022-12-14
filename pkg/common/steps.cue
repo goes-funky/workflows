@@ -67,7 +67,6 @@ package common
 	    step: #step & {
 	        name: "Scan for Secrets"
 	        uses: "trufflesecurity/trufflehog@main"
-	        "continue-on-error": true
 	        with: {
 	            path: "./"
 	            base: "${{ github.event.repository.default_branch }}"
