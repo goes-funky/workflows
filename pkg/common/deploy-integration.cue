@@ -226,7 +226,7 @@ import "list"
                         SKAFFOLD_CACHE_ARTIFACTS: "${{ inputs.use-skaffold-cache }}"
                         DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                     }
-                    run: "cd ./code && skaffold build -filename=../skaffold.yaml --file-output=build.json"
+                    run: "cd ./code && skaffold build --filename=../skaffold.yaml --file-output=build.json"
                 },
                 {
                     name: "Archive build reference"
