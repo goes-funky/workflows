@@ -183,6 +183,7 @@ package common
     skaffold_cache: {
         step: #step & {
             name: "Setup skaffold cache"
+            if:  "inputs.use-skaffold-cache"
             uses: "actions/cache@v3"
             with: {
                 path: "~/.skaffold/cache"
@@ -191,6 +192,30 @@ package common
                     ${{ runner.os }}-skaffold-${{ github.sha }}
                     ${{ runner.os }}-skaffold
                     """
+            }
+        }
+    }
+    // For some reasons, some action's envs like ACTIONS_CACHE_URL,
+    // ACTIONS_RUNTIME_TOKEN not being exposed to workflow steps so we use this
+    // step as a workround to expose those envs for subsequent steps. It's
+    // needed so that skaffold can work with buildkit + github action cache
+    expose_action_env: {
+        step: #step & {
+            name: "Expose Github Action runtime"
+            uses: "actions/github-script@v6"
+            with: {
+                script: """
+                        try {
+                            Object.keys(process.env).forEach(function (key) {
+                                if (key.startsWith('ACTIONS_')) {
+                                    core.info(`${key}=${process.env[key]}`);
+                                    core.exportVariable(key, process.env[key]);
+                                }
+                            });
+                        } catch (error) {
+                            core.setFailed(error.message);
+                        }
+                        """
             }
         }
     }
