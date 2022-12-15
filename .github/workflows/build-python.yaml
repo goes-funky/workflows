@@ -76,9 +76,20 @@ name: Build Python
         description: Keep around until all workflows are migrated
         required: false
 jobs:
+  pre-job:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    timeout-minutes: 15
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
   deps:
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     name: Dependencies
+    needs:
+      - pre-job
+    if: needs.pre-job.outputs.should_skip != 'true'
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -258,8 +269,10 @@ jobs:
             -Dsonar.organization=${{github.repository_owner}}
   integration_tests:
     name: Integration tests
-    if: '!inputs.skip-integration-tests'
+    if: '!inputs.skip-integration-tests && needs.pre-job.outputs.should_skip != ''true'''
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
+    needs:
+      - pre-job
     timeout-minutes: 15
     steps:
       - name: Checkout
