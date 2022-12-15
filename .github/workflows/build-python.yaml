@@ -177,11 +177,20 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.project-artifact }}
+      - name: Scan for Secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4

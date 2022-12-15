@@ -133,6 +133,9 @@ common.#workflow & {
             steps: [{
                 uses: "actions/checkout@v3"
                 name: "Checkout"
+                with: {
+                   "fetch-depth": 0
+                }
             }, {
                 name: "Setup cache environment"
                 id:   "extcache"
@@ -157,7 +160,9 @@ common.#workflow & {
                     "php-version": "${{ matrix.php-version }}"
                     extensions:    "${{ matrix.extensions }}"
                 }
-            }, {
+            },
+            common.#with.trufflehog.step,
+            {
                 name: "Composer packages from cache"
                 id:   "restore-composer-cache"
                 uses: "actions/cache@v3"
@@ -194,7 +199,7 @@ common.#workflow & {
             }, {
                 name: "Changed PHP files"
                 id:   "changed-php-files"
-                uses: "tj-actions/changed-files@v34"
+                uses: "tj-actions/changed-files@v23.1"
                 with: files: """
                     **/*.php
 

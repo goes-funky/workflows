@@ -185,8 +185,13 @@ common.#workflow & {
             needs: ["deps"]
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
             steps: [
-                common.#with.checkout.step,
+                common.#with.checkout.step & {
+                    with: {
+                        "fetch-depth": 0
+                    }
+                },
                 common.#with.load_artifact.step,
+                common.#with.trufflehog.step,
                 #step_setup_python,
                 #step_setup_deps_cache,
                 #step_setup_poetry,
@@ -266,10 +271,10 @@ common.#workflow & {
             needs: ["pre-job"]
             steps: [
                 common.#with.checkout.step & {
-                                with: {
-                                        "fetch-depth": 0
-                                }
-                        },
+                    with: {
+                       "fetch-depth": 0
+                    }
+                },
                 common.#with.load_artifact.step,
                 common.#with.ssh_agent.step,
                 common.#with.gcloud.step & {

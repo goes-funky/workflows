@@ -62,6 +62,20 @@ package common
         }
     }
 
+
+	trufflehog: {
+	    step: #step & {
+	        name: "Scan for Secrets"
+	        uses: "trufflesecurity/trufflehog@main"
+	        with: {
+	            path: "./"
+	            base: "${{ github.event.repository.default_branch }}"
+	            head: "HEAD"
+	            extra_args: "--only-verified"
+	        }
+	    }
+	}
+
     kube_tools: {
         inputs: {
             "skaffold": {
@@ -213,6 +227,7 @@ package common
     skaffold_cache: {
         step: #step & {
             name: "Setup skaffold cache"
+            if:  "inputs.use-skaffold-cache"
             uses: "actions/cache@v3"
             with: {
                 path: "~/.skaffold/cache"
