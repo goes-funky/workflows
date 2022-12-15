@@ -51,17 +51,6 @@ import "list"
                     description: "Skaffold file to use"
                     default:    "skaffold.yaml"
                 }
-                "docker-file": {
-                    type:        "string"
-                    description: "Docker file to use"
-                    default:    "Dockerfile"
-                }
-                "use-skaffold-cache": {
-                    type: "boolean"
-                    required: false
-                    default: true
-                    description: "Setup skaffold cache before build"
-                }
                 ...
             }
             secrets: {
@@ -106,11 +95,6 @@ import "list"
                 path: "./code"
             }
         },
-        {
-            name: "Setup buildkit"
-            id:   "setup-buildkit"
-            uses: "docker/setup-buildx-action@v2"
-        },
         #with.skaffold_cache.step,
         {
             uses: "actions/download-artifact@v3"
@@ -119,15 +103,6 @@ import "list"
                 name: "${{ inputs.dist-artifact }}"
                 path: "./code/dist"
             }
-        },
-        #with.expose_action_env.step,
-        {
-            name: "Download docker-buildx"
-            run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
-        },
-        {
-            name: "Configure skaffold to build with buildkit"
-            run: "cp ./code/${{ inputs.skaffold-file }} . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ${{ inputs.skaffold-file }}"
         },
         {
             name: "Untar build artifact"
@@ -159,13 +134,10 @@ import "list"
         {
             name: "Build"
             env: {
-                SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
-                SKAFFOLD_CACHE_ARTIFACTS: "${{ inputs.use-skaffold-cache }}"
-                DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                 CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
                 SHORT_SHA:      "${{ env.SHORT_SHA }}"
             }
-            run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json"
+            run:  "cd ./code && skaffold build --filename=${{ inputs.skaffold-file }} --file-output=build.json"
         },
         {
             name: "Archive build reference"
