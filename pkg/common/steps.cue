@@ -90,46 +90,46 @@ package common
         }
     }
 
-	flux_tools: {
-		inputs: {
-			"skaffold": {
-				type:        "string"
-				description: "Skaffold version"
-				default:     "1.39.2"
-			}
-		}
+    flux_tools: {
+        inputs: {
+            "skaffold": {
+                type:        "string"
+                description: "Skaffold version"
+                default:     "1.39.2"
+            }
+        }
 
-		step: #step & {
-			name: "Setup Flux build tools"
-			uses: "yokawasa/action-setup-kube-tools@v0.9.2"
-			with: {} | *{
-				"setup-tools": """
-					skaffold
-					"""
-				skaffold: "${{ inputs.skaffold }}"
-			}
-		}
-	}
+        step: #step & {
+            name: "Setup Flux build tools"
+            uses: "yokawasa/action-setup-kube-tools@v0.9.2"
+            with: {} | *{
+                "setup-tools": """
+                    skaffold
+                    """
+                skaffold: "${{ inputs.skaffold }}"
+            }
+        }
+    }
 
-	gcloud: {
-		secrets: {
-			"gcp-project-id": {
-				description: "GCP Project ID"
-				required:    true
-			}
-			"gcp-service-account": {
-				description: "GCP Service Account Key"
-				required:    true
-			}
-			"gcp-gcr-project-id": {
-				description: "GCP GCR Project ID"
-				required:    true
-			}
-			"gcp-gcr-service-account": {
-				description: "GCP GCR Service Account Key"
-				required:    true
-			}
-		}
+    gcloud: {
+        secrets: {
+            "gcp-project-id": {
+                description: "GCP Project ID"
+                required:    true
+            }
+            "gcp-service-account": {
+                description: "GCP Service Account Key"
+                required:    true
+            }
+            "gcp-gcr-project-id": {
+                description: "GCP GCR Project ID"
+                required:    true
+            }
+            "gcp-gcr-service-account": {
+                description: "GCP GCR Service Account Key"
+                required:    true
+            }
+        }
 
         step: #step & {
             id: "auth_gcp"
@@ -142,40 +142,40 @@ package common
         }
     }
 
-	gcloud_flux: {
-		secrets: {
-			"gcp-project-id": {
-				description: "GCP Project ID of the artifact repo"
-				required:    true
-			}
-			"gcp-service-account": {
-				description: "GCP Service Account Key, has permission to artifact repo"
-				required:    true
-			}
-		}
+    gcloud_flux: {
+        secrets: {
+            "gcp-project-id": {
+                description: "GCP Project ID of the artifact repo"
+                required:    true
+            }
+            "gcp-service-account": {
+                description: "GCP Service Account Key, has permission to artifact repo"
+                required:    true
+            }
+        }
 
-		step: #step & {
-			id: "auth_gcp"
-			name: "Authenticate to Google Cloud"
-			uses: "google-github-actions/auth@v1"
-			with: {} | *{
-				project_id:                 "${{ secrets.gcp-project-id }}"
-				credentials_json:           "${{ secrets.gcp-service-account }}"
-			}
-		}
-	}
+        step: #step & {
+            id: "auth_gcp"
+            name: "Authenticate to Google Cloud"
+            uses: "google-github-actions/auth@v1"
+            with: {} | *{
+                project_id:                 "${{ secrets.gcp-project-id }}"
+                credentials_json:           "${{ secrets.gcp-service-account }}"
+            }
+        }
+    }
 
-	gke: {
-		secrets: {
-			"gke-cluster": {
-				description: "GKE Cluster Name"
-				required:    true
-			}
-			"gke-location": {
-				description: "GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)"
-				required:    false
-			}
-		}
+    gke: {
+        secrets: {
+            "gke-cluster": {
+                description: "GKE Cluster Name"
+                required:    true
+            }
+            "gke-location": {
+                description: "GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)"
+                required:    false
+            }
+        }
 
         step: #step & {
             uses: "google-github-actions/get-gke-credentials@v1"
@@ -225,28 +225,28 @@ package common
         }
     }
 
-	// For some reasons, some action's envs like ACTIONS_CACHE_URL,
-	// ACTIONS_RUNTIME_TOKEN not being exposed to workflow steps so we use this
-	// step as a workround to expose those envs for subsequent steps. It's
-	// needed so that skaffold can work with buildkit + github action cache
-	expose_action_env: {
-		step: #step & {
-			name: "Expose Github Action runtime"
-			uses: "actions/github-script@v6"
-			with: {
-				script: """
-						try {
-							Object.keys(process.env).forEach(function (key) {
-								if (key.startsWith('ACTIONS_')) {
-									core.info(`${key}=${process.env[key]}`);
-									core.exportVariable(key, process.env[key]);
-								}
-							});
-						} catch (error) {
-							core.setFailed(error.message);
-						}
-						"""
-			}
-		}
-	}
+    // For some reasons, some action's envs like ACTIONS_CACHE_URL,
+    // ACTIONS_RUNTIME_TOKEN not being exposed to workflow steps so we use this
+    // step as a workround to expose those envs for subsequent steps. It's
+    // needed so that skaffold can work with buildkit + github action cache
+    expose_action_env: {
+        step: #step & {
+            name: "Expose Github Action runtime"
+            uses: "actions/github-script@v6"
+            with: {
+                script: """
+                        try {
+                            Object.keys(process.env).forEach(function (key) {
+                                if (key.startsWith('ACTIONS_')) {
+                                    core.info(`${key}=${process.env[key]}`);
+                                    core.exportVariable(key, process.env[key]);
+                                }
+                            });
+                        } catch (error) {
+                            core.setFailed(error.message);
+                        }
+                        """
+            }
+        }
+    }
 }
