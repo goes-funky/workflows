@@ -1,0 +1,68 @@
+#!/bin/bash -e
+
+function docker {
+    >&2 echo "# docker" "${@}"
+    command docker "${@}"
+}
+
+declare -a _build_args=(
+    '--ssh' 'default'
+    '--tag' "${IMAGE}"
+    '--progress' 'plain'
+    '--build-arg' "SHORT_SHA=${SHORT_SHA}"
+    '--build-arg' "CONTAINER_NAME=${CONTAINER_NAME}"
+    '--build-arg' "COMMIT_SHA=${COMMIT_SHA}"
+    '--build-arg' "IMAGE_NAME=${IMAGE_NAME}"
+)
+
+if [[ "${PUSH_IMAGE}" == "true" ]]; then
+    _build_args+=('--output' "type=image,push=${PUSH_IMAGE}")
+else
+    _build_args+=('--output' 'type=docker')
+fi
+
+if [[ -z "${DOCKER_BUILDKIT_BUILDER}" ]]; then
+    declare -a _create_args=(
+        '--driver-opt' 'network=host'
+    )
+
+    if [[ ! -z "${PLATFORMS}" ]]; then
+        _create_args+=(
+            '--platform' "${PLATFORMS}"
+        )
+    fi
+
+    DOCKER_BUILDKIT_BUILDER=$(docker buildx create "${_create_args[@]}")
+
+    function delete_builder {
+        docker buildx rm --force "${DOCKER_BUILDKIT_BUILDER}"
+    }
+
+    trap delete_builder EXIT
+fi
+
+_build_args+=(
+    '--builder' "${DOCKER_BUILDKIT_BUILDER}"
+)
+
+if [[ ! -z "${PLATFORMS}" ]]; then
+    _build_args+=('--platform' "${PLATFORMS}");
+fi
+
+if [[ "${ACTIONS_CACHE_URL}" != "" && "${ACTIONS_RUNTIME_TOKEN}" != "" ]]; then
+    echo "# github actions cache enabled"
+    _build_args+=(
+        '--cache-from' 'type=gha'
+        '--cache-to' 'type=gha,mode=max'
+    );
+else
+    _docker_cache='/tmp/docker-cache'
+    mkdir -p ${_docker_cache}
+
+    _build_args+=(
+        '--cache-from' "type=local,src=${_docker_cache}"
+        '--cache-to' "type=local,dest=${_docker_cache},mode=max"
+    )
+fi
+
+docker buildx build "${_build_args[@]}" ${BUILD_CONTEXT}
