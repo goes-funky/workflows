@@ -433,8 +433,8 @@ jobs:
             } catch (error) {
                 core.setFailed(error.message);
             }
-      - name: Download docker-buildx
-        run: curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx
+      - name: Download custom skaffold docker build script
+        run: curl -LsO https://raw.githubusercontent.com/goes-funky/workflows/master/scripts/docker-buildx && chmod +x docker-buildx
       - name: Configure skaffold to build with buildkit
         run: 'cp ./code/skaffold.yaml . && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "../docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
       - name: Setup skaffold cache

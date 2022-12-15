@@ -170,10 +170,7 @@ import "list"
                     uses: "docker/setup-buildx-action@v2"
                 },
                 #with.expose_action_env.step,
-                {
-                    name: "Download docker-buildx"
-                    run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/makefiles/master/scripts/skaffold/docker-buildx && chmod +x docker-buildx"
-                },
+                #with.custom_skaffold_build_script.step,
                 {
                     name: "Configure skaffold to build with buildkit"
                     run:  "cp ./code/skaffold.yaml . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"

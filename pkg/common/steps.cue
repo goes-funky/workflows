@@ -62,19 +62,25 @@ package common
         }
     }
 
+    trufflehog: {
+        step: #step & {
+            name: "Scan for Secrets"
+            uses: "trufflesecurity/trufflehog@main"
+            with: {
+                path: "./"
+                base: "${{ github.event.repository.default_branch }}"
+                head: "HEAD"
+                extra_args: "--only-verified"
+            }
+        }
+    }
 
-	trufflehog: {
-	    step: #step & {
-	        name: "Scan for Secrets"
-	        uses: "trufflesecurity/trufflehog@main"
-	        with: {
-	            path: "./"
-	            base: "${{ github.event.repository.default_branch }}"
-	            head: "HEAD"
-	            extra_args: "--only-verified"
-	        }
-	    }
-	}
+    custom_skaffold_build_script: {
+        step: #step & {
+            name: "Download custom skaffold docker build script"
+            run:  "curl -LsO https://raw.githubusercontent.com/goes-funky/workflows/master/scripts/docker-buildx && chmod +x docker-buildx"
+        }
+    }
 
     kube_tools: {
         inputs: {
