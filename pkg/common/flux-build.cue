@@ -90,14 +90,6 @@ package common
                 SHORT_SHA:      "${{ env.SHORT_SHA }}"
             }
             run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json"
-        },
-        {
-            name: "Archive build reference"
-            uses: "actions/upload-artifact@v3"
-            with: {
-                name: "build-${{ inputs.skaffold-file }}"
-                path: "./code/build.json"
-            }
-        },
+        }
     ]
 }
