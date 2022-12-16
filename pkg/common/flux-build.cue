@@ -7,25 +7,10 @@ package common
                 #with.checkout.inputs
                 #with.flux_tools.inputs
                 #with.ssh_agent.inputs
-                "environment": {
-                    type:        "string"
-                    description: "Deployment environment"
-                    required:    false
-                }
                 "default-repo": {
                     type:        "string"
                     description: "Default artifact repository"
                     default:     "europe-west3-docker.pkg.dev/y42-artifacts-ea47981a/main"
-                }
-                "dist-artifact": {
-                    type:        "string"
-                    description: "Dist artifact name"
-                    required:    false
-                }
-                "untar-artifact-name": {
-                    type:        "string"
-                    description: "Name of the input artifact to untar"
-                    required:    false
                 }
                 "skaffold-file": {
                     type:        "string"
@@ -73,11 +58,6 @@ package common
         {
             name: "Configure skaffold to build with buildkit"
             run: "cp ./code/${{ inputs.skaffold-file }} . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ${{ inputs.skaffold-file }}"
-        },
-        {
-            name: "Untar build artifact"
-            if: "inputs.untar-artifact-name"
-            run: "tar -xf ./code/dist/${{ inputs.untar-artifact-name }} -C ./code/dist"
         },
         #with.ssh_agent.step,
         #with.gcloud.step & {
