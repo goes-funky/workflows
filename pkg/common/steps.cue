@@ -245,7 +245,6 @@ package common
             }
         }
     }
-
     // For some reasons, some action's envs like ACTIONS_CACHE_URL,
     // ACTIONS_RUNTIME_TOKEN not being exposed to workflow steps so we use this
     // step as a workround to expose those envs for subsequent steps. It's
