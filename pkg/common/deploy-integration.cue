@@ -88,6 +88,12 @@ import "list"
                     description: "Whether to skip checkout"
                     default:     false
                 }
+                "use-skaffold-cache": {
+                    type: "boolean"
+                    required: false
+                    default: false
+                    description: "Setup skaffold cache before build"
+                }
                 ...
             }
             secrets: {
@@ -158,6 +164,17 @@ import "list"
                         path: "./code"
                     }
                 },
+                {
+                    name: "Setup buildkit"
+                    id:   "setup-buildkit"
+                    uses: "docker/setup-buildx-action@v2"
+                },
+                #with.expose_action_env.step,
+                #with.custom_skaffold_build_script.step,
+                {
+                    name: "Configure skaffold to build with buildkit"
+                    run:  "cp ./code/skaffold.yaml . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
+                },
                 #with.skaffold_cache.step,
                 {
                     name: "Download artifact"
@@ -183,9 +200,9 @@ import "list"
                     name: "Export git build details"
                     env: REPO: "${{ inputs.default-repo }}"
                     run: """
-                        CONTAINER_NAME=$(basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
-                        SHORT_SHA="$(git rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
-                        COMMIT_SHA="$(git rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
+                        CONTAINER_NAME=$(cd ./code && basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
+                        SHORT_SHA="$(git -C ./code rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+                        COMMIT_SHA="$(git -C ./code rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
                         IMAGE_NAME="$REPO/$CONTAINER_NAME:$SHORT_SHA" && echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
                         """
                 },
@@ -202,8 +219,11 @@ import "list"
                         SHORT_SHA:      "${{ env.SHORT_SHA }}"
                         COMMIT_SHA:     "${{ env.COMMIT_SHA }}"
                         IMAGE_NAME:     "${{ env.IMAGE_NAME }}"
+                        SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
+                        SKAFFOLD_CACHE_ARTIFACTS: "${{ inputs.use-skaffold-cache }}"
+                        DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                     }
-                    run: "cd ./code && skaffold build --file-output=build.json"
+                    run: "cd ./code && skaffold build --filename=../skaffold.yaml --file-output=build.json"
                 },
                 {
                     name: "Archive build reference"
