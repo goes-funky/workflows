@@ -127,9 +127,7 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        env:
-          SKAFFOLD_PROFILE: ${{ (inputs.environment == inputs.production-environment) && 'prod' || 'nonprod' }}
-        run: skaffold deploy --filename=${{ inputs.skaffold-file }} --force --build-artifacts=build.json
+        run: skaffold deploy --filename=${{ inputs.skaffold-file }} --profile nonprod --force --build-artifacts=build.json
   deploy-production:
     needs:
       - build
