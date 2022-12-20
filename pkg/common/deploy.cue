@@ -86,7 +86,7 @@ import "list"
 
         build: #job_build
 
-        "deploy-environment": #job_deploy_nonprod & {
+        "deploy-environment": #job_deploy_environment & {
             name:        "Deploy to environment"
             if:          "inputs.environment"
             environment: "${{ inputs.environment }}"
@@ -175,7 +175,7 @@ import "list"
     ]
 }
 
-#job_deploy_nonprod: #job & {
+#job_deploy_environment: #job & {
     steps: list.Concat(
         [
             #steps_deploy, [
@@ -186,7 +186,22 @@ import "list"
                     }
                     run: "skaffold deploy --filename=${{ inputs.skaffold-file }} --force --build-artifacts=build.json"
                 },
-            ]])
+            ]
+        ]
+    )
+}
+
+#job_deploy_nonprod: #job & {
+    steps: list.Concat(
+        [
+            #steps_deploy, [
+                {
+                    name: "Deploy"
+                    run: "skaffold deploy --filename=${{ inputs.skaffold-file }} --profile nonprod --force --build-artifacts=build.json"
+                },
+            ]
+        ]
+    )
 }
 
 #job_deploy_prod: #job & {
@@ -197,7 +212,9 @@ import "list"
                     name: "Deploy"
                     run:  "skaffold deploy --filename=${{ inputs.skaffold-file }} --profile prod --force --build-artifacts=build.json"
                 },
-            ]])
+            ]
+        ]
+    )
 }
 
 #steps_deploy: [...#step] & [
