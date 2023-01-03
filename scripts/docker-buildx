@@ -13,6 +13,7 @@ declare -a _build_args=(
     '--build-arg' "CONTAINER_NAME=${CONTAINER_NAME}"
     '--build-arg' "COMMIT_SHA=${COMMIT_SHA}"
     '--build-arg' "IMAGE_NAME=${IMAGE_NAME}"
+    '--build-arg' "GITHUB_SHA=${GITHUB_SHA}"
 )
 
 if [[ "${PUSH_IMAGE}" == "true" ]]; then
