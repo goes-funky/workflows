@@ -65,7 +65,7 @@ package common
     trufflehog: {
         step: #step & {
             name: "Scan for Secrets"
-            uses: "trufflesecurity/trufflehog@main"
+            uses: "trufflesecurity/trufflehog@v3.22.0"
             with: {
                 path: "./"
                 base: "${{ github.event.repository.default_branch }}"
