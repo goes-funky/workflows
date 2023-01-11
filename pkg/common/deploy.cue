@@ -97,6 +97,7 @@ import "list"
 
 #job_build: #job & {
     name: "Build Docker images"
+    "timeout-minutes": 20
     steps: [
         {
             name: "Checkout"
