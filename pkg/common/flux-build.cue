@@ -97,7 +97,7 @@ package common
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
                 TAG_PREFIX: "${{ env.TAG_PREFIX }}"
             }
-            run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json"
+            run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
         }
     ]
 }
