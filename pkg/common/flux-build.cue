@@ -95,7 +95,7 @@ package common
                 DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                 CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
-                IMAGE: "${{ env.TAG_PREFIX }}${{ env.IMAGE }}"
+                TAG_PREFIX: "${{ env.TAG_PREFIX }}"
             }
             run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json"
         }

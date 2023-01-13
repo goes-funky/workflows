@@ -5,6 +5,11 @@ function docker {
     command docker "${@}"
 }
 
+# custom tag prefix if one is defined
+TAG=$TAG_PREFIX${IMAGE/*:/}
+TAG="$(echo $TAG | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/\(.\{128\}\).*/\1/')"
+IMAGE=${IMAGE/:*/:$TAG}
+
 declare -a _build_args=(
     '--ssh' 'default'
     '--tag' "${IMAGE}"
