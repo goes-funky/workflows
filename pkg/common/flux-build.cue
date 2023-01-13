@@ -84,7 +84,11 @@ package common
             name: "Add prefix to image tag on branch builds"
             if: "github.event.ref != 'refs/heads/main'"
             run: """
-                TAG_PREFIX="${GITHUB_REF##*/}-" && echo TAG_PREFIX="${TAG_PREFIX}" >> "$GITHUB_ENV"
+                TAG_PREFIX="${GITHUB_REF##*/}-"
+                TAG_PREFIX="$(echo $TAG_PREFIX | sed 's/[^a-zA-Z0-9]/-/g')"
+                yq -i ' .build.tagPolicy.customTemplate.template = "{{.PREFIX}}{{.SHORT_SHA}}-{{.DATETIME}}"' ${{ inputs.skaffold-file }}
+                yq -i ' .build.tagPolicy.customTemplate.components += {"name": "PREFIX","envTemplate": {"template": "{{.TAG_PREFIX}}"}}' ${{ inputs.skaffold-file }}
+                echo TAG_PREFIX="${TAG_PREFIX}" >> "$GITHUB_ENV"
                 """
         },
         {
