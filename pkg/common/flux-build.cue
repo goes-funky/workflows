@@ -81,13 +81,21 @@ package common
                 """
         },
         {
+            name: "Add prefix to image tag on branch builds"
+            if: "github.event.ref != 'refs/heads/main'"
+            run: """
+                TAG_PREFIX="${GITHUB_REF##*/}-" && echo TAG_PREFIX="${TAG_PREFIX}" >> "$GITHUB_ENV"
+                """
+        },
+        {
             name: "Build"
             env: {
                 SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
                 SKAFFOLD_CACHE_ARTIFACTS: "false"
                 DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                 CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
-                SHORT_SHA:      "${{ env.SHORT_SHA }}"
+                SHORT_SHA: "${{ env.SHORT_SHA }}"
+                IMAGE: "${{ env.TAG_PREFIX }}${{ env.IMAGE }}"
             }
             run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json"
         }
