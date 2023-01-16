@@ -84,11 +84,11 @@ package common
             name: "Add prefix to image tag on branch builds"
             if: "github.event.ref != 'refs/heads/main'"
             run: """
-                TAG_PREFIX="${GITHUB_REF##*/}-"
-                TAG_PREFIX="${TAG_PREFIX//[^a-zA-Z0-9]/-}"
-                yq -i ' .build.tagPolicy.customTemplate.template = "{{.PREFIX}}{{.SHORT_SHA}}-{{.DATETIME}}"' ${{ inputs.skaffold-file }}
-                yq -i ' .build.tagPolicy.customTemplate.components += {"name": "PREFIX","envTemplate": {"template": "{{.TAG_PREFIX}}"}}' ${{ inputs.skaffold-file }}
-                echo TAG_PREFIX="${TAG_PREFIX}" >> "$GITHUB_ENV"
+                BRANCH_NAME="${GITHUB_REF##*/}"
+                BRANCH_NAME="${BRANCH_NAME//[^a-zA-Z0-9]/-}"
+                yq -i ' .build.tagPolicy.customTemplate.template = "{{.SHORT_SHA}}-{{.DATETIME}}-{{.BRANCH}}"' ${{ inputs.skaffold-file }}
+                yq -i ' .build.tagPolicy.customTemplate.components += {"name": "BRANCH","envTemplate": {"template": "{{.BRANCH_NAME}}"}}' ${{ inputs.skaffold-file }}
+                echo BRANCH_NAME"${BRANCH_NAME}" >> "$GITHUB_ENV"
                 """
         },
         {
@@ -99,7 +99,7 @@ package common
                 DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                 CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
-                TAG_PREFIX: "${{ env.TAG_PREFIX }}"
+                BRANCH_NAME: "${{ env.BRANCH_NAME }}"
             }
             run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
         }
