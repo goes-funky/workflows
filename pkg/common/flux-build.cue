@@ -88,7 +88,7 @@ package common
                 BRANCH_NAME="${BRANCH_NAME//[^a-zA-Z0-9]/-}"
                 yq -i ' .build.tagPolicy.customTemplate.template = "{{.SHORT_SHA}}-{{.DATETIME}}-{{.BRANCH}}"' ${{ inputs.skaffold-file }}
                 yq -i ' .build.tagPolicy.customTemplate.components += {"name": "BRANCH","envTemplate": {"template": "{{.BRANCH_NAME}}"}}' ${{ inputs.skaffold-file }}
-                echo BRANCH_NAME"${BRANCH_NAME}" >> "$GITHUB_ENV"
+                echo BRANCH_NAME="${BRANCH_NAME}" >> "$GITHUB_ENV"
                 """
         },
         {
