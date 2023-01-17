@@ -81,15 +81,27 @@ package common
                 """
         },
         {
+            name: "Add branch name to image tag on branch builds"
+            if: "github.event.ref != 'refs/heads/main'"
+            run: """
+                BRANCH_NAME="${GITHUB_REF##*/}"
+                BRANCH_NAME="${BRANCH_NAME//[^a-zA-Z0-9]/-}"
+                yq -i ' .build.tagPolicy.customTemplate.template = "{{.SHORT_SHA}}-{{.DATETIME}}-{{.BRANCH}}"' ${{ inputs.skaffold-file }}
+                yq -i ' .build.tagPolicy.customTemplate.components += {"name": "BRANCH","envTemplate": {"template": "{{.BRANCH_NAME}}"}}' ${{ inputs.skaffold-file }}
+                echo BRANCH_NAME="${BRANCH_NAME}" >> "$GITHUB_ENV"
+                """
+        },
+        {
             name: "Build"
             env: {
                 SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
                 SKAFFOLD_CACHE_ARTIFACTS: "false"
                 DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                 CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
-                SHORT_SHA:      "${{ env.SHORT_SHA }}"
+                SHORT_SHA: "${{ env.SHORT_SHA }}"
+                BRANCH_NAME: "${{ env.BRANCH_NAME }}"
             }
-            run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json"
+            run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
         }
     ]
 }
