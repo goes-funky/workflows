@@ -81,7 +81,7 @@ package common
                 """
         },
         {
-            name: "Add prefix to image tag on branch builds"
+            name: "Add branch name to image tag on branch builds"
             if: "github.event.ref != 'refs/heads/main'"
             run: """
                 BRANCH_NAME="${GITHUB_REF##*/}"
