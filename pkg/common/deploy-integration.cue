@@ -177,8 +177,12 @@ import "list"
                 #with.expose_action_env.step,
                 #with.custom_skaffold_build_script.step,
                 {
+                	name: "Move buildx script",
+                	run: "cp ./docker-buildx ./code/${{ inputs.repo-path }}/dbuildx"
+                },
+                {
                     name: "Configure skaffold to build with buildkit"
-                    run:  "cp ./code/${{ inputs.repo-path }}/skaffold.yaml ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"~/docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml"
+                    run:  "cp ./code/${{ inputs.repo-path }}/skaffold.yaml ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"./dbuildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml"
                 },
                 #with.skaffold_cache.step,
                 {

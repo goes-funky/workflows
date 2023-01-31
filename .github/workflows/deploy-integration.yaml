@@ -440,8 +440,10 @@ jobs:
             }
       - name: Download custom skaffold docker build script
         run: curl -LsO https://raw.githubusercontent.com/goes-funky/workflows/master/scripts/docker-buildx && chmod +x docker-buildx
+      - name: Move buildx script
+        run: cp ./docker-buildx ./code/${{ inputs.repo-path }}/dbuildx
       - name: Configure skaffold to build with buildkit
-        run: 'cp ./code/${{ inputs.repo-path }}/skaffold.yaml ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "~/docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml'
+        run: 'cp ./code/${{ inputs.repo-path }}/skaffold.yaml ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "./dbuildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml'
       - name: Setup skaffold cache
         if: inputs.use-skaffold-cache
         uses: actions/cache@v3
