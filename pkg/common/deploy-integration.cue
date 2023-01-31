@@ -178,7 +178,7 @@ import "list"
                 #with.custom_skaffold_build_script.step,
                 {
                     name: "Configure skaffold to build with buildkit"
-                    run:  "cp ./code/${{ inputs.repo-path }}/skaffold.yaml . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"~/docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' skaffold.yaml"
+                    run:  "cp ./code/${{ inputs.repo-path }}/skaffold.yaml ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"~/docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"Dockerfile\"}}}}' ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml"
                 },
                 #with.skaffold_cache.step,
                 {
@@ -228,7 +228,7 @@ import "list"
                         SKAFFOLD_CACHE_ARTIFACTS: "${{ inputs.use-skaffold-cache }}"
                         DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                     }
-                    run: "cd ./code/${{ inputs.repo-path }} && skaffold build --filename=../skaffold.yaml --file-output=build.json"
+                    run: "cd ./code/${{ inputs.repo-path }} && skaffold build --filename=./skaffold-buildkit.yaml --file-output=build.json"
                 },
                 {
                     name: "Archive build reference"
@@ -236,7 +236,7 @@ import "list"
                     uses: "actions/upload-artifact@v3"
                     with: {
                         name: "build-ref"
-                        path: "./code//${{ inputs.repo-path }}/build.json"
+                        path: "./code/${{ inputs.repo-path }}/build.json"
                     }
                 },
             ]

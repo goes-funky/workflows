@@ -441,7 +441,7 @@ jobs:
       - name: Download custom skaffold docker build script
         run: curl -LsO https://raw.githubusercontent.com/goes-funky/workflows/master/scripts/docker-buildx && chmod +x docker-buildx
       - name: Configure skaffold to build with buildkit
-        run: 'cp ./code/${{ inputs.repo-path }}/skaffold.yaml . && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "~/docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
+        run: 'cp ./code/${{ inputs.repo-path }}/skaffold.yaml ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "~/docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' ./code/${{ inputs.repo-path }}/skaffold-buildkit.yaml'
       - name: Setup skaffold cache
         if: inputs.use-skaffold-cache
         uses: actions/cache@v3
@@ -511,13 +511,13 @@ jobs:
           SKAFFOLD_DEFAULT_REPO: ${{ inputs.default-repo }}
           SKAFFOLD_CACHE_ARTIFACTS: ${{ inputs.use-skaffold-cache }}
           DOCKER_BUILDKIT_BUILDER: ${{ steps.setup-buildkit.outputs.name }}
-        run: cd ./code/${{ inputs.repo-path }} && skaffold build --filename=../skaffold.yaml --file-output=build.json
+        run: cd ./code/${{ inputs.repo-path }} && skaffold build --filename=./skaffold-buildkit.yaml --file-output=build.json
       - name: Archive build reference
         if: '!inputs.skip-build'
         uses: actions/upload-artifact@v3
         with:
           name: build-ref
-          path: ./code//${{ inputs.repo-path }}/build.json
+          path: ./code/${{ inputs.repo-path }}/build.json
   deploy-environment:
     name: Deploy to environment
     needs:
