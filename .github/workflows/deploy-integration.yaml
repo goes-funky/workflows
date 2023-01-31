@@ -25,6 +25,11 @@ name: Deploy Integration
         type: string
         description: Dist artifact name
         required: false
+      repo-path:
+        type: string
+        description: Relative path inside of the repo
+        required: false
+        default: .
       skip-deploy:
         type: boolean
         description: Skip deployment to cluster
@@ -129,6 +134,9 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -183,6 +191,9 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -323,6 +334,9 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -367,6 +381,9 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4

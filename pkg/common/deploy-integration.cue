@@ -37,6 +37,12 @@ import "list"
                     description: "Dist artifact name"
                     required:    false
                 }
+                "repo-path": {
+                	type: "string"
+                	description: "Relative path inside of the repo"
+                	required: false
+                	default: "."
+                }
                 "skip-deploy": {
                     type:        "boolean"
                     description: "Skip deployment to cluster"
@@ -345,6 +351,7 @@ import "list"
 
 #steps_base: [
     #with.checkout.step,
+    #step_navigate_subdir,
     #step_setup_python,
     #step_setup_deps_cache,
     #step_setup_poetry,
@@ -355,6 +362,12 @@ import "list"
     id:   "setup-python"
     uses: "actions/setup-python@v4"
     with: "python-version": "${{ inputs.python-version }}"
+}
+
+#step_navigate_subdir: {
+    name: "Select subdirectory"
+    if: "!inputs.skip-checkout"
+    run: "cd ${{ inputs.repo-path }}"
 }
 
 #step_setup_poetry: {
