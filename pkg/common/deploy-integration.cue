@@ -113,7 +113,12 @@ import "list"
                 ...
             }
         }
+    }
 
+    defaults: {
+    	run: {
+    		"working-directory": "${{ inputs.repo-path }}"
+    	}
     }
 
     jobs: {
@@ -170,7 +175,6 @@ import "list"
                         path: "./code"
                     }
                 },
-                #step_navigate_subdir,
                 {
                     name: "Setup buildkit"
                     id:   "setup-buildkit"
@@ -352,7 +356,6 @@ import "list"
 
 #steps_base: [
     #with.checkout.step,
-    #step_navigate_subdir,
     #step_setup_python,
     #step_setup_deps_cache,
     #step_setup_poetry,
@@ -363,12 +366,6 @@ import "list"
     id:   "setup-python"
     uses: "actions/setup-python@v4"
     with: "python-version": "${{ inputs.python-version }}"
-}
-
-#step_navigate_subdir: {
-    name: "Select subdirectory"
-    if: "!inputs.skip-checkout"
-    run: "cd ${{ inputs.repo-path }}"
 }
 
 #step_setup_poetry: {

@@ -118,6 +118,9 @@ name: Deploy Integration
       gke-location:
         description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
         required: false
+defaults:
+  run:
+    working-directory: ${{ inputs.repo-path }}
 env:
   SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }
 jobs:
@@ -134,9 +137,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-      - name: Select subdirectory
-        if: '!inputs.skip-checkout'
-        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -191,9 +191,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-      - name: Select subdirectory
-        if: '!inputs.skip-checkout'
-        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -334,9 +331,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-      - name: Select subdirectory
-        if: '!inputs.skip-checkout'
-        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -381,9 +375,6 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
-      - name: Select subdirectory
-        if: '!inputs.skip-checkout'
-        run: cd ${{ inputs.repo-path }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
