@@ -170,6 +170,7 @@ import "list"
                         path: "./code"
                     }
                 },
+                #step_navigate_subdir,
                 {
                     name: "Setup buildkit"
                     id:   "setup-buildkit"
