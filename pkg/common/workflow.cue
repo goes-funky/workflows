@@ -7,11 +7,6 @@ package common
         pull_request?:  #on_pr
         workflow_call?: #on_wfc
     }
-    defaults?: {
-		run: {
-			"working-directory": string
-		}
-    }
     env?: [string]: string
     jobs: [string]: #job
 }

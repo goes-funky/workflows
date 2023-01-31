@@ -118,9 +118,6 @@ name: Deploy Integration
       gke-location:
         description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
         required: false
-defaults:
-  run:
-    working-directory: ${{ inputs.repo-path }}
 env:
   SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }
 jobs:
@@ -444,7 +441,7 @@ jobs:
       - name: Download custom skaffold docker build script
         run: curl -LsO https://raw.githubusercontent.com/goes-funky/workflows/master/scripts/docker-buildx && chmod +x docker-buildx
       - name: Configure skaffold to build with buildkit
-        run: 'cp ./code/skaffold.yaml . && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "../docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
+        run: 'cp ./code/${{ inputs.repo-path }}/skaffold.yaml . && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "~/docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
       - name: Setup skaffold cache
         if: inputs.use-skaffold-cache
         uses: actions/cache@v3
@@ -459,7 +456,7 @@ jobs:
         if: inputs.dist-artifact
         with:
           name: ${{ inputs.dist-artifact }}
-          path: ./code/dist
+          path: ./code/${{ inputs.repo-path }}/dist
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.7.0
@@ -498,9 +495,9 @@ jobs:
         env:
           REPO: ${{ inputs.default-repo }}
         run: |-
-          CONTAINER_NAME=$(cd ./code && basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
-          SHORT_SHA="$(git -C ./code rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
-          COMMIT_SHA="$(git -C ./code rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
+          CONTAINER_NAME=$(cd ./code/${{ inputs.repo-path }} && basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
+          SHORT_SHA="$(git -C ./code/${{ inputs.repo-path }} rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+          COMMIT_SHA="$(git -C ./code/${{ inputs.repo-path }} rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
           IMAGE_NAME="$REPO/$CONTAINER_NAME:$SHORT_SHA" && echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
       - name: Configure Skaffold
         run: skaffold config set default-repo '${{ inputs.default-repo }}'
@@ -514,13 +511,13 @@ jobs:
           SKAFFOLD_DEFAULT_REPO: ${{ inputs.default-repo }}
           SKAFFOLD_CACHE_ARTIFACTS: ${{ inputs.use-skaffold-cache }}
           DOCKER_BUILDKIT_BUILDER: ${{ steps.setup-buildkit.outputs.name }}
-        run: cd ./code && skaffold build --filename=../skaffold.yaml --file-output=build.json
+        run: cd ./code/${{ inputs.repo-path }} && skaffold build --filename=../skaffold.yaml --file-output=build.json
       - name: Archive build reference
         if: '!inputs.skip-build'
         uses: actions/upload-artifact@v3
         with:
           name: build-ref
-          path: ./code/build.json
+          path: ./code//${{ inputs.repo-path }}/build.json
   deploy-environment:
     name: Deploy to environment
     needs:
