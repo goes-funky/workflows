@@ -2,6 +2,11 @@ name: Build Python
 "on":
   workflow_call:
     inputs:
+      repo-path:
+        type: string
+        description: Relative path inside of the repo
+        required: false
+        default: .
       python-version:
         type: string
         description: Python version
@@ -95,6 +100,9 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
@@ -142,6 +150,9 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
@@ -179,6 +190,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
@@ -226,6 +240,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
@@ -289,6 +306,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
@@ -347,6 +367,9 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+      - name: Select subdirectory
+        if: '!inputs.skip-checkout'
+        run: cd ${{ inputs.repo-path }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3

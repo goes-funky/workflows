@@ -11,6 +11,12 @@ import "github.com/goes-funky/workflows/pkg/common"
     }
 }
 
+#step_navigate_subdir: common.#step & {
+    name: "Select subdirectory"
+    if: "!inputs.skip-checkout"
+    run: "cd ${{ inputs.repo-path }}"
+}
+
 #step_setup_poetry: common.#step & {
     name: "Install and configure Poetry"
     uses: "snok/install-poetry@v1"
@@ -39,6 +45,12 @@ common.#workflow & {
                 common.#with.checkout.inputs
                 common.#with.load_artifact.inputs
                 common.#with.ssh_agent.inputs
+                "repo-path": {
+                	type: "string"
+                	description: "Relative path inside of the repo"
+                	required: false
+                	default: "."
+                }
                 "python-version": {
                     type:        "string"
                     description: "Python version"
@@ -136,6 +148,7 @@ common.#workflow & {
             if: "needs.pre-job.outputs.should_skip != 'true'"
             steps: [
                 common.#with.checkout.step,
+                #step_navigate_subdir,
                 common.#with.load_artifact.step,
                 #step_setup_python,
                 #step_setup_deps_cache,
@@ -169,6 +182,7 @@ common.#workflow & {
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
             steps: [
                 common.#with.checkout.step,
+                #step_navigate_subdir,
                 common.#with.load_artifact.step,
                 #step_setup_python,
                 #step_setup_deps_cache,
@@ -190,6 +204,7 @@ common.#workflow & {
                         "fetch-depth": 0
                     }
                 },
+                #step_navigate_subdir,
                 common.#with.load_artifact.step,
                 common.#with.trufflehog.step,
                 #step_setup_python,
@@ -217,6 +232,7 @@ common.#workflow & {
                         "fetch-depth": 0
                     }
                 },
+                #step_navigate_subdir,
                 common.#with.load_artifact.step,
                 #step_setup_python,
                 #step_setup_deps_cache,
@@ -275,6 +291,7 @@ common.#workflow & {
                        "fetch-depth": 0
                     }
                 },
+                #step_navigate_subdir,
                 common.#with.load_artifact.step,
                 common.#with.ssh_agent.step,
                 common.#with.gcloud.step & {
@@ -323,6 +340,7 @@ common.#workflow & {
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
             steps: [
                 common.#with.checkout.step,
+                #step_navigate_subdir,
                 common.#with.load_artifact.step,
                 #step_setup_python,
                 #step_setup_deps_cache,
