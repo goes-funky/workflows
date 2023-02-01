@@ -135,7 +135,11 @@ common.#workflow & {
             needs: ["pre-job"]
             if: "needs.pre-job.outputs.should_skip != 'true'"
             steps: [
-                common.#with.checkout.step,
+                common.#with.checkout.step & {
+                    with: {
+                        "submodules": true
+                    }
+                },
                 common.#with.load_artifact.step,
                 #step_setup_python,
                 #step_setup_deps_cache,
@@ -215,6 +219,7 @@ common.#workflow & {
                 common.#with.checkout.step & {
                     with: {
                         "fetch-depth": 0
+                        "submodules": true
                     }
                 },
                 common.#with.load_artifact.step,
@@ -273,6 +278,7 @@ common.#workflow & {
                 common.#with.checkout.step & {
                     with: {
                        "fetch-depth": 0
+                       "submodules": true
                     }
                 },
                 common.#with.load_artifact.step,
@@ -322,7 +328,11 @@ common.#workflow & {
             needs: ["deps"]
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
             steps: [
-                common.#with.checkout.step,
+                common.#with.checkout.step & {
+                    with: {
+                        "submodules": true
+                    }
+                },
                 common.#with.load_artifact.step,
                 #step_setup_python,
                 #step_setup_deps_cache,
