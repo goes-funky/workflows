@@ -84,6 +84,10 @@ name: Deploy Integration
         required: false
         default: false
         description: Setup skaffold cache before build
+      with-submodules:
+        type: boolean
+        description: Whether to skip checkout
+        default: false
       kubeval:
         type: string
         description: Kubeval version
@@ -129,6 +133,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -183,6 +189,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -234,6 +242,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.7.0
@@ -281,6 +291,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.7.0
@@ -323,6 +335,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -367,6 +381,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
@@ -525,6 +541,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
         uses: webfactory/ssh-agent@v0.7.0

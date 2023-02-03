@@ -35,7 +35,16 @@ common.#workflow & {
     on: {
         workflow_call: {
             inputs: {
-                common.#with.checkout.inputs
+            	"skip-checkout": {
+					type:        "boolean"
+					description: "Whether to skip checkout"
+					default:     false
+				}
+				"with-submodules": {
+					type:        "boolean"
+					description: "Whether to skip checkout"
+					default:     true
+				}
                 common.#with.ssh_agent.inputs
                 "go-version": {
                     type:        "string"
@@ -53,9 +62,7 @@ common.#workflow & {
         tools: {
             name: "Tools"
             steps: [
-                common.#with.checkout.step & {
-                    with: submodules: true
-                },
+                common.#with.checkout.step,
                 #step_setup_tools_cache,
                 {
                     name: "Setup go"
@@ -98,9 +105,7 @@ common.#workflow & {
             name: "Check"
             env: GOLANGCILINT_CONCURRENCY: "4"
             steps: [
-                common.#with.checkout.step & {
-                    with: submodules: true
-                },
+                common.#with.checkout.step,
                 #step_setup_go,
                 #step_setup_tools_cache,
                 #step_setup_deps_cache,
@@ -118,9 +123,7 @@ common.#workflow & {
             needs: ["tools", "deps"]
             name: "Test"
             steps: [
-                common.#with.checkout.step & {
-                    with: submodules: true
-                },
+                common.#with.checkout.step,
                 #step_setup_go,
                 #step_setup_deps_cache,
                 {
