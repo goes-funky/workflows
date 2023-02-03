@@ -8,12 +8,20 @@ package common
                 description: "Whether to skip checkout"
                 default:     false
             }
+            "with-submodules": {
+                type:        "boolean"
+                description: "Whether to skip checkout"
+                default:     false
+            }
         }
 
         step: #step & {
             name: "Checkout"
             if:   "!inputs.skip-checkout"
             uses: "actions/checkout@v3"
+            with: {
+                "submodules": "${{ inputs.with-submodules }}"
+            }
         }
     }
 
