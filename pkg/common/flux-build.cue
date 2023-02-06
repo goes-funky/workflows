@@ -38,7 +38,7 @@ package common
 
 #job_flux_build: #job & {
     name: "Build Docker images"
-    "timeout-minutes": 10
+    "timeout-minutes": 20
     steps: [
         {
             name: "Checkout"
@@ -67,7 +67,6 @@ package common
                 token_format:     "access_token"
             }
         },
-        #with.docker_auth.step,
         #with.docker_artifacts_auth.step,
         #with.flux_tools.step,
         {
