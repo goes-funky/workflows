@@ -67,6 +67,7 @@ package common
                 token_format:     "access_token"
             }
         },
+        #with.docker_auth.step,
         #with.docker_artifacts_auth.step,
         #with.flux_tools.step,
         {
