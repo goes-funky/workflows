@@ -38,7 +38,7 @@ package common
 
 #job_flux_build: #job & {
     name: "Build Docker images"
-    "timeout-minutes": 10
+    "timeout-minutes": 20
     steps: [
         {
             name: "Checkout"
