@@ -40,7 +40,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build Docker images
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
