@@ -59,6 +59,10 @@ name: Build Python
         type: boolean
         description: Whether to skip sonarcloud scans
         default: true
+      with-submodules:
+        type: boolean
+        description: Whether to fetch git submodules
+        default: false
     secrets:
       gcp-gcr-project-id:
         description: GCP GCR Project ID. Required for integration_tests.
@@ -95,6 +99,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
@@ -142,6 +148,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3
@@ -178,6 +186,7 @@ jobs:
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
         with:
+          submodules: ${{ inputs.with-submodules }}
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
@@ -225,6 +234,7 @@ jobs:
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
         with:
+          submodules: ${{ inputs.with-submodules }}
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
@@ -288,6 +298,7 @@ jobs:
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
         with:
+          submodules: ${{ inputs.with-submodules }}
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
@@ -347,6 +358,8 @@ jobs:
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v3
+        with:
+          submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
         uses: actions/download-artifact@v3

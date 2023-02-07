@@ -26,6 +26,10 @@ name: Flux Skaffold Build
         type: string
         description: Docker file to use
         default: Dockerfile
+      with-submodules:
+        type: boolean
+        description: Whether to fetch git submodules
+        default: false
     secrets:
       gcp-project-id:
         description: GCP Project ID of the artifact repo
