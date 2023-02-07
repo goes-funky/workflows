@@ -10,7 +10,7 @@ package common
             }
             "with-submodules": {
                 type:        "boolean"
-                description: "Whether to skip checkout"
+                description: "Whether to fetch git submodules"
                 default:     false
             }
         }
