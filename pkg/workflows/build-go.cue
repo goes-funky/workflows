@@ -42,7 +42,7 @@ common.#workflow & {
 				}
 				"with-submodules": {
 					type:        "boolean"
-					description: "Whether to skip checkout"
+					description: "Whether to fetch git submodules"
 					default:     true
 				}
                 common.#with.ssh_agent.inputs
