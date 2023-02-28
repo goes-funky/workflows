@@ -78,6 +78,7 @@ package common
             run: """
                 CONTAINER_NAME=$(cd ./code && basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
                 SHORT_SHA="$(git -C ./code rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+                COMMIT_SHA="$(git -C ./code rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
                 """
         },
         {
@@ -99,6 +100,7 @@ package common
                 DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                 CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
+                COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
             }
             run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
