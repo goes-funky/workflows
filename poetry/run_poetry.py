@@ -1,3 +1,5 @@
+#!/usr/bin/env -S python3 -B
+
 import poetry
 import os
 
