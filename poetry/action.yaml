@@ -1,0 +1,5 @@
+name: 'poetry'
+description: 'Run poetry show on PRs'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
