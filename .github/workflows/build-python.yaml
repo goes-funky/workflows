@@ -391,4 +391,4 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Diff poetry.lock
-        uses: nborrmann/diff-poetry-lock
+        uses: nborrmann/diff-poetry-lock@main
