@@ -335,7 +335,7 @@ common.#workflow & {
         }
         diff_poetry: {
             name: "Diff Poetry lockfile"
-            if:   "${{ github.event_name == 'pull_request' }}"
+            if:   "!github.event_name == \"pull_request\""
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
             steps: [
                 {
