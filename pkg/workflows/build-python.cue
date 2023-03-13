@@ -333,5 +333,16 @@ common.#workflow & {
                 },
             ]
         }
+        diff_poetry: {
+            name: "Diff Poetry lockfile"
+            if: "${{ github.event_name == 'pull_request' }}"
+            "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
+            steps: [
+                {
+                    name: "Diff poetry.lock"
+			        uses: "nborrmann/diff-poetry-lock@main"
+                },
+            ]
+        }
     }
 }
