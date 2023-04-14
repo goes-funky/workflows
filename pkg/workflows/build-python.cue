@@ -11,6 +11,25 @@ import "github.com/goes-funky/workflows/pkg/common"
     }
 }
 
+#step_install_poetry_packages: common.#step & {
+        name: "Download poetry packages"
+        run: """
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
+            poetry install
+            """
+}
+
+#step_install_custom_setup_tools: common.#step & {
+    name: "Configure setup tools for poetry"
+    if: "inputs.setuptools-version"
+    env: {
+        SETUPTOOLS_VERSION: "${{ inputs.setuptools-version }}"
+    }
+    run: """
+        poetry run pip install "setuptools==$SETUPTOOLS_VERSION"
+        """
+}
+
 #step_setup_poetry: common.#step & {
     name: "Install and configure Poetry"
     uses: "snok/install-poetry@v1"
@@ -141,25 +160,8 @@ common.#workflow & {
                 #step_setup_deps_cache,
                 #step_setup_poetry,
                 common.#with.ssh_agent.step,
-                {
-                    name: "Configure setup tools for poetry"
-                    //if: "!steps.deps-cache.outputs.cache-hit  && inputs.setuptools-version"
-                    if: "inputs.setuptools-version"
-                    env: {
-                        SETUPTOOLS_VERSION: "${{ inputs.setuptools-version }}"
-                    }
-                    run: """
-                        poetry run pip install "setuptools==$SETUPTOOLS_VERSION"
-                        """
-                },
-                {
-                    name: "Download dependencies"
-                    //if: "!steps.deps-cache.outputs.cache-hit"
-                    run: """
-                        git config --global url."git@github.com:".insteadOf "https://github.com/"
-                        poetry install
-                        """
-                },
+                #step_install_custom_setup_tools,
+                #step_install_poetry_packages,
             ]
         }
         black: {
@@ -173,6 +175,9 @@ common.#workflow & {
                 #step_setup_python,
                 #step_setup_deps_cache,
                 #step_setup_poetry,
+                common.#with.ssh_agent.step,
+                #step_install_custom_setup_tools,
+                #step_install_poetry_packages,
                 {
                     name: "Ensure code is formatted"
                     run:  "poetry run black --check ."
@@ -195,6 +200,9 @@ common.#workflow & {
                 #step_setup_python,
                 #step_setup_deps_cache,
                 #step_setup_poetry,
+                common.#with.ssh_agent.step,
+                #step_install_custom_setup_tools,
+                #step_install_poetry_packages,
                 {
                     name: "Flake8"
                     run:  "poetry run flake8"
@@ -221,6 +229,9 @@ common.#workflow & {
                 #step_setup_python,
                 #step_setup_deps_cache,
                 #step_setup_poetry,
+                common.#with.ssh_agent.step,
+                #step_install_custom_setup_tools,
+                #step_install_poetry_packages,
                 {
                     name: "Tests"
                     run: """
@@ -327,6 +338,9 @@ common.#workflow & {
                 #step_setup_python,
                 #step_setup_deps_cache,
                 #step_setup_poetry,
+                common.#with.ssh_agent.step,
+                #step_install_custom_setup_tools,
+                #step_install_poetry_packages,
                 {
                     name: "Mypy"
                     run:  "poetry run mypy ."
