@@ -136,6 +136,7 @@ jobs:
       - name: Download poetry packages
         run: |-
           git config --global url."git@github.com:".insteadOf "https://github.com/"
+          pip install 'urllib3==1.26.15'
           poetry install
   black:
     name: Black
