@@ -354,7 +354,7 @@ common.#workflow & {
             steps: [
                 {
                     name: "Diff poetry.lock"
-			        uses: "nborrmann/diff-poetry-lock@main"
+			        uses: "goes-funky/diff-poetry-lock@main"
                 },
             ]
         }
