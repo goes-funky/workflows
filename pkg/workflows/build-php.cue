@@ -235,6 +235,10 @@ common.#workflow & {
                 key:     "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
             }
             steps: [{
+               name: "Setup SSH Agent"
+               uses: "webfactory/ssh-agent@v0.7.0"
+               with: "ssh-private-key": "${{ secrets.ssh-private-key }}"
+           }, {
                 uses: "actions/checkout@v3"
                 name: "Checkout"
             }, {
@@ -275,6 +279,10 @@ common.#workflow & {
 
                         """
                 }
+            }, {
+                name: "Install dependencies"
+                if:   "steps.restore-composer-cache.outputs.cache-hit != 'true'"
+                run:  "composer install --prefer-dist --no-progress --no-suggest"
             }, {
                 name: "Set environmental variables"
                 if:   "${{ matrix.database == 'pgsql' }}"
