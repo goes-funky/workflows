@@ -115,6 +115,10 @@ common.#workflow & {
 
                         """
                 }
+            }, {
+                name: "Install dependencies"
+                if:   "steps.composer-cache.outputs.cache-hit != 'true'"
+                run:  "composer install --prefer-dist --no-progress --no-suggest"
             }]
         }
 
