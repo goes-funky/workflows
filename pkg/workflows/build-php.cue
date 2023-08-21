@@ -170,10 +170,9 @@ common.#workflow & {
 
                         """
                 }
-            },
-            {
+            },  {
                 name: "Install dependencies"
-                if:   "steps.composer-cache.outputs.cache-hit != 'true'"
+                if:   "steps.restore-composer-cache.outputs.cache-hit != 'true'"
                 run:  "composer install --prefer-dist --no-progress --no-suggest"
             }, {
                 name: "PHPStan cache"
