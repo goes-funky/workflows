@@ -159,6 +159,10 @@ common.#workflow & {
             },
             common.#with.trufflehog.step,
             {
+               name: "Setup SSH Agent"
+               uses: "webfactory/ssh-agent@v0.7.0"
+               with: "ssh-private-key": "${{ secrets.ssh-private-key }}"
+           }, {
                 name: "Composer packages from cache"
                 id:   "restore-composer-cache"
                 uses: "actions/cache@v3"
