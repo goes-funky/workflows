@@ -97,7 +97,7 @@ import "list"
                 ...
             }
             secrets: {
-                #with.gcloud.secrets
+                #with.gcloud_deploy.secrets
                 #with.gke.secrets
                 #with.ssh_agent.secrets
                 "json-schema-bucket": {
@@ -188,9 +188,9 @@ import "list"
                 #with.ssh_agent.step,
                 #with.gcloud.step & {
                     with: {
-                        project_id:       "${{ secrets.gcp-gcr-project-id }}"
-                        credentials_json: "${{ secrets.gcp-gcr-service-account }}"
-                        token_format:     "access_token"
+                        service_account: "${{ secrets.gcp-gcr-service-account }}"
+                        workload_identity_provider: "${{ secrets.gcp-gcr-workload-identity-provider }}"
+                        token_format: "access_token"
                     }
                 },
                 #with.docker_auth.step,
@@ -302,12 +302,7 @@ import "list"
     deploy_integration: [
         #with.checkout.step,
         #with.ssh_agent.step,
-        #with.gcloud.step & {
-            with: {
-                project_id:       "${{ secrets.gcp-project-id }}"
-                credentials_json: "${{ secrets.gcp-service-account }}"
-            }
-        },
+        #with.gcloud.step,
         #with.gke.step,
         {
             name: "Download build reference"

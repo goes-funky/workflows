@@ -71,14 +71,14 @@ name: Deploy
         description: Kubeval version
         default: 0.16.1
     secrets:
-      gcp-project-id:
-        description: GCP Project ID
-        required: true
       gcp-service-account:
-        description: GCP Service Account Key
+        description: GCP Service Account e-mail, has permission to artifact repo
         required: true
-      gcp-gcr-project-id:
-        description: GCP GCR Project ID
+      gcp-workload-identity-provider:
+        description: GCP Workload Identity provider
+        required: true
+      gcp-gcr-service-account:
+        description: GCP GCR Service Account e-mail
         required: true
       gke-cluster:
         description: GKE Cluster Name
@@ -86,8 +86,8 @@ name: Deploy
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
-      gcp-gcr-service-account:
-        description: GCP GCR Service Account Key
+      gcp-gcr-workload-identity-provider:
+        description: GCP GCR Workload Identity provider
         required: true
       gke-location:
         description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
@@ -113,8 +113,9 @@ jobs:
         id: auth_gcp
         uses: google-github-actions/auth@v1
         with:
-          project_id: ${{ secrets.gcp-project-id }}
-          credentials_json: ${{ secrets.gcp-service-account }}
+          service_account: ${{ secrets.gcp-service-account }}
+          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
+          token_format: access_token
       - uses: google-github-actions/get-gke-credentials@v1
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -148,8 +149,9 @@ jobs:
         id: auth_gcp
         uses: google-github-actions/auth@v1
         with:
-          project_id: ${{ secrets.gcp-project-id }}
-          credentials_json: ${{ secrets.gcp-service-account }}
+          service_account: ${{ secrets.gcp-service-account }}
+          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
+          token_format: access_token
       - uses: google-github-actions/get-gke-credentials@v1
         with:
           cluster_name: ${{ secrets.gke-cluster }}
@@ -221,9 +223,8 @@ jobs:
         id: auth_gcp
         uses: google-github-actions/auth@v1
         with:
-          project_id: ${{ secrets.gcp-gcr-project-id }}
-          credentials_json: ${{ secrets.gcp-gcr-service-account }}
-          token_format: access_token
+          service_account: ${{ secrets.gcp-gcr-service-account }}
+          workload_identity_provider: ${{ secrets.gcp-gcr-workload-identity-provider }}
       - name: Authenticate to Google Container Registry
         id: auth_gcr
         uses: docker/login-action@v2
@@ -283,8 +284,9 @@ jobs:
         id: auth_gcp
         uses: google-github-actions/auth@v1
         with:
-          project_id: ${{ secrets.gcp-project-id }}
-          credentials_json: ${{ secrets.gcp-service-account }}
+          service_account: ${{ secrets.gcp-service-account }}
+          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
+          token_format: access_token
       - uses: google-github-actions/get-gke-credentials@v1
         with:
           cluster_name: ${{ secrets.gke-cluster }}

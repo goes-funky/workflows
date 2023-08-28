@@ -25,7 +25,7 @@ package common
                 ...
             }
             secrets: {
-                #with.gcloud_flux.secrets
+                #with.gcloud_build.secrets
                 #with.ssh_agent.secrets
                 ...
             }
@@ -60,13 +60,7 @@ package common
             run: "cp ./code/${{ inputs.skaffold-file }} . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ${{ inputs.skaffold-file }}"
         },
         #with.ssh_agent.step,
-        #with.gcloud.step & {
-            with: {
-                project_id:       "${{ secrets.gcp-project-id }}"
-                credentials_json: "${{ secrets.gcp-service-account }}"
-                token_format:     "access_token"
-            }
-        },
+        #with.gcloud.step,
         #with.docker_artifacts_auth.step,
         #with.flux_tools.step,
         {
