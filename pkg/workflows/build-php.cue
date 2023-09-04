@@ -22,6 +22,11 @@ common.#workflow & {
                 description: "Whether to skip php artisan migrate"
                 default:     false
             }
+            "php-version": {
+                type:        "string"
+                description: "php version"
+                default:     "8.1"
+            }
         }
         secrets: "ssh-private-key": {
             description: "SSH private key used to authenticate to GitHub with, in order to fetch private dependencies"
@@ -50,7 +55,7 @@ common.#workflow & {
             steps: [{
                 id: "set-matrix"
                 run: """
-                    echo \"matrix={\\\"php-version\\\":[\\\"8.1\\\"],\\\"extensions\\\":[\\\"${{ inputs.extensions }}\\\"],\\\"database\\\":[\\\"${{ inputs.database }}\\\"]}\" >> "$GITHUB_OUTPUT"
+                    echo \"matrix={\\\"php-version\\\":[\\\"${{ inputs.php-version }}\\\"],\\\"extensions\\\":[\\\"${{ inputs.extensions }}\\\"],\\\"database\\\":[\\\"${{ inputs.database }}\\\"]}\" >> "$GITHUB_OUTPUT"
                     """
             }]
         }
