@@ -1,0 +1,4 @@
+SRE-95: use keyless GitHub Actions authentication
+
+Please don't merge until Monday morning. Alternatively, merge when your deployments
+start failing GCP authentication.
