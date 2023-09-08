@@ -17,5 +17,5 @@ jobs:
       #@overlay/match missing_ok=True
       #@overlay/remove
       gcp-gcr-project-id: ''
-      #@overlay/match when=1
+      #@overlay/match missing_ok=True
       gcp-gcr-workload-identity-provider: ${{ secrets.GCP_GCR_WORKLOAD_IDENTITY_PROVIDER }}
