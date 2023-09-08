@@ -14,3 +14,5 @@ multi-gitter run ./migrations/01-gcp-auth.sh \
   --pr-body "Please don't merge until Monday morning. Alternatively, merge when your deployments start failing GCP authentication." \
   -B SRE-95-oidc-auth --skip-repo goes-funky/modeling-api,goes-funky/y42-frontend,goes-funky/dbt-functions,goes-funky/fivetran-functions
 ```
+
+Currently there's no mechanism to run these "migrations" automatically.
