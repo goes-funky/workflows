@@ -31,14 +31,14 @@ name: Flux Skaffold Build
         description: Whether to fetch git submodules
         default: false
     secrets:
-      gcp-project-id:
-        description: GCP Project ID of the artifact repo
+      gcp-service-account:
+        description: GCP Service Account e-mail, has permission to artifact repo
         required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
-      gcp-service-account:
-        description: GCP Service Account Key, has permission to artifact repo
+      gcp-workload-identity-provider:
+        description: GCP Workload Identity provider
         required: true
 jobs:
   build:
@@ -81,8 +81,8 @@ jobs:
         id: auth_gcp
         uses: google-github-actions/auth@v1
         with:
-          project_id: ${{ secrets.gcp-project-id }}
-          credentials_json: ${{ secrets.gcp-service-account }}
+          service_account: ${{ secrets.gcp-service-account }}
+          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
           token_format: access_token
       - name: Authenticate to Google Artifact Registry
         id: auth_docker_pkg_dev

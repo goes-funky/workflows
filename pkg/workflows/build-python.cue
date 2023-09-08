@@ -120,13 +120,13 @@ common.#workflow & {
             secrets: {
                 common.#with.ssh_agent.secrets
                 // include manually to make them optional.
-                "gcp-gcr-project-id": {
-                    description: "GCP GCR Project ID. Required for integration_tests."
-                    required:    false
-                }
                 "gcp-gcr-service-account": {
-                    description: "GCP GCR Service Account Key. Required for integration_tests."
-                    required:    false
+                    description: "GCP GCR Service Account e-mail"
+                    required: false
+                }
+                "gcp-gcr-workload-identity-provider": {
+                    description: "GCP GCR Workload Identity provider"
+                    required: false
                 }
                 // end of manual include
                 "sonar_token": {
@@ -290,9 +290,9 @@ common.#workflow & {
                 common.#with.ssh_agent.step,
                 common.#with.gcloud.step & {
                     with: {
-                        project_id:       "${{ secrets.gcp-gcr-project-id }}"
-                        credentials_json: "${{ secrets.gcp-gcr-service-account }}"
-                        token_format:     "access_token"
+                        service_account: "${{ secrets.gcp-gcr-service-account }}"
+                        workload_identity_provider: "${{ secrets.gcp-gcr-workload-identity-provider }}"
+                        token_format: "access_token"
                     }
                 },
                 common.#with.docker_auth.step,

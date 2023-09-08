@@ -65,7 +65,7 @@ import "list"
                 ...
             }
             secrets: {
-                #with.gcloud.secrets
+                #with.gcloud_deploy.secrets
                 #with.gke.secrets
                 #with.ssh_agent.secrets
                 ...
@@ -135,9 +135,8 @@ import "list"
         #with.ssh_agent.step,
         #with.gcloud.step & {
             with: {
-                project_id:       "${{ secrets.gcp-gcr-project-id }}"
-                credentials_json: "${{ secrets.gcp-gcr-service-account }}"
-                token_format:     "access_token"
+                service_account: "${{ secrets.gcp-gcr-service-account }}"
+                workload_identity_provider: "${{ secrets.gcp-gcr-workload-identity-provider }}"
             }
         },
         #with.docker_auth.step,

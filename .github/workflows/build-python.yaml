@@ -64,11 +64,11 @@ name: Build Python
         description: Whether to fetch git submodules
         default: false
     secrets:
-      gcp-gcr-project-id:
-        description: GCP GCR Project ID. Required for integration_tests.
-        required: false
       gcp-gcr-service-account:
-        description: GCP GCR Service Account Key. Required for integration_tests.
+        description: GCP GCR Service Account e-mail
+        required: false
+      gcp-gcr-workload-identity-provider:
+        description: GCP GCR Workload Identity provider
         required: false
       sonar_token:
         description: Token for sonarcloud.io scans
@@ -356,8 +356,8 @@ jobs:
         id: auth_gcp
         uses: google-github-actions/auth@v1
         with:
-          project_id: ${{ secrets.gcp-gcr-project-id }}
-          credentials_json: ${{ secrets.gcp-gcr-service-account }}
+          service_account: ${{ secrets.gcp-gcr-service-account }}
+          workload_identity_provider: ${{ secrets.gcp-gcr-workload-identity-provider }}
           token_format: access_token
       - name: Authenticate to Google Container Registry
         id: auth_gcr

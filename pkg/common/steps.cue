@@ -139,56 +139,49 @@ package common
         }
     }
 
-    gcloud: {
+    gcloud_deploy: {
         secrets: {
-            "gcp-project-id": {
-                description: "GCP Project ID"
-                required:    true
-            }
             "gcp-service-account": {
-                description: "GCP Service Account Key"
+                description: "GCP Service Account e-mail, has permission to artifact repo"
                 required:    true
             }
-            "gcp-gcr-project-id": {
-                description: "GCP GCR Project ID"
-                required:    true
+            "gcp-workload-identity-provider": {
+                description: "GCP Workload Identity provider"
+                required: true
             }
             "gcp-gcr-service-account": {
-                description: "GCP GCR Service Account Key"
+                description: "GCP GCR Service Account e-mail"
                 required:    true
             }
-        }
-
-        step: #step & {
-            id: "auth_gcp"
-            name: "Authenticate to Google Cloud"
-            uses: "google-github-actions/auth@v1"
-            with: {} | *{
-                project_id:                 "${{ secrets.gcp-project-id }}"
-                credentials_json:           "${{ secrets.gcp-service-account }}"
+            "gcp-gcr-workload-identity-provider": {
+                description: "GCP GCR Workload Identity provider"
+                required: true
             }
         }
     }
 
-    gcloud_flux: {
+    gcloud_build: {
         secrets: {
-            "gcp-project-id": {
-                description: "GCP Project ID of the artifact repo"
+            "gcp-service-account": {
+                description: "GCP Service Account e-mail, has permission to artifact repo"
                 required:    true
             }
-            "gcp-service-account": {
-                description: "GCP Service Account Key, has permission to artifact repo"
-                required:    true
+            "gcp-workload-identity-provider": {
+                description: "GCP Workload Identity provider"
+                required: true
             }
         }
+    }
 
+    gcloud: {
         step: #step & {
             id: "auth_gcp"
             name: "Authenticate to Google Cloud"
             uses: "google-github-actions/auth@v1"
             with: {} | *{
-                project_id:                 "${{ secrets.gcp-project-id }}"
-                credentials_json:           "${{ secrets.gcp-service-account }}"
+                service_account: "${{ secrets.gcp-service-account }}"
+                workload_identity_provider: "${{ secrets.gcp-workload-identity-provider }}"
+                token_format: "access_token"
             }
         }
     }
