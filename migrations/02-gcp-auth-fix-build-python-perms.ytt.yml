@@ -1,0 +1,18 @@
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.all
+---
+jobs:
+  #@overlay/match by=overlay.map_key("uses"), when=1
+  _:
+    uses: "goes-funky/workflows/.github/workflows/build-python.yaml@master"
+    #@overlay/match missing_ok=True
+    permissions:
+      #@overlay/match missing_ok=True
+      contents: read
+      #@overlay/match missing_ok=True
+      id-token: write
+      #@overlay/match missing_ok=True
+      actions: write
+      #@overlay/match missing_ok=True
+      pull-requests: write
