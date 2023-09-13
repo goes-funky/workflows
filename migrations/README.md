@@ -16,3 +16,9 @@ multi-gitter run ./migrations/01-gcp-auth.sh \
 ```
 
 Currently there's no mechanism to run these "migrations" automatically.
+
+Note: changes to `.github` subdirectory in most repositories require `team-infrastructure` review. To walk around that without needing
+to review each pull request manually, we've disabled enforcement of branch protection rules for repository administrators, which the
+`team-infrastructure` members are.
+
+Afterwards, `multi-gitter merge -O goes-funky -B <branch-name>` should merge all the PRs for which checks are passing.
