@@ -12,10 +12,7 @@ jobs:
       contents: read
       #@overlay/match missing_ok=True
       id-token: write
+      #@overlay/match missing_ok=True
       actions: write
-    secrets:
       #@overlay/match missing_ok=True
-      #@overlay/remove
-      gcp-gcr-project-id: ''
-      #@overlay/match missing_ok=True
-      gcp-gcr-workload-identity-provider: ${{ secrets.GCP_GCR_WORKLOAD_IDENTITY_PROVIDER }}
+      pull-requests: write
