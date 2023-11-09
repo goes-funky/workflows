@@ -19,6 +19,14 @@ import "github.com/goes-funky/workflows/pkg/common"
             """
 }
 
+#step_set_custom_environment_variables: common.#step & {
+        name: "Set custom environment variables"
+        if: "inputs.environment-variables"
+        run: """
+            echo "${{ inputs.environment-variables }}" | jq -r 'to_entries|map("\\(.key)=\\(.value|tostring)")|.[]' >> $GITHUB_ENV
+        """
+}
+
 #step_install_custom_setup_tools: common.#step & {
     name: "Configure setup tools for poetry"
     if: "inputs.setuptools-version"
@@ -115,6 +123,11 @@ common.#workflow & {
                     type:        "boolean"
                     description: "Whether to skip sonarcloud scans"
                     default:     true
+                }
+                "environment-variables": {
+                    type:        "string"
+                    description: "Custom environment variables made available during the tests and integration tests."
+                    required:     false
                 }
             }
             secrets: {
@@ -232,6 +245,7 @@ common.#workflow & {
                 common.#with.ssh_agent.step,
                 #step_install_custom_setup_tools,
                 #step_install_poetry_packages,
+                #step_set_custom_environment_variables,
                 {
                     name: "Tests"
                     run: """
@@ -304,6 +318,7 @@ common.#workflow & {
                         version: "v2.10.2"
                     }
                 },
+                #step_set_custom_environment_variables,
                 {
                     name: "Build"
                     env: {

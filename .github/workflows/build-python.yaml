@@ -43,6 +43,10 @@ name: Build Python
         type: boolean
         description: Whether to skip checking type hints with mypy
         default: true
+      skip-sonar:
+        type: boolean
+        description: Whether to skip sonarcloud scans
+        default: true
       skip-checkout:
         type: boolean
         description: Whether to skip checkout
@@ -55,10 +59,10 @@ name: Build Python
         type: boolean
         description: Whether to skip ssh agent configuration
         default: false
-      skip-sonar:
-        type: boolean
-        description: Whether to skip sonarcloud scans
-        default: true
+      environment-variables:
+        type: string
+        description: Custom environment variables made available during the tests and integration tests.
+        required: false
       with-submodules:
         type: boolean
         description: Whether to fetch git submodules
@@ -300,6 +304,9 @@ jobs:
         run: |-
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           poetry install
+      - name: Set custom environment variables
+        if: inputs.environment-variables
+        run: '    echo "${{ inputs.environment-variables }}" | jq -r ''to_entries|map("\(.key)=\(.value|tostring)")|.[]'' >> $GITHUB_ENV'
       - name: Tests
         run: |-
           poetry run coverage run -m pytest
@@ -377,6 +384,9 @@ jobs:
         uses: KengoTODA/actions-setup-docker-compose@62da66e273e37258ddfb9ccc55f7934bdd25b57d
         with:
           version: v2.10.2
+      - name: Set custom environment variables
+        if: inputs.environment-variables
+        run: '    echo "${{ inputs.environment-variables }}" | jq -r ''to_entries|map("\(.key)=\(.value|tostring)")|.[]'' >> $GITHUB_ENV'
       - name: Build
         env:
           DOCKER_BUILDKIT: "1"
