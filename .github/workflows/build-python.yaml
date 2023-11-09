@@ -63,6 +63,7 @@ name: Build Python
         type: string
         description: Custom environment variables made available during the tests and integration tests.
         required: false
+        default: '{}'
       with-submodules:
         type: boolean
         description: Whether to fetch git submodules
@@ -305,8 +306,8 @@ jobs:
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           poetry install
       - name: Set custom environment variables
-        if: inputs.environment-variables
-        run: '    echo "${{ inputs.environment-variables }}" | jq -r ''to_entries|map("\(.key)=\(.value|tostring)")|.[]'' >> $GITHUB_ENV'
+        if: inputs.environment-variables != '{}'
+        run: '    jq -r ''to_entries|map("\(.key)=\(.value|tostring)")|.[]'' <<< "${{ inputs.environment-variables }}" >> "$GITHUB_ENV"'
       - name: Tests
         run: |-
           poetry run coverage run -m pytest
@@ -385,8 +386,8 @@ jobs:
         with:
           version: v2.10.2
       - name: Set custom environment variables
-        if: inputs.environment-variables
-        run: '    echo "${{ inputs.environment-variables }}" | jq -r ''to_entries|map("\(.key)=\(.value|tostring)")|.[]'' >> $GITHUB_ENV'
+        if: inputs.environment-variables != '{}'
+        run: '    jq -r ''to_entries|map("\(.key)=\(.value|tostring)")|.[]'' <<< "${{ inputs.environment-variables }}" >> "$GITHUB_ENV"'
       - name: Build
         env:
           DOCKER_BUILDKIT: "1"

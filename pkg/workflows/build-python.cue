@@ -21,9 +21,9 @@ import "github.com/goes-funky/workflows/pkg/common"
 
 #step_set_custom_environment_variables: common.#step & {
         name: "Set custom environment variables"
-        if: "inputs.environment-variables"
+        if: "inputs.environment-variables != '{}'"
         run: """
-            echo "${{ inputs.environment-variables }}" | jq -r 'to_entries|map("\\(.key)=\\(.value|tostring)")|.[]' >> $GITHUB_ENV
+            jq -r 'to_entries|map("\\(.key)=\\(.value|tostring)")|.[]' <<< "${{ inputs.environment-variables }}" >> "$GITHUB_ENV"
         """
 }
 
@@ -127,7 +127,8 @@ common.#workflow & {
                 "environment-variables": {
                     type:        "string"
                     description: "Custom environment variables made available during the tests and integration tests."
-                    required:     false
+                    required:    false
+                    default:     "{}"
                 }
             }
             secrets: {
