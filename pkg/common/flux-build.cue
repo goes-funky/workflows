@@ -22,6 +22,11 @@ package common
                     description: "Docker file to use"
                     default:    "Dockerfile"
                 }
+                "build-artifact-overlay": {
+                    type:        "string"
+                    description: "A JSON to to merge into all `build.artifacts` in the skaffold file"
+                    default:    ""
+                }
                 ...
             }
             secrets: {
@@ -58,6 +63,14 @@ package common
         {
             name: "Configure skaffold to build with buildkit"
             run: "cp ./code/${{ inputs.skaffold-file }} . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ${{ inputs.skaffold-file }}"
+        },
+        {
+            name: "Merge build artifact overlay"
+            if: "inputs.build-artifact-overlay != ''"
+            run: """
+                echo "${{ inputs.build-artifact-overlay }}" | yq -P > artifact-overlay.yaml
+                yq -i '.build.artifacts[] *= load("artifact-overlay.yaml")' ${{ inputs.skaffold-file }}"
+                """
         },
         #with.ssh_agent.step,
         #with.gcloud.step,
