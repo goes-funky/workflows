@@ -212,7 +212,7 @@ common.#workflow & {
             }, {
                 name: "Changed PHP files"
                 id:   "changed-php-files"
-                uses: "tj-actions/changed-files@v23.1"
+                uses: "tj-actions/changed-files@v41"
                 with: files: """
                     **/*.php
 
