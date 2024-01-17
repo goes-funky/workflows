@@ -29,7 +29,7 @@ import "list"
                 "default-repo": {
                     type:        "string"
                     description: "Default artifact repository"
-                    default:     "eu.gcr.io/y42-artifacts-ea47981a"
+                    default:     "europe-west3-docker.pkg.dev/y42-artifacts-ea47981a/main"
                     required:    false
                 }
                 "dist-artifact": {
