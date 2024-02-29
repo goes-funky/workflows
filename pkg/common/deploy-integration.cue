@@ -303,6 +303,7 @@ import "list"
         #with.checkout.step,
         #with.ssh_agent.step,
         #with.gcloud.step,
+        #with.docker_artifacts_auth.step,
         #with.gke.step,
         {
             name: "Download build reference"
