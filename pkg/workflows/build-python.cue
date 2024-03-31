@@ -351,6 +351,9 @@ common.#workflow & {
             name: "Diff Poetry lockfile"
             if: "${{ github.event_name == 'pull_request' }}"
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
+            permissions: {
+                issues: "write"
+            }
             steps: [
                 {
                     name: "Diff poetry.lock"
