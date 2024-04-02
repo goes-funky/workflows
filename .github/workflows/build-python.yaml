@@ -445,6 +445,8 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     timeout-minutes: 15
+    permissions:
+      issues: write
     steps:
       - name: Diff poetry.lock
         uses: goes-funky/diff-poetry-lock@main

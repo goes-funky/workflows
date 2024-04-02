@@ -66,6 +66,7 @@ package common
     }
     "timeout-minutes": int | *15
     steps: [...#step]
+    permissions?: [string]: string
 }
 
 #step: {
