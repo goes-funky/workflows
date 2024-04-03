@@ -447,6 +447,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       issues: write
+      contents: read
     steps:
       - name: Diff poetry.lock
         uses: goes-funky/diff-poetry-lock@main
