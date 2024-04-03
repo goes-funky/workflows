@@ -353,6 +353,7 @@ common.#workflow & {
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
             permissions: {
                 issues: "write"
+                contents: "read"
             }
             steps: [
                 {
