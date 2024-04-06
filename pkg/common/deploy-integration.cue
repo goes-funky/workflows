@@ -159,7 +159,7 @@ import "list"
                 {
                     name: "Checkout"
                     if:   "!inputs.skip-checkout"
-                    uses: "actions/checkout@v3"
+                    uses: "actions/checkout@v4"
                     with: {
                         path: "./code"
                     }

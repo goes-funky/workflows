@@ -69,7 +69,7 @@ common.#workflow & {
             }
             env: key: "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
             steps: [{
-                uses: "actions/checkout@v3"
+                uses: "actions/checkout@v4"
                 name: "Checkout"
             }, {
                 uses: "dkhunt27/action-conventional-commits@v1.2.0"
@@ -103,7 +103,7 @@ common.#workflow & {
                 }
             }, {
                 name: "Setup SSH Agent"
-                uses: "webfactory/ssh-agent@v0.7.0"
+                uses: "webfactory/ssh-agent@v0.9.0"
                 with: "ssh-private-key": "${{ secrets.ssh-private-key }}"
             }, {
                 name: "Validate composer.json and composer.lock"
@@ -136,7 +136,7 @@ common.#workflow & {
             }
             env: key: "cache-v1-${{ matrix.php-versions }}-${{ matrix.extensions }}"
             steps: [{
-                uses: "actions/checkout@v3"
+                uses: "actions/checkout@v4"
                 name: "Checkout"
                 with: {
                    "fetch-depth": 0
@@ -169,7 +169,7 @@ common.#workflow & {
             common.#with.trufflehog.step,
             {
                name: "Setup SSH Agent"
-               uses: "webfactory/ssh-agent@v0.7.0"
+               uses: "webfactory/ssh-agent@v0.9.0"
                with: "ssh-private-key": "${{ secrets.ssh-private-key }}"
            }, {
                 name: "Composer packages from cache"
@@ -241,10 +241,10 @@ common.#workflow & {
             }
             steps: [{
                name: "Setup SSH Agent"
-               uses: "webfactory/ssh-agent@v0.7.0"
+               uses: "webfactory/ssh-agent@v0.9.0"
                with: "ssh-private-key": "${{ secrets.ssh-private-key }}"
            }, {
-                uses: "actions/checkout@v3"
+                uses: "actions/checkout@v4"
                 name: "Checkout"
             }, {
                 name: "Setup cache environment"

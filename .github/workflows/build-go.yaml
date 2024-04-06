@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup tools cache
@@ -54,7 +54,7 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup Go cache
@@ -70,7 +70,7 @@ jobs:
         if: '!steps.deps-cache.outputs.cache-hit'
       - name: Setup SSH Agent
         if: '!inputs.is-repo-public'
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
       - name: Download dependencies
@@ -90,7 +90,7 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup go
@@ -123,7 +123,7 @@ jobs:
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup go

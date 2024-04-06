@@ -18,7 +18,7 @@ package common
         step: #step & {
             name: "Checkout"
             if:   "!inputs.skip-checkout"
-            uses: "actions/checkout@v3"
+            uses: "actions/checkout@v4"
             with: {
                 "submodules": "${{ inputs.with-submodules }}"
             }
@@ -62,7 +62,7 @@ package common
 
         step: #step & {
             name: "Setup SSH Agent"
-            uses: "webfactory/ssh-agent@v0.7.0"
+            uses: "webfactory/ssh-agent@v0.9.0"
             if: "!inputs.is-repo-public"
             with: {
                 "ssh-private-key": "${{ secrets.ssh-private-key }}"
@@ -177,7 +177,7 @@ package common
         step: #step & {
             id: "auth_gcp"
             name: "Authenticate to Google Cloud"
-            uses: "google-github-actions/auth@v1"
+            uses: "google-github-actions/auth@v2"
             with: {} | *{
                 service_account: "${{ secrets.gcp-service-account }}"
                 workload_identity_provider: "${{ secrets.gcp-workload-identity-provider }}"
@@ -210,7 +210,7 @@ package common
         step: #step & {
             id: "auth_gcr"
             name: "Authenticate to Google Container Registry"
-            uses: "docker/login-action@v2"
+            uses: "docker/login-action@v3"
             with: {
                     registry: "eu.gcr.io"
                     username: "oauth2accesstoken"
@@ -223,7 +223,7 @@ package common
         step: #step & {
             id: "auth_docker_pkg_dev"
             name: "Authenticate to Google Artifact Registry"
-            uses: "docker/login-action@v2"
+            uses: "docker/login-action@v3"
             with: {
                     registry: "europe-west3-docker.pkg.dev"
                     username: "oauth2accesstoken"

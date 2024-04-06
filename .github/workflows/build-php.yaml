@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout
       - uses: dkhunt27/action-conventional-commits@v1.2.0
         with:
@@ -90,7 +90,7 @@ jobs:
           tools: php-cs-fixer
           extensions: ${{ matrix.extensions }}
       - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
       - name: Validate composer.json and composer.lock
@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout
         with:
           fetch-depth: 0
@@ -149,7 +149,7 @@ jobs:
           head: HEAD
           extra_args: --only-verified
       - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
       - name: Composer packages from cache
@@ -206,10 +206,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout
       - name: Setup cache environment
         id: extcache
