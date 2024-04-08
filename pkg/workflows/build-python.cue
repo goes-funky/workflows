@@ -299,7 +299,7 @@ common.#workflow & {
                 common.#with.docker_artifacts_auth.step,
                 {
                     name: "Update docker-compose"
-                    uses: "KengoTODA/actions-setup-docker-compose@62da66e273e37258ddfb9ccc55f7934bdd25b57d"
+                    uses: "KengoTODA/actions-setup-docker-compose@v1"
                     with: {
                         version: "v2.10.2"
                     }
