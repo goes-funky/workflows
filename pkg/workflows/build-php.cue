@@ -86,7 +86,7 @@ common.#workflow & {
                 }
             }, {
                 name: "Cache extensions"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path:           "${{ steps.extcache.outputs.dir }}"
                     key:            "${{ steps.extcache.outputs.key }}"
@@ -111,7 +111,7 @@ common.#workflow & {
             }, {
                 name: "Cache Composer packages"
                 id:   "composer-cache"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path: "vendor"
                     key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"
@@ -152,7 +152,7 @@ common.#workflow & {
                 }
             }, {
                 name: "Cache extensions"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path:           "${{ steps.extcache.outputs.dir }}"
                     key:            "${{ steps.extcache.outputs.key }}"
@@ -174,7 +174,7 @@ common.#workflow & {
            }, {
                 name: "Composer packages from cache"
                 id:   "restore-composer-cache"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path: "vendor"
                     key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"
@@ -189,7 +189,7 @@ common.#workflow & {
                 run:  "composer install --prefer-dist --no-progress --no-suggest"
             }, {
                 name: "PHPStan cache"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path: "/tmp/phpstan"
                     key:  "${{ runner.os }}-phpstan-${{ github.sha }}"
@@ -200,7 +200,7 @@ common.#workflow & {
                 }
             }, {
                 name: "Psalm cache"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path: "~/.cache/psalm"
                     key:  "${{ runner.os }}-psalm-${{ github.sha }}"
@@ -257,7 +257,7 @@ common.#workflow & {
                 }
             }, {
                 name: "Cache extensions"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path:           "${{ steps.extcache.outputs.dir }}"
                     key:            "${{ steps.extcache.outputs.key }}"
@@ -275,7 +275,7 @@ common.#workflow & {
             }, {
                 name: "Composer packages from cache"
                 id:   "restore-composer-cache"
-                uses: "actions/cache@v3"
+                uses: "actions/cache@v4"
                 with: {
                     path: "vendor"
                     key:  "${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}"

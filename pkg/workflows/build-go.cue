@@ -5,7 +5,7 @@ import "github.com/goes-funky/workflows/pkg/common"
 #step_setup_tools_cache: common.#step & {
     name: "Setup tools cache"
     id:   "tools-cache"
-    uses: "actions/cache@v3"
+    uses: "actions/cache@v4"
     with: {
         path: "build/"
         key:  "${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}"
@@ -16,7 +16,7 @@ import "github.com/goes-funky/workflows/pkg/common"
 #step_setup_deps_cache: common.#step & {
     name: "Setup Go cache"
     id:   "deps-cache"
-    uses: "actions/cache@v3"
+    uses: "actions/cache@v4"
     with: {
         path: "~/go/pkg/mod"
         key:  "${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}"

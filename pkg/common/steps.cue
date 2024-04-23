@@ -235,7 +235,7 @@ package common
         step: #step & {
             name: "Setup skaffold cache"
             if:  "inputs.use-skaffold-cache"
-            uses: "actions/cache@v3"
+            uses: "actions/cache@v4"
             with: {
                 path: "~/.skaffold/cache"
                 key:  "${{ runner.os }}-skaffold-${{ github.sha }}"

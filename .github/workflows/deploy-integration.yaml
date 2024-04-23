@@ -137,12 +137,12 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -194,12 +194,12 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -357,12 +357,12 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -403,12 +403,12 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup python
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
       - name: Setup cache
         id: deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv/
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -474,7 +474,7 @@ jobs:
         run: 'cp ./code/skaffold.yaml . && yq -i ''del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {"custom": {"buildCommand": "../docker-buildx", "dependencies": {"dockerfile": {"path": "Dockerfile"}}}}'' skaffold.yaml'
       - name: Setup skaffold cache
         if: inputs.use-skaffold-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.skaffold/cache
           key: ${{ runner.os }}-skaffold-${{ github.sha }}

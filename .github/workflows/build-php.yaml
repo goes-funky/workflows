@@ -77,7 +77,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -97,7 +97,7 @@ jobs:
         run: composer validate
       - name: Cache Composer packages
         id: composer-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -131,7 +131,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -154,7 +154,7 @@ jobs:
           ssh-private-key: ${{ secrets.ssh-private-key }}
       - name: Composer packages from cache
         id: restore-composer-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -164,7 +164,7 @@ jobs:
         if: steps.restore-composer-cache.outputs.cache-hit != 'true'
         run: composer install --prefer-dist --no-progress --no-suggest
       - name: PHPStan cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/phpstan
           key: ${{ runner.os }}-phpstan-${{ github.sha }}
@@ -172,7 +172,7 @@ jobs:
             ${{ runner.os }}-phpstan-${{ github.sha }}
             ${{ runner.os }}-phpstan
       - name: Psalm cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/psalm
           key: ${{ runner.os }}-psalm-${{ github.sha }}
@@ -219,7 +219,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
           key: ${{ env.key }}
       - name: Cache extensions
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.extcache.outputs.dir }}
           key: ${{ steps.extcache.outputs.key }}
@@ -233,7 +233,7 @@ jobs:
           extensions: ${{ matrix.extensions }}
       - name: Composer packages from cache
         id: restore-composer-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
