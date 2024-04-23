@@ -349,7 +349,7 @@ import "list"
 #step_setup_python: {
     name: "Setup python"
     id:   "setup-python"
-    uses: "actions/setup-python@v4"
+    uses: "actions/setup-python@v5"
     with: "python-version": "${{ inputs.python-version }}"
 }
 
@@ -366,7 +366,7 @@ import "list"
 #step_setup_deps_cache: {
     name: "Setup cache"
     id:   "deps-cache"
-    uses: "actions/cache@v3"
+    uses: "actions/cache@v4"
     with: {
         path: ".venv/"
         key:  "${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}"

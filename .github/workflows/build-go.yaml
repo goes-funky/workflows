@@ -35,7 +35,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup tools cache
         id: tools-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: build/
           key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
@@ -59,7 +59,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup Go cache
         id: deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
@@ -99,13 +99,13 @@ jobs:
           go-version: ${{ inputs.go-version }}
       - name: Setup tools cache
         id: tools-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: build/
           key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
       - name: Setup Go cache
         id: deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
@@ -132,7 +132,7 @@ jobs:
           go-version: ${{ inputs.go-version }}
       - name: Setup Go cache
         id: deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}

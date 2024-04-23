@@ -5,7 +5,7 @@ import "github.com/goes-funky/workflows/pkg/common"
 #step_setup_python: common.#step & {
     name: "Setup python"
     id:   "setup-python"
-    uses: "actions/setup-python@v4"
+    uses: "actions/setup-python@v5"
     with: {
         "python-version": "${{ inputs.python-version }}"
     }
@@ -43,7 +43,7 @@ import "github.com/goes-funky/workflows/pkg/common"
 #step_setup_deps_cache: common.#step & {
     name: "Setup cache"
     id:   "deps-cache"
-    uses: "actions/cache@v3"
+    uses: "actions/cache@v4"
     with: {
         path: ".venv/"
         key:  "${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}"
