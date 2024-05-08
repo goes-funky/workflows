@@ -167,7 +167,7 @@ import "list"
                 {
                     name: "Setup buildkit"
                     id:   "setup-buildkit"
-                    uses: "docker/setup-buildx-action@v2"
+                    uses: "docker/setup-buildx-action@v3"
                 },
                 #with.expose_action_env.step,
                 #with.custom_skaffold_build_script.step,
