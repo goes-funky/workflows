@@ -40,7 +40,7 @@ jobs:
           path: build/
           key: ${{ runner.os }}-tools-${{ hashFiles('Makefile', 'makefiles/**') }}
       - name: Setup go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go-version }}
         if: '!steps.tools-cache.outputs.cache-hit'
@@ -64,7 +64,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-deps-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
       - name: Setup go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go-version }}
         if: '!steps.deps-cache.outputs.cache-hit'
@@ -94,7 +94,7 @@ jobs:
         with:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go-version }}
       - name: Setup tools cache
@@ -127,7 +127,7 @@ jobs:
         with:
           submodules: ${{ inputs.with-submodules }}
       - name: Setup go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go-version }}
       - name: Setup Go cache
