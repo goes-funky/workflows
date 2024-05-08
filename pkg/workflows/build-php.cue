@@ -72,7 +72,7 @@ common.#workflow & {
                 uses: "actions/checkout@v4"
                 name: "Checkout"
             }, {
-                uses: "dkhunt27/action-conventional-commits@v1.2.0"
+                uses: "dkhunt27/action-conventional-commits@v1.3.0"
                 with: "github-token": "${{ secrets.GITHUB_TOKEN }}"
                 if: "github.ref != 'refs/heads/${{ github.event.repository.default_branch }}'"
             }, {
