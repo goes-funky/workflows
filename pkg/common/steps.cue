@@ -106,7 +106,7 @@ package common
 
         step: #step & {
             name: "Setup Kubernetes tools"
-            uses: "yokawasa/action-setup-kube-tools@v0.9.2"
+            uses: "yokawasa/action-setup-kube-tools@v0.11.1"
             with: {} | *{
                 "setup-tools": """
                     skaffold
@@ -129,7 +129,7 @@ package common
 
         step: #step & {
             name: "Setup Flux build tools"
-            uses: "yokawasa/action-setup-kube-tools@v0.9.2"
+            uses: "yokawasa/action-setup-kube-tools@v0.11.1"
             with: {} | *{
                 "setup-tools": """
                     skaffold
