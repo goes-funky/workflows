@@ -44,7 +44,7 @@ common.#workflow & {
         "check-pr": {
             if: "${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}"
             steps: [{
-                uses: "amannn/action-semantic-pull-request@v4"
+                uses: "amannn/action-semantic-pull-request@v5"
                 env: GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
             }]
         }
