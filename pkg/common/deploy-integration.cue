@@ -288,8 +288,7 @@ import "list"
                 #with.gcloud.step,
                 {
                     name: "Upload Integration schema to JSON schema folder"
-                    //pinning version till resolved https://github.com/google-github-actions/upload-cloud-storage/issues/248
-                    uses: "google-github-actions/upload-cloud-storage@v1"
+                    uses: "google-github-actions/upload-cloud-storage@v2"
                     with: {
                         path:        "integrations"
                         destination: "${{ secrets.json-schema-bucket }}"
