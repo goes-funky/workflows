@@ -199,7 +199,7 @@ package common
         }
 
         step: #step & {
-            uses: "google-github-actions/get-gke-credentials@v1"
+            uses: "google-github-actions/get-gke-credentials@v2"
             with: {
                 cluster_name: "${{ secrets.gke-cluster }}"
             }
