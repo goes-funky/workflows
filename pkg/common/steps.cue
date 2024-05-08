@@ -253,7 +253,7 @@ package common
     expose_action_env: {
         step: #step & {
             name: "Expose Github Action runtime"
-            uses: "actions/github-script@v6"
+            uses: "actions/github-script@v7"
             with: {
                 script: """
                         try {
