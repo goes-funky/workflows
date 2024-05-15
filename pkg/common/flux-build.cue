@@ -122,7 +122,6 @@ package common
             run: """
                 cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json
                 COMPILED_IMAGE_TAG="$(jq '.builds[0].tag' build.json)" && echo "COMPILED_IMAGE_TAG=$COMPILED_IMAGE_TAG" >> "$GITHUB_ENV"
-                cat build.json
                 """
         },
         {
@@ -135,6 +134,8 @@ package common
             }
             run: """
                 export NEW_TAG=$(echo $COMPILED_IMAGE_TAG | sed "s|$DEFAULT_REGISTRY|$ECR_REGISTRY|g")
+                docker image list
+                echo $NEW_TAG
                 docker image tag $COMPILED_IMAGE_TAG $NEW_TAG
                 docker push $NEW_TAG
                 """
