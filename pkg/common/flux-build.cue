@@ -112,7 +112,7 @@ package common
             name: "Build"
             env: {
                 SKAFFOLD_DEFAULT_REPO:    "${{ inputs.default-repo }}"
-                SKAFFOLD_CACHE_ARTIFACTS: "false"
+                SKAFFOLD_CACHE_ARTIFACTS: "${{ inputs.push-to-aws-ecr }}"
                 DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
                 CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
@@ -122,6 +122,7 @@ package common
             run: """
                 cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json
                 COMPILED_IMAGE_TAG="$(jq '.builds[0].tag' build.json)" && echo "COMPILED_IMAGE_TAG=$COMPILED_IMAGE_TAG" >> "$GITHUB_ENV"
+                echo $SKAFFOLD_CACHE_ARTIFACTS
                 """
         },
         {
