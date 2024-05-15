@@ -122,7 +122,7 @@ package common
             run: """
                 cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json
                 COMPILED_IMAGE_TAG="$(jq '.builds[0].tag' build.json)" && echo "COMPILED_IMAGE_TAG=$COMPILED_IMAGE_TAG" >> "$GITHUB_ENV"
-                echo $SKAFFOLD_CACHE_ARTIFACTS
+                docker image list
                 """
         },
         {
