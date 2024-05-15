@@ -22,6 +22,11 @@ package common
                     description: "Docker file to use"
                     default:    "Dockerfile"
                 }
+                "push-to-aws-ecr": {
+                    type: "boolean"
+                    description: "Whether to push to our ECR registry in the AWS Artifacts account"
+                    default: false
+                }
                 ...
             }
             secrets: {
@@ -62,6 +67,22 @@ package common
         #with.ssh_agent.step,
         #with.gcloud.step,
         #with.docker_artifacts_auth.step,
+        {
+            if:   "inputs.push-to-aws-ecr"
+            name: "Configure AWS Credentials"
+            uses: "aws-actions/configure-aws-credentials@v4"
+            with: {
+                "aws-region": "${{ secrets.AWS_ECR_REGION }}"
+                "role-to-assume": "${{ secrets.AWS_ECR_ROLE }}"
+                "role-session-name": "integrations-push-image-session"
+            }
+        },
+        {
+            if:   "inputs.push-to-aws-ecr"
+            name: "Login to Amazon ECR"
+            id: "login-ecr"
+            uses: "aws-actions/amazon-ecr-login@v2"
+        },
         #with.flux_tools.step,
         {
             name: "Configure Skaffold"
@@ -97,7 +118,25 @@ package common
                 COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
             }
-            run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
+            run: """
+                cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json
+                COMPILED_IMAGE_TAG="$(jq '.builds[0].tag' build.json)" && echo "COMPILED_IMAGE_TAG=$COMPILED_IMAGE_TAG" >> "$GITHUB_ENV"
+                cat build.json
+                """
+        },
+        {
+            name: "Push Image to AWS ECR Registry"
+            if:   "inputs.push-to-aws-ecr"
+            env: {
+                DEFAULT_REGISTRY:    "${{ inputs.default-repo }}"
+                COMPILED_IMAGE_TAG: "${{ env.COMPILED_IMAGE_TAG }}"
+                ECR_REGISTRY: "${{ secrets.AWS_ECR_REGION }}"
+            }
+            run: """
+                export NEW_TAG=$(echo $COMPILED_IMAGE_TAG | sed "s|$DEFAULT_REGISTRY|$ECR_REGISTRY|g")
+                docker image tag $COMPILED_IMAGE_TAG $NEW_TAG
+                docker push $NEW_TAG
+                """
         }
     ]
 }
