@@ -41,9 +41,18 @@ name: Flux Skaffold Build
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
+      aws-ecr-region:
+        description: AWS region the ECR is located in
+        required: false
+      aws-ecr-registry:
+        description: AWS ECR registry
+        required: false
       gcp-workload-identity-provider:
         description: GCP Workload Identity provider
         required: true
+      aws-ecr-role:
+        description: AWS role to assume to be able to push to the ECR
+        required: false
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -99,8 +108,8 @@ jobs:
         name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ secrets.AWS_ECR_REGION }}
-          role-to-assume: ${{ secrets.AWS_ECR_ROLE }}
+          aws-region: ${{ secrets.aws-ecr-region }}
+          role-to-assume: ${{ secrets.aws-ecr-role }}
           role-session-name: integrations-push-image-session
       - if: inputs.push-to-aws-ecr
         name: Login to Amazon ECR
@@ -138,12 +147,13 @@ jobs:
         run: |-
           cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json
           COMPILED_IMAGE_TAG="$(jq '.builds[0].tag' build.json)" && echo "COMPILED_IMAGE_TAG=$COMPILED_IMAGE_TAG" >> "$GITHUB_ENV"
+          cat build.json
       - name: Push Image to AWS ECR Registry
         if: inputs.push-to-aws-ecr
         env:
           DEFAULT_REGISTRY: ${{ inputs.default-repo }}
           COMPILED_IMAGE_TAG: ${{ env.COMPILED_IMAGE_TAG }}
-          ECR_REGISTRY: ${{ secrets.AWS_ECR_REGION }}
+          ECR_REGISTRY: ${{ secrets.aws-ecr-registry }}
         run: |-
           export NEW_TAG=$(echo $COMPILED_IMAGE_TAG | sed "s|$DEFAULT_REGISTRY|$ECR_REGISTRY|g")
           docker image tag $COMPILED_IMAGE_TAG $NEW_TAG

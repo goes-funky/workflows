@@ -32,6 +32,7 @@ package common
             secrets: {
                 #with.gcloud_build.secrets
                 #with.ssh_agent.secrets
+                #with.aws_ecr.secrets
                 ...
             }
         }
@@ -72,8 +73,8 @@ package common
             name: "Configure AWS Credentials"
             uses: "aws-actions/configure-aws-credentials@v4"
             with: {
-                "aws-region": "${{ secrets.AWS_ECR_REGION }}"
-                "role-to-assume": "${{ secrets.AWS_ECR_ROLE }}"
+                "aws-region": "${{ secrets.aws-ecr-region }}"
+                "role-to-assume": "${{ secrets.aws-ecr-role }}"
                 "role-session-name": "integrations-push-image-session"
             }
         },
@@ -130,7 +131,7 @@ package common
             env: {
                 DEFAULT_REGISTRY:    "${{ inputs.default-repo }}"
                 COMPILED_IMAGE_TAG: "${{ env.COMPILED_IMAGE_TAG }}"
-                ECR_REGISTRY: "${{ secrets.AWS_ECR_REGION }}"
+                ECR_REGISTRY: "${{ secrets.aws-ecr-registry }}"
             }
             run: """
                 export NEW_TAG=$(echo $COMPILED_IMAGE_TAG | sed "s|$DEFAULT_REGISTRY|$ECR_REGISTRY|g")

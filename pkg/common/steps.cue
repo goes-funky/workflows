@@ -173,6 +173,23 @@ package common
         }
     }
 
+    aws_ecr: {
+        secrets: {
+            "aws-ecr-region": {
+                description: "AWS region the ECR is located in"
+                required:    false
+            }
+            "aws-ecr-registry": {
+                description: "AWS ECR registry"
+                required: false
+            }
+            "aws-ecr-role": {
+                description: "AWS role to assume to be able to push to the ECR"
+                required: false
+            }
+        }
+    }
+
     gcloud: {
         step: #step & {
             id: "auth_gcp"
