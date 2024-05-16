@@ -118,27 +118,13 @@ package common
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
                 COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
+                ECR_REGISTRY: "${{ secrets.aws-ecr-registry }}"
+                DEFAULT_REGISTRY: "${{ inputs.default-repo }}"
             }
             run: """
                 cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json
                 COMPILED_IMAGE_TAG="$(jq '.builds[0].tag' build.json)" && echo "COMPILED_IMAGE_TAG=$COMPILED_IMAGE_TAG" >> "$GITHUB_ENV"
                 docker image list
-                """
-        },
-        {
-            name: "Push Image to AWS ECR Registry"
-            if:   "inputs.push-to-aws-ecr"
-            env: {
-                DEFAULT_REGISTRY:    "${{ inputs.default-repo }}"
-                COMPILED_IMAGE_TAG: "${{ env.COMPILED_IMAGE_TAG }}"
-                ECR_REGISTRY: "${{ secrets.aws-ecr-registry }}"
-            }
-            run: """
-                export NEW_TAG=$(echo $COMPILED_IMAGE_TAG | sed "s|$DEFAULT_REGISTRY|$ECR_REGISTRY|g")
-                docker image list
-                echo $NEW_TAG
-                docker image tag $COMPILED_IMAGE_TAG $NEW_TAG
-                docker push $NEW_TAG
                 """
         }
     ]
