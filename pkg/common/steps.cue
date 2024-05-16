@@ -86,7 +86,7 @@ package common
     custom_skaffold_build_script: {
         step: #step & {
             name: "Download custom skaffold docker build script"
-            run:  "curl -LsO https://gist.githubusercontent.com/Caislear/c6af5ddd9400cc99439c6d17d49d889c/raw/9bccefd3982340557408bf246370746b71da09fc/docker-buildx && chmod +x docker-buildx"
+            run:  "curl -LsO https://gist.githubusercontent.com/Caislear/c6af5ddd9400cc99439c6d17d49d889c/raw/f55a24757a0427193933d706d210c9d9dea84eb8/docker-buildx && chmod +x docker-buildx"
         }
     }
 

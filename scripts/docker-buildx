@@ -17,6 +17,12 @@ declare -a _build_args=(
 )
 
 if [[ "${PUSH_IMAGE}" == "true" ]]; then
+
+    if [[ "${PUSH_TO_SECONDARY_REGISTRY}" == "true" ]]; then
+       SECONDARY_REGISTRY_TAG=$(echo $IMAGE | sed "s|$SKAFFOLD_DEFAULT_REPO|$SECONDARY_REGISTRY|g")
+       _build_args+=('--tag' "${SECONDARY_REGISTRY_TAG}")
+    fi
+
     _build_args+=('--output' "type=image,push=${PUSH_IMAGE}")
 else
     _build_args+=('--output' 'type=docker')

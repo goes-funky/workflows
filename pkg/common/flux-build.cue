@@ -118,14 +118,10 @@ package common
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
                 COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
-                ECR_REGISTRY: "${{ secrets.aws-ecr-registry }}"
-                DEFAULT_REGISTRY: "${{ inputs.default-repo }}"
+                PUSH_TO_SECONDARY_REGISTRY: "${{ inputs.push-to-aws-ecr }}"
+                SECONDARY_REGISTRY: "${{ secrets.aws-ecr-registry }}"
             }
-            run: """
-                cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=build.json
-                COMPILED_IMAGE_TAG="$(jq '.builds[0].tag' build.json)" && echo "COMPILED_IMAGE_TAG=$COMPILED_IMAGE_TAG" >> "$GITHUB_ENV"
-                docker image list
-                """
+            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
         }
     ]
 }
