@@ -22,11 +22,17 @@ package common
                     description: "Docker file to use"
                     default:    "Dockerfile"
                 }
+                "push-to-aws-ecr": {
+                    type: "boolean"
+                    description: "Whether to push to our ECR registry in the AWS Artifacts account"
+                    default: false
+                }
                 ...
             }
             secrets: {
                 #with.gcloud_build.secrets
                 #with.ssh_agent.secrets
+                #with.aws_ecr.secrets
                 ...
             }
         }
@@ -62,6 +68,22 @@ package common
         #with.ssh_agent.step,
         #with.gcloud.step,
         #with.docker_artifacts_auth.step,
+        {
+            if:   "inputs.push-to-aws-ecr"
+            name: "Configure AWS Credentials"
+            uses: "aws-actions/configure-aws-credentials@v4"
+            with: {
+                "aws-region": "${{ secrets.aws-ecr-region }}"
+                "role-to-assume": "${{ secrets.aws-ecr-role }}"
+                "role-session-name": "integrations-push-image-session"
+            }
+        },
+        {
+            if:   "inputs.push-to-aws-ecr"
+            name: "Login to Amazon ECR"
+            id: "login-ecr"
+            uses: "aws-actions/amazon-ecr-login@v2"
+        },
         #with.flux_tools.step,
         {
             name: "Configure Skaffold"
@@ -96,8 +118,10 @@ package common
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
                 COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
+                PUSH_TO_SECONDARY_REGISTRY: "${{ inputs.push-to-aws-ecr }}"
+                SECONDARY_REGISTRY: "${{ secrets.aws-ecr-registry }}"
             }
-            run:  "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
+            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
         }
     ]
 }
