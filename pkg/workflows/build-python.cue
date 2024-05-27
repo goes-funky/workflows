@@ -106,6 +106,11 @@ common.#workflow & {
                     description: "Whether to skip running integration tests"
                     default:     true
                 }
+                "integration-tests-timeout": {
+                    type: "number",
+                    description: "Max runtime for integration tests in minutes"
+                    default: 15
+                }
                 "skip-mypy": {
                     type:        "boolean"
                     description: "Whether to skip checking type hints with mypy"
@@ -280,6 +285,7 @@ common.#workflow & {
             if:   "!inputs.skip-integration-tests && needs.pre-job.outputs.should_skip != 'true'"
             "runs-on": "ubuntu-${{ inputs.ubuntu-version }}"
             needs: ["pre-job"]
+            "timeout-minutes": "${{ inputs.integration-tests-timeout }}"
             steps: [
                 common.#with.checkout.step & {
                     with: {
