@@ -181,7 +181,7 @@ jobs:
             ${{ runner.os }}-psalm
       - name: Changed PHP files
         id: changed-php-files
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.php
