@@ -212,7 +212,7 @@ jobs:
         with:
           name: ${{ inputs.project-artifact }}
       - name: Scan for Secrets
-        uses: trufflesecurity/trufflehog@v3.22.0
+        uses: trufflesecurity/trufflehog@v3.81.5
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
