@@ -121,7 +121,14 @@ package common
                 PUSH_TO_SECONDARY_REGISTRY: "${{ inputs.push-to-aws-ecr }}"
                 SECONDARY_REGISTRY: "${{ secrets.aws-ecr-registry }}"
             }
-            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
+            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} 2>&1 | tee ../skaffold.log"
+        },
+        {
+            name: "Output build summary"
+            run: """
+                echo "# Built images" >> $GITHUB_STEP_SUMMARY
+                grep -E '^ - .+ ->' skaffold.log >> $GITHUB_STEP_SUMMARY
+                """
         }
     ]
 }
