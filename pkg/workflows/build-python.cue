@@ -252,7 +252,7 @@ common.#workflow & {
                         SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
                     }
                     if: "!inputs.skip-sonar && github.event_name != 'pull_request'"
-                    uses: "SonarSource/sonarcloud-github-action@master"
+                    uses: "SonarSource/sonarqube-scan-action@v4"
                     with: {
                         args: """
                             -Dsonar.python.coverage.reportPaths=coverage.xml
@@ -269,7 +269,7 @@ common.#workflow & {
                         SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
                     }
                     if: "!inputs.skip-sonar && github.event_name != 'push'"
-                    uses: "SonarSource/sonarcloud-github-action@master"
+                    uses: "SonarSource/sonarqube-scan-action@v4"
                     with: {
                         args: """
                             -Dsonar.python.coverage.reportPaths=coverage.xml
