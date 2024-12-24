@@ -316,11 +316,7 @@ jobs:
         if: '!inputs.skip-sonar && github.event_name != ''pull_request'''
         uses: SonarSource/sonarqube-scan-action@v4
         with:
-          args: |-
-            -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}}
-            -Dsonar.organization=${{github.repository_owner}}
-            -Dsonar.projectVersion=${{github.sha}}
+          args: -Dsonar.python.coverage.reportPaths=coverage.xml -Dsonar.projectKey=${{github.repository_owner}}_${{github.event.repository.name}} -Dsonar.organization=${{github.repository_owner}} -Dsonar.projectVersion=${{github.sha}}
       - name: Sonarcloud check PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
