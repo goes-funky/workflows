@@ -450,7 +450,7 @@ jobs:
         run: poetry run mypy .
   diff_poetry:
     name: Diff Poetry lockfile
-    if: ${{ github.event_name == 'pull_request' && !inputs.skip-diff-poetry }}
+    if: "${{ github.event_name == 'pull_request' && !inputs.skip-diff-poetry }}"
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     timeout-minutes: 15
     steps:
