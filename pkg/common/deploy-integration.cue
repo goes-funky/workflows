@@ -178,7 +178,7 @@ import "list"
                 #with.skaffold_cache.step,
                 {
                     name: "Download artifact"
-                    uses: "actions/download-artifact@v3"
+                    uses: "actions/download-artifact@v4"
                     if:   "inputs.dist-artifact"
                     with: {
                         name: "${{ inputs.dist-artifact }}"
@@ -306,7 +306,7 @@ import "list"
         #with.gke.step,
         {
             name: "Download build reference"
-            uses: "actions/download-artifact@v3"
+            uses: "actions/download-artifact@v4"
             with: {
                 name: "build-ref"
             }
