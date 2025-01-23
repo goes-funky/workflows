@@ -51,10 +51,6 @@ name: Build Python
         type: boolean
         description: Whether to skip checkout
         default: false
-      skip-diff-poetry:
-        type: boolean
-        description: Whether to skip the diff poetry job
-        default: false
       project-artifact:
         type: string
         description: Use project from artifact (instead of checking out repo)
@@ -450,7 +446,7 @@ jobs:
         run: poetry run mypy .
   diff_poetry:
     name: Diff Poetry lockfile
-    if: "${{ github.event_name == 'pull_request' && !inputs.skip-diff-poetry }}"
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     timeout-minutes: 15
     steps:
