@@ -111,7 +111,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -160,7 +160,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -212,7 +212,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Scan for Secrets
@@ -274,7 +274,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -352,7 +352,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup SSH Agent
@@ -412,7 +412,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
