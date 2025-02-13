@@ -360,7 +360,7 @@ common.#workflow & {
             steps: [
                 {
                     name: "Diff poetry.lock"
-			        uses: "goes-funky/diff-poetry-lock@main"
+			        uses: "goes-funky/diff-poetry-lock@SRE-000-fix-poetry-install"
                 },
             ]
         }
