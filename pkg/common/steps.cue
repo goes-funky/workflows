@@ -36,7 +36,7 @@ package common
 
         step: #step & {
             name: "Download artifact"
-            uses: "actions/download-artifact@v3"
+            uses: "actions/download-artifact@v4"
             if:   "inputs.project-artifact"
             with: {
                 name: "${{ inputs.project-artifact }}"
