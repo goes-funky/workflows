@@ -39,6 +39,10 @@ name: Build Python
         type: boolean
         description: Whether to skip running integration tests
         default: true
+      integration-tests-timeout:
+        type: number
+        description: Max runtime for integration tests in minutes
+        default: 15
       skip-mypy:
         type: boolean
         description: Whether to skip checking type hints with mypy
@@ -103,7 +107,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -152,7 +156,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -204,7 +208,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Scan for Secrets
@@ -266,7 +270,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python
@@ -310,7 +314,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         if: '!inputs.skip-sonar && github.event_name != ''pull_request'''
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v4
         with:
           args: |-
             -Dsonar.python.coverage.reportPaths=coverage.xml
@@ -322,7 +326,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         if: '!inputs.skip-sonar && github.event_name != ''push'''
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v4
         with:
           args: |-
             -Dsonar.python.coverage.reportPaths=coverage.xml
@@ -334,7 +338,7 @@ jobs:
     runs-on: ubuntu-${{ inputs.ubuntu-version }}
     needs:
       - pre-job
-    timeout-minutes: 15
+    timeout-minutes: ${{ inputs.integration-tests-timeout }}
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
@@ -344,7 +348,7 @@ jobs:
           fetch-depth: 0
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup SSH Agent
@@ -404,7 +408,7 @@ jobs:
           submodules: ${{ inputs.with-submodules }}
       - name: Download artifact
         if: inputs.project-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.project-artifact }}
       - name: Setup python

@@ -64,7 +64,7 @@ package common
         "max-parallel"?: int
         matrix?: #string_map | =~ "^\\$\\{\\{.*\\}\\}$"
     }
-    "timeout-minutes": int | *15
+    "timeout-minutes": int | string | *15
     steps: [...#step]
 }
 
