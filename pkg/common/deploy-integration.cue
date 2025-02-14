@@ -228,7 +228,7 @@ import "list"
                 {
                     name: "Archive build reference"
                     if:   "!inputs.skip-build"
-                    uses: "actions/upload-artifact@v3"
+                    uses: "actions/upload-artifact@v4"
                     with: {
                         name: "build-ref"
                         path: "./code/build.json"
