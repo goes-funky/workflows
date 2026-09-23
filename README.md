@@ -73,26 +73,33 @@ Contributing flow:
 - PR time!
 
 
-## Integration schema publishing on AWS
+## Integration pipelines on AWS
 
-`deploy-integration.yaml` publishes generated `integrations/` content to S3 with
-`public, max-age=300`, preserving the directory prefix. DEV, PROD and explicit
-environment jobs retain their existing triggers, generation command and dependencies.
+`deploy-integration.yaml` builds images in the shared AWS ECR registry, publishes
+schemas to S3 and deploys Kubernetes resources to the environment's EKS cluster.
+Schema paths retain the `integrations/` prefix and `public, max-age=300` metadata.
+Existing tags, generation commands and build/deployment dependencies are retained.
+Manual environment jobs honor `skip-deploy` and `skip-integration-schema-generate`.
 
-Each **calling repository's GitHub environment** needs these variables:
+Each calling repository needs these repository variables for registry access:
 
-- `AWS_PUBLIC_SCHEMAS_BUCKET`: its environment's public schema bucket.
-- `AWS_PUBLIC_SCHEMAS_ROLE`: the environment's GitHub schema publisher role ARN.
-- `AWS_PUBLIC_SCHEMAS_REGION`: `eu-central-1`.
+- `AWS_ARTIFACTS_ECR_ROLE`: the shared Artifacts publisher role ARN.
+- `AWS_ARTIFACTS_ECR_REGION`: `eu-central-1`.
 
-Callers need `contents: read` and `id-token: write`. The old `json-schema-bucket`
-secret remains accepted for compatibility but is no longer used. No bucket-wide
-delete is performed. Build and Kubernetes deployment jobs still use GCP; this change
-migrates only schema uploads. A schema job still depends on the existing build job,
-so it is not an independent AWS-only pipeline.
+Each calling repository's GitHub environment needs:
 
-Do not merge this switch into `master` until destinations and environment variables
-are ready for its callers, including PROD and any explicit environment they use.
-Current callers reference `@master`, so merging affects them without caller commits.
-Do not dispatch a full legacy workflow merely to test uploads: it can also build
-images and deploy workloads.
+- `AWS_PUBLIC_SCHEMAS_BUCKET`, `AWS_PUBLIC_SCHEMAS_ROLE`, `AWS_PUBLIC_SCHEMAS_REGION`.
+- `AWS_INTEGRATIONS_DEPLOY_ROLE`: that environment's EKS deployment role ARN.
+- `AWS_EKS_CLUSTER` and `AWS_EKS_REGION`.
+
+Callers need `contents: read` and `id-token: write`. Dockerfiles must use available
+ECR base images; manifests and registration jobs must match the AWS runtime.
+The legacy GCP and `json-schema-bucket` secrets remain accepted, but are optional
+and unused, allowing callers to migrate without an immediate interface break.
+Registry login uses the Artifacts role before deployment switches to the EKS role.
+
+Do not merge the shared workflow into `master` until its callers are ready. They
+currently reference `@master`, so merging affects them without caller commits.
+Use migration-branch references for staged tests, with `skip-deploy: true` until
+the rendered environment-specific deployment has been reviewed and approved.
+No PROD or DNS cutover is implied by preparing these workflows.

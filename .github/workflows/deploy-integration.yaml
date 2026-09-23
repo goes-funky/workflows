@@ -19,7 +19,7 @@ name: Deploy Integration
       default-repo:
         type: string
         description: Default artifact repository
-        default: europe-west3-docker.pkg.dev/y42-artifacts-ea47981a/main
+        default: 119462788859.dkr.ecr.eu-central-1.amazonaws.com
         required: false
       dist-artifact:
         type: string
@@ -96,26 +96,26 @@ name: Deploy Integration
       json-schema-bucket:
         description: Legacy GCS bucket input, retained for caller compatibility; schema publishing uses AWS_PUBLIC_SCHEMAS_BUCKET.
         required: false
-      gcp-service-account:
-        description: GCP Service Account e-mail, has permission to artifact repo
-        required: true
-      gcp-workload-identity-provider:
-        description: GCP Workload Identity provider
-        required: true
-      gcp-gcr-service-account:
-        description: GCP GCR Service Account e-mail
-        required: true
-      gke-cluster:
-        description: GKE Cluster Name
-        required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
+      gcp-service-account:
+        description: Legacy GCP input, unused by AWS integration deployment.
+        required: false
+      gcp-workload-identity-provider:
+        description: Legacy GCP input, unused by AWS integration deployment.
+        required: false
+      gcp-gcr-service-account:
+        description: Legacy GCP input, unused by AWS integration deployment.
+        required: false
       gcp-gcr-workload-identity-provider:
-        description: GCP GCR Workload Identity provider
-        required: true
+        description: Legacy GCP input, unused by AWS integration deployment.
+        required: false
+      gke-cluster:
+        description: Legacy GCP input, unused by AWS integration deployment.
+        required: false
       gke-location:
-        description: GKE Cluster Location (ignored in lieu of fully-qualified cluster ID)
+        description: Legacy GCP input, unused by AWS integration deployment.
         required: false
 env:
   SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }
@@ -243,23 +243,24 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v2
+      - name: Authenticate to AWS Artifacts
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          service_account: ${{ secrets.gcp-service-account }}
-          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
-          token_format: access_token
-      - name: Authenticate to Google Artifact Registry
-        id: auth_docker_pkg_dev
-        uses: docker/login-action@v3
+          role-to-assume: ${{ vars.AWS_ARTIFACTS_ECR_ROLE }}
+          aws-region: ${{ vars.AWS_ARTIFACTS_ECR_REGION }}
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Authenticate to the AWS deployment environment
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: europe-west3-docker.pkg.dev
-          username: oauth2accesstoken
-          password: ${{ steps.auth_gcp.outputs.access_token }}
-      - uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ secrets.gke-cluster }}
+          role-to-assume: ${{ vars.AWS_INTEGRATIONS_DEPLOY_ROLE }}
+          aws-region: ${{ vars.AWS_EKS_REGION }}
+          unset-current-credentials: true
+      - name: Configure EKS credentials
+        env:
+          CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER }}
+          CLUSTER_REGION: ${{ vars.AWS_EKS_REGION }}
+        run: aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$CLUSTER_REGION"
       - name: Download build reference
         uses: actions/download-artifact@v4
         with:
@@ -300,23 +301,24 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v2
+      - name: Authenticate to AWS Artifacts
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          service_account: ${{ secrets.gcp-service-account }}
-          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
-          token_format: access_token
-      - name: Authenticate to Google Artifact Registry
-        id: auth_docker_pkg_dev
-        uses: docker/login-action@v3
+          role-to-assume: ${{ vars.AWS_ARTIFACTS_ECR_ROLE }}
+          aws-region: ${{ vars.AWS_ARTIFACTS_ECR_REGION }}
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Authenticate to the AWS deployment environment
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: europe-west3-docker.pkg.dev
-          username: oauth2accesstoken
-          password: ${{ steps.auth_gcp.outputs.access_token }}
-      - uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ secrets.gke-cluster }}
+          role-to-assume: ${{ vars.AWS_INTEGRATIONS_DEPLOY_ROLE }}
+          aws-region: ${{ vars.AWS_EKS_REGION }}
+          unset-current-credentials: true
+      - name: Configure EKS credentials
+        env:
+          CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER }}
+          CLUSTER_REGION: ${{ vars.AWS_EKS_REGION }}
+        run: aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$CLUSTER_REGION"
       - name: Download build reference
         uses: actions/download-artifact@v4
         with:
@@ -383,7 +385,7 @@ jobs:
     needs:
       - deps
       - build
-    if: inputs.environment
+    if: inputs.environment && !inputs.skip-integration-schema-generate
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -480,27 +482,13 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v2
+      - name: Authenticate to AWS Artifacts
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          service_account: ${{ secrets.gcp-gcr-service-account }}
-          workload_identity_provider: ${{ secrets.gcp-gcr-workload-identity-provider }}
-          token_format: access_token
-      - name: Authenticate to Google Container Registry
-        id: auth_gcr
-        uses: docker/login-action@v3
-        with:
-          registry: eu.gcr.io
-          username: oauth2accesstoken
-          password: ${{ steps.auth_gcp.outputs.access_token }}
-      - name: Authenticate to Google Artifact Registry
-        id: auth_docker_pkg_dev
-        uses: docker/login-action@v3
-        with:
-          registry: europe-west3-docker.pkg.dev
-          username: oauth2accesstoken
-          password: ${{ steps.auth_gcp.outputs.access_token }}
+          role-to-assume: ${{ vars.AWS_ARTIFACTS_ECR_ROLE }}
+          aws-region: ${{ vars.AWS_ARTIFACTS_ECR_REGION }}
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
       - name: Setup Kubernetes tools
         uses: yokawasa/action-setup-kube-tools@v0.11.1
         with:
@@ -555,23 +543,24 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v2
+      - name: Authenticate to AWS Artifacts
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          service_account: ${{ secrets.gcp-service-account }}
-          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
-          token_format: access_token
-      - name: Authenticate to Google Artifact Registry
-        id: auth_docker_pkg_dev
-        uses: docker/login-action@v3
+          role-to-assume: ${{ vars.AWS_ARTIFACTS_ECR_ROLE }}
+          aws-region: ${{ vars.AWS_ARTIFACTS_ECR_REGION }}
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Authenticate to the AWS deployment environment
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: europe-west3-docker.pkg.dev
-          username: oauth2accesstoken
-          password: ${{ steps.auth_gcp.outputs.access_token }}
-      - uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ secrets.gke-cluster }}
+          role-to-assume: ${{ vars.AWS_INTEGRATIONS_DEPLOY_ROLE }}
+          aws-region: ${{ vars.AWS_EKS_REGION }}
+          unset-current-credentials: true
+      - name: Configure EKS credentials
+        env:
+          CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER }}
+          CLUSTER_REGION: ${{ vars.AWS_EKS_REGION }}
+        run: aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$CLUSTER_REGION"
       - name: Download build reference
         uses: actions/download-artifact@v4
         with:

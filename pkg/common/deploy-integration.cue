@@ -29,7 +29,7 @@ import "list"
                 "default-repo": {
                     type:        "string"
                     description: "Default artifact repository"
-                    default:     "europe-west3-docker.pkg.dev/y42-artifacts-ea47981a/main"
+                    default:     "119462788859.dkr.ecr.eu-central-1.amazonaws.com"
                     required:    false
                 }
                 "dist-artifact": {
@@ -97,8 +97,13 @@ import "list"
                 ...
             }
             secrets: {
-                #with.gcloud_deploy.secrets
-                #with.gke.secrets
+                // Keep legacy caller secrets accepted while repositories migrate.
+                for name in ["gcp-service-account", "gcp-workload-identity-provider", "gcp-gcr-service-account", "gcp-gcr-workload-identity-provider", "gke-cluster", "gke-location"] {
+                    "\(name)": {
+                        description: "Legacy GCP input, unused by AWS integration deployment."
+                        required: false
+                    }
+                }
                 #with.ssh_agent.secrets
                 "json-schema-bucket": {
                     description: "Legacy GCS bucket input, retained for caller compatibility; schema publishing uses AWS_PUBLIC_SCHEMAS_BUCKET."
@@ -148,7 +153,7 @@ import "list"
         "integration-schema-generate-environment": {
             name: "Upload Integration Schema to env"
             needs: ["deps", "build"]
-            if:          "inputs.environment"
+            if:          "inputs.environment && !inputs.skip-integration-schema-generate"
             environment: "${{ inputs.environment }}"
             steps:       #integration_steps.json_scheme_generate
         }
@@ -186,15 +191,8 @@ import "list"
                     }
                 },
                 #with.ssh_agent.step,
-                #with.gcloud.step & {
-                    with: {
-                        service_account: "${{ secrets.gcp-gcr-service-account }}"
-                        workload_identity_provider: "${{ secrets.gcp-gcr-workload-identity-provider }}"
-                        token_format: "access_token"
-                    }
-                },
-                #with.docker_auth.step,
-                #with.docker_artifacts_auth.step,
+                #integration_aws_registry_auth,
+                #integration_aws_registry_login,
                 #with.kube_tools.step,
                 {
                     name: "Export git build details"
@@ -306,9 +304,25 @@ import "list"
     deploy_integration: [
         #with.checkout.step,
         #with.ssh_agent.step,
-        #with.gcloud.step,
-        #with.docker_artifacts_auth.step,
-        #with.gke.step,
+        #integration_aws_registry_auth,
+        #integration_aws_registry_login,
+        {
+            name: "Authenticate to the AWS deployment environment"
+            uses: "aws-actions/configure-aws-credentials@v4"
+            with: {
+                "role-to-assume": "${{ vars.AWS_INTEGRATIONS_DEPLOY_ROLE }}"
+                "aws-region": "${{ vars.AWS_EKS_REGION }}"
+                "unset-current-credentials": true
+            }
+        },
+        {
+            name: "Configure EKS credentials"
+            env: {
+                CLUSTER_NAME: "${{ vars.AWS_EKS_CLUSTER }}"
+                CLUSTER_REGION: "${{ vars.AWS_EKS_REGION }}"
+            }
+            run: "aws eks update-kubeconfig --name \"$CLUSTER_NAME\" --region \"$CLUSTER_REGION\""
+        },
         {
             name: "Download build reference"
             uses: "actions/download-artifact@v4"
@@ -375,4 +389,20 @@ import "list"
         path: ".venv/"
         key:  "${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}"
     }
+}
+
+// Registry credentials remain in Docker's config when deployment switches to
+// the environment's EKS role. The deployment role itself needs no ECR grant.
+#integration_aws_registry_auth: {
+    name: "Authenticate to AWS Artifacts"
+    uses: "aws-actions/configure-aws-credentials@v4"
+    with: {
+        "role-to-assume": "${{ vars.AWS_ARTIFACTS_ECR_ROLE }}"
+        "aws-region": "${{ vars.AWS_ARTIFACTS_ECR_REGION }}"
+    }
+}
+
+#integration_aws_registry_login: {
+    name: "Log in to Amazon ECR"
+    uses: "aws-actions/amazon-ecr-login@v2"
 }
