@@ -101,7 +101,7 @@ import "list"
                 #with.gke.secrets
                 #with.ssh_agent.secrets
                 "json-schema-bucket": {
-                    description: "Required for json-schema upload. Name of the bucket to write integration schema to."
+                    description: "Legacy GCS bucket input, retained for caller compatibility; schema publishing uses AWS_PUBLIC_SCHEMAS_BUCKET."
                     required:    false
                 }
                 ...
@@ -285,16 +285,21 @@ import "list"
                     eval "$GENERATE_SCHEMA_COMMAND"
                     """
             },
-                #with.gcloud.step,
                 {
-                    name: "Upload Integration schema to JSON schema folder"
-                    uses: "google-github-actions/upload-cloud-storage@v2"
+                    name: "Configure AWS credentials"
+                    uses: "aws-actions/configure-aws-credentials@v4"
                     with: {
-                        path:        "integrations"
-                        destination: "${{ secrets.json-schema-bucket }}"
-                        headers:     "cache-control: public, max-age=300"
+                        "role-to-assume": "${{ vars.AWS_PUBLIC_SCHEMAS_ROLE }}"
+                        "aws-region": "${{ vars.AWS_PUBLIC_SCHEMAS_REGION }}"
                     }
-
+                },
+                {
+                    name: "Upload Integration schema to S3"
+                    env: SCHEMA_BUCKET: "${{ vars.AWS_PUBLIC_SCHEMAS_BUCKET }}"
+                    // upload-cloud-storage defaulted to parent=true: retain integrations/.
+                    run: """
+                        aws s3 cp integrations/ "s3://$SCHEMA_BUCKET/integrations/" --recursive --content-type application/json --cache-control 'public, max-age=300'
+                        """
                 }],
         ])
 

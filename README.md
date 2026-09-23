@@ -71,3 +71,28 @@ Contributing flow:
 - Run `make` to generate actual workflows
 - Commit your change for both `pkg/*` and generated workflows in `.github/workflows`
 - PR time!
+
+
+## Integration schema publishing on AWS
+
+`deploy-integration.yaml` publishes generated `integrations/` content to S3 with
+`public, max-age=300`, preserving the directory prefix. DEV, PROD and explicit
+environment jobs retain their existing triggers, generation command and dependencies.
+
+Each **calling repository's GitHub environment** needs these variables:
+
+- `AWS_PUBLIC_SCHEMAS_BUCKET`: its environment's public schema bucket.
+- `AWS_PUBLIC_SCHEMAS_ROLE`: the environment's GitHub schema publisher role ARN.
+- `AWS_PUBLIC_SCHEMAS_REGION`: `eu-central-1`.
+
+Callers need `contents: read` and `id-token: write`. The old `json-schema-bucket`
+secret remains accepted for compatibility but is no longer used. No bucket-wide
+delete is performed. Build and Kubernetes deployment jobs still use GCP; this change
+migrates only schema uploads. A schema job still depends on the existing build job,
+so it is not an independent AWS-only pipeline.
+
+Do not merge this switch into `master` until destinations and environment variables
+are ready for its callers, including PROD and any explicit environment they use.
+Current callers reference `@master`, so merging affects them without caller commits.
+Do not dispatch a full legacy workflow merely to test uploads: it can also build
+images and deploy workloads.

@@ -94,7 +94,7 @@ name: Deploy Integration
         default: 0.16.1
     secrets:
       json-schema-bucket:
-        description: Required for json-schema upload. Name of the bucket to write integration schema to.
+        description: Legacy GCS bucket input, retained for caller compatibility; schema publishing uses AWS_PUBLIC_SCHEMAS_BUCKET.
         required: false
       gcp-service-account:
         description: GCP Service Account e-mail, has permission to artifact repo
@@ -162,19 +162,15 @@ jobs:
           KAFKA_SASL_SECRET='' export KAFKA_SASL_SECRET
           CONTAINER_MODULE=$(basename -s .git "$(git remote get-url origin | sed 's/-/_/g')" ) export CONTAINER_MODULE
           eval "$GENERATE_SCHEMA_COMMAND"
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          service_account: ${{ secrets.gcp-service-account }}
-          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
-          token_format: access_token
-      - name: Upload Integration schema to JSON schema folder
-        uses: google-github-actions/upload-cloud-storage@v2
-        with:
-          path: integrations
-          destination: ${{ secrets.json-schema-bucket }}
-          headers: 'cache-control: public, max-age=300'
+          role-to-assume: ${{ vars.AWS_PUBLIC_SCHEMAS_ROLE }}
+          aws-region: ${{ vars.AWS_PUBLIC_SCHEMAS_REGION }}
+      - name: Upload Integration schema to S3
+        env:
+          SCHEMA_BUCKET: ${{ vars.AWS_PUBLIC_SCHEMAS_BUCKET }}
+        run: aws s3 cp integrations/ "s3://$SCHEMA_BUCKET/integrations/" --recursive --content-type application/json --cache-control 'public, max-age=300'
   integration-schema-generate-production:
     name: Upload Integration Schema to prod
     needs:
@@ -219,19 +215,15 @@ jobs:
           KAFKA_SASL_SECRET='' export KAFKA_SASL_SECRET
           CONTAINER_MODULE=$(basename -s .git "$(git remote get-url origin | sed 's/-/_/g')" ) export CONTAINER_MODULE
           eval "$GENERATE_SCHEMA_COMMAND"
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          service_account: ${{ secrets.gcp-service-account }}
-          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
-          token_format: access_token
-      - name: Upload Integration schema to JSON schema folder
-        uses: google-github-actions/upload-cloud-storage@v2
-        with:
-          path: integrations
-          destination: ${{ secrets.json-schema-bucket }}
-          headers: 'cache-control: public, max-age=300'
+          role-to-assume: ${{ vars.AWS_PUBLIC_SCHEMAS_ROLE }}
+          aws-region: ${{ vars.AWS_PUBLIC_SCHEMAS_REGION }}
+      - name: Upload Integration schema to S3
+        env:
+          SCHEMA_BUCKET: ${{ vars.AWS_PUBLIC_SCHEMAS_BUCKET }}
+        run: aws s3 cp integrations/ "s3://$SCHEMA_BUCKET/integrations/" --recursive --content-type application/json --cache-control 'public, max-age=300'
   deploy-development:
     name: Deploy to development
     needs:
@@ -428,19 +420,15 @@ jobs:
           KAFKA_SASL_SECRET='' export KAFKA_SASL_SECRET
           CONTAINER_MODULE=$(basename -s .git "$(git remote get-url origin | sed 's/-/_/g')" ) export CONTAINER_MODULE
           eval "$GENERATE_SCHEMA_COMMAND"
-      - name: Authenticate to Google Cloud
-        id: auth_gcp
-        uses: google-github-actions/auth@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          service_account: ${{ secrets.gcp-service-account }}
-          workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
-          token_format: access_token
-      - name: Upload Integration schema to JSON schema folder
-        uses: google-github-actions/upload-cloud-storage@v2
-        with:
-          path: integrations
-          destination: ${{ secrets.json-schema-bucket }}
-          headers: 'cache-control: public, max-age=300'
+          role-to-assume: ${{ vars.AWS_PUBLIC_SCHEMAS_ROLE }}
+          aws-region: ${{ vars.AWS_PUBLIC_SCHEMAS_REGION }}
+      - name: Upload Integration schema to S3
+        env:
+          SCHEMA_BUCKET: ${{ vars.AWS_PUBLIC_SCHEMAS_BUCKET }}
+        run: aws s3 cp integrations/ "s3://$SCHEMA_BUCKET/integrations/" --recursive --content-type application/json --cache-control 'public, max-age=300'
   build:
     runs-on: ubuntu-latest
     name: Build Docker images
