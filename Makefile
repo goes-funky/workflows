@@ -1,4 +1,4 @@
-ACTIONLINT_VERSION ?= 1.6.15
+ACTIONLINT_VERSION ?= 1.6.23
 CUE_VERSION ?= 0.4.3
 
 SHELL := env PATH=$(abspath bin):$(shell echo $$PATH) /bin/bash
@@ -47,7 +47,7 @@ $(ACTIONLINT):
 	@mkdir -p $(dir $(ACTIONLINT))
 	@curl -s -L https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_${binary}.tar.gz | \
     tar xz -C $(dir $(ACTIONLINT)) actionlint
-	ln -s $(subst bin/,,$(ACTIONLINT)) bin/actionlint
+	ln -sf $(subst bin/,,$(ACTIONLINT)) bin/actionlint
 
 lint: lint-workflows
 

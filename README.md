@@ -71,3 +71,39 @@ Contributing flow:
 - Run `make` to generate actual workflows
 - Commit your change for both `pkg/*` and generated workflows in `.github/workflows`
 - PR time!
+
+
+## Integration pipelines on AWS
+
+`deploy-integration.yaml` builds images in the shared AWS ECR registry, publishes
+schemas to S3 and deploys Kubernetes resources to the environment's EKS cluster.
+Schema paths retain the `integrations/` prefix and `public, max-age=300` metadata.
+Existing tags, generation commands and build/deployment dependencies are retained.
+Manual environment jobs honor `skip-deploy` and `skip-integration-schema-generate`.
+
+Each calling repository needs these repository variables for registry access:
+
+- `AWS_ARTIFACTS_ECR_ROLE`: the shared Artifacts publisher role ARN.
+- `AWS_ARTIFACTS_ECR_REGION`: `eu-central-1`.
+
+Each calling repository's GitHub environment needs:
+
+- `AWS_PUBLIC_SCHEMAS_BUCKET`, `AWS_PUBLIC_SCHEMAS_ROLE`, `AWS_PUBLIC_SCHEMAS_REGION`.
+- `AWS_INTEGRATIONS_DEPLOY_ROLE`: that environment's EKS deployment role ARN.
+- `AWS_EKS_CLUSTER` and `AWS_EKS_REGION`.
+
+Callers need `contents: read` and `id-token: write`. Dockerfiles must use available
+ECR base images; manifests and registration jobs must match the AWS runtime.
+Registry login uses the Artifacts role before deployment switches to the EKS role.
+Deployment waits for the registration Job to complete successfully.
+
+The only accepted secret is `ssh-private-key`. Remove `json-schema-bucket`,
+`gcp-service-account`, `gcp-workload-identity-provider`, `gcp-gcr-service-account`,
+`gcp-gcr-workload-identity-provider`, `gke-cluster` and `gke-location` from callers;
+GitHub rejects explicitly passed secrets that the reusable workflow does not declare.
+
+Callers referencing `@master` adopt changes on their next run. Deferred callers
+must be configured for AWS when they are next used. Merging the shared workflow
+does not trigger caller builds or deployments by itself.
+Use `skip-deploy: true` for build/schema-only tests. PROD deployment requires its
+own AWS identity and environment variables; schema DNS cutover is separate.
