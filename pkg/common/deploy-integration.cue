@@ -97,18 +97,7 @@ import "list"
                 ...
             }
             secrets: {
-                // Keep legacy caller secrets accepted while repositories migrate.
-                for name in ["gcp-service-account", "gcp-workload-identity-provider", "gcp-gcr-service-account", "gcp-gcr-workload-identity-provider", "gke-cluster", "gke-location"] {
-                    "\(name)": {
-                        description: "Legacy GCP input, unused by AWS integration deployment."
-                        required: false
-                    }
-                }
                 #with.ssh_agent.secrets
-                "json-schema-bucket": {
-                    description: "Legacy GCS bucket input, retained for caller compatibility; schema publishing uses AWS_PUBLIC_SCHEMAS_BUCKET."
-                    required:    false
-                }
                 ...
             }
         }
@@ -294,7 +283,7 @@ import "list"
                 {
                     name: "Upload Integration schema to S3"
                     env: SCHEMA_BUCKET: "${{ vars.AWS_PUBLIC_SCHEMAS_BUCKET }}"
-                    // upload-cloud-storage defaulted to parent=true: retain integrations/.
+                    // Public schema URLs retain the integrations/ prefix.
                     run: """
                         aws s3 cp integrations/ "s3://$SCHEMA_BUCKET/integrations/" --recursive --content-type application/json --cache-control 'public, max-age=300'
                         """

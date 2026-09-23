@@ -93,29 +93,8 @@ name: Deploy Integration
         description: Kubeval version
         default: 0.16.1
     secrets:
-      json-schema-bucket:
-        description: Legacy GCS bucket input, retained for caller compatibility; schema publishing uses AWS_PUBLIC_SCHEMAS_BUCKET.
-        required: false
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
-        required: false
-      gcp-service-account:
-        description: Legacy GCP input, unused by AWS integration deployment.
-        required: false
-      gcp-workload-identity-provider:
-        description: Legacy GCP input, unused by AWS integration deployment.
-        required: false
-      gcp-gcr-service-account:
-        description: Legacy GCP input, unused by AWS integration deployment.
-        required: false
-      gcp-gcr-workload-identity-provider:
-        description: Legacy GCP input, unused by AWS integration deployment.
-        required: false
-      gke-cluster:
-        description: Legacy GCP input, unused by AWS integration deployment.
-        required: false
-      gke-location:
-        description: Legacy GCP input, unused by AWS integration deployment.
         required: false
 env:
   SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }

@@ -94,12 +94,16 @@ Each calling repository's GitHub environment needs:
 
 Callers need `contents: read` and `id-token: write`. Dockerfiles must use available
 ECR base images; manifests and registration jobs must match the AWS runtime.
-The legacy GCP and `json-schema-bucket` secrets remain accepted, but are optional
-and unused, allowing callers to migrate without an immediate interface break.
 Registry login uses the Artifacts role before deployment switches to the EKS role.
+Deployment waits for the registration Job to complete successfully.
 
-Do not merge the shared workflow into `master` until its callers are ready. They
-currently reference `@master`, so merging affects them without caller commits.
-Use migration-branch references for staged tests, with `skip-deploy: true` until
-the rendered environment-specific deployment has been reviewed and approved.
-No PROD or DNS cutover is implied by preparing these workflows.
+The only accepted secret is `ssh-private-key`. Remove `json-schema-bucket`,
+`gcp-service-account`, `gcp-workload-identity-provider`, `gcp-gcr-service-account`,
+`gcp-gcr-workload-identity-provider`, `gke-cluster` and `gke-location` from callers;
+GitHub rejects explicitly passed secrets that the reusable workflow does not declare.
+
+Callers referencing `@master` adopt changes on their next run. Deferred callers
+must be configured for AWS when they are next used. Merging the shared workflow
+does not trigger caller builds or deployments by itself.
+Use `skip-deploy: true` for build/schema-only tests. PROD deployment requires its
+own AWS identity and environment variables; schema DNS cutover is separate.
