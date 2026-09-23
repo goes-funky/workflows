@@ -351,6 +351,7 @@ import "list"
                 COMMIT_SHA="$(git rev-parse --short HEAD)" export COMMIT_SHA
                 yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
                 skaffold apply --force=true rendered.yaml
+                yq 'select(.kind == "Job" and .metadata.name == "*deploy-notice-*")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
                 """
         },
     ]
