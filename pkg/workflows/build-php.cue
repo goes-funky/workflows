@@ -50,7 +50,7 @@ common.#workflow & {
         }
         matrix: {
             needs: ["check-pr", "pre-job"]
-            if: "${{ needs.pre-job.outputs.should_skip != 'true' && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}"
+            if: "${{ !cancelled() && needs.pre-job.result == 'success' && needs.pre-job.outputs.should_skip != 'true' && (needs.check-pr.result == 'success' || needs.check-pr.result == 'skipped') }}"
             outputs: matrix: "${{ steps.set-matrix.outputs.matrix }}"
             steps: [{
                 id: "set-matrix"
