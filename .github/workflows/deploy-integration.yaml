@@ -528,7 +528,7 @@ jobs:
     name: Deploy to environment
     needs:
       - build
-    if: inputs.environment
+    if: inputs.environment && !inputs.skip-deploy
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15

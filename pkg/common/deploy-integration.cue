@@ -238,7 +238,7 @@ import "list"
         "deploy-environment": {
             name: "Deploy to environment"
             needs: ["build"]
-            if:          "inputs.environment"
+            if:          "inputs.environment && !inputs.skip-deploy"
             environment: "${{ inputs.environment }}"
             steps:       #integration_steps.deploy_integration
         }
