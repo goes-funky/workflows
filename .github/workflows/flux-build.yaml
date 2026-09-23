@@ -14,6 +14,10 @@ name: Flux Skaffold Build
         type: string
         description: Docker file to use
         default: Dockerfile
+      aws-only:
+        type: boolean
+        description: Build and publish using AWS ECR without GCP authentication
+        default: false
       skip-checkout:
         type: boolean
         description: Whether to skip checkout
@@ -35,9 +39,6 @@ name: Flux Skaffold Build
         description: Whether to fetch git submodules
         default: false
     secrets:
-      gcp-service-account:
-        description: GCP Service Account e-mail, has permission to artifact repo
-        required: true
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
@@ -47,11 +48,14 @@ name: Flux Skaffold Build
       aws-ecr-registry:
         description: AWS ECR registry
         required: false
-      gcp-workload-identity-provider:
-        description: GCP Workload Identity provider
-        required: true
+      gcp-service-account:
+        description: GCP Service Account e-mail, has permission to artifact repo
+        required: false
       aws-ecr-role:
         description: AWS role to assume to be able to push to the ECR
+        required: false
+      gcp-workload-identity-provider:
+        description: GCP Workload Identity provider
         required: false
 jobs:
   build:
@@ -91,6 +95,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.ssh-private-key }}
       - name: Authenticate to Google Cloud
+        if: '!inputs.aws-only'
         id: auth_gcp
         uses: google-github-actions/auth@v2
         with:
@@ -98,20 +103,21 @@ jobs:
           workload_identity_provider: ${{ secrets.gcp-workload-identity-provider }}
           token_format: access_token
       - name: Authenticate to Google Artifact Registry
+        if: '!inputs.aws-only'
         id: auth_docker_pkg_dev
         uses: docker/login-action@v3
         with:
           registry: europe-west3-docker.pkg.dev
           username: oauth2accesstoken
           password: ${{ steps.auth_gcp.outputs.access_token }}
-      - if: inputs.push-to-aws-ecr
+      - if: inputs.aws-only || inputs.push-to-aws-ecr
         name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ secrets.aws-ecr-region }}
           role-to-assume: ${{ secrets.aws-ecr-role }}
           role-session-name: integrations-push-image-session
-      - if: inputs.push-to-aws-ecr
+      - if: inputs.aws-only || inputs.push-to-aws-ecr
         name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2

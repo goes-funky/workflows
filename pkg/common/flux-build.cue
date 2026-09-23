@@ -22,6 +22,11 @@ package common
                     description: "Docker file to use"
                     default:    "Dockerfile"
                 }
+                "aws-only": {
+                    type: "boolean"
+                    description: "Build and publish using AWS ECR without GCP authentication"
+                    default: false
+                }
                 "push-to-aws-ecr": {
                     type: "boolean"
                     description: "Whether to push to our ECR registry in the AWS Artifacts account"
@@ -30,7 +35,12 @@ package common
                 ...
             }
             secrets: {
-                #with.gcloud_build.secrets
+                for name, secret in #with.gcloud_build.secrets {
+                    "\(name)": {
+                        description: secret.description
+                        required: false
+                    }
+                }
                 #with.ssh_agent.secrets
                 #with.aws_ecr.secrets
                 ...
@@ -66,10 +76,10 @@ package common
             run: "cp ./code/${{ inputs.skaffold-file }} . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ${{ inputs.skaffold-file }}"
         },
         #with.ssh_agent.step,
-        #with.gcloud.step,
-        #with.docker_artifacts_auth.step,
+        #with.gcloud.step & {if: "!inputs.aws-only"},
+        #with.docker_artifacts_auth.step & {if: "!inputs.aws-only"},
         {
-            if:   "inputs.push-to-aws-ecr"
+            if:   "inputs.aws-only || inputs.push-to-aws-ecr"
             name: "Configure AWS Credentials"
             uses: "aws-actions/configure-aws-credentials@v4"
             with: {
@@ -79,7 +89,7 @@ package common
             }
         },
         {
-            if:   "inputs.push-to-aws-ecr"
+            if:   "inputs.aws-only || inputs.push-to-aws-ecr"
             name: "Login to Amazon ECR"
             id: "login-ecr"
             uses: "aws-actions/amazon-ecr-login@v2"
