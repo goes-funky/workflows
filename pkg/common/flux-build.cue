@@ -27,10 +27,23 @@ package common
     }
     jobs: {
         build: #job_flux_build
+        "notify-infra": {
+            uses: "./.github/workflows/notify-infra.yaml"
+            needs: ["build"]
+            if: "github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''"
+            with: {
+                image: "${{ needs.build.outputs.image }}"
+                registry: "${{ needs.build.outputs.registry }}"
+            }
+        }
     }
 }
 
 #job_flux_build: #job & {
+    outputs: {
+        image: "${{ steps.published-image.outputs.image }}"
+        registry: "${{ steps.login-ecr.outputs.registry }}"
+    }
     name: "Build Docker images"
     "timeout-minutes": 20
     steps: [
@@ -103,7 +116,20 @@ package common
                 COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
             }
-            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }}"
+            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=$RUNNER_TEMP/skaffold-build.json"
+        },
+        {
+            name: "Export published image for infra"
+            id: "published-image"
+            if: "github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''"
+            run: """
+                image="$(jq -er --arg service "$CONTAINER_NAME" '[.builds[] | select(.imageName == $service)] | if length == 1 then .[0].tag else error("Expected one service image") end' "$RUNNER_TEMP/skaffold-build.json")"
+                if [[ "$image" == *$'\\n'* || "$image" == *$'\\r'* ]]; then
+                  echo 'Invalid published image output' >&2
+                  exit 1
+                fi
+                echo "image=$image" >> "$GITHUB_OUTPUT"
+                """
         }
     ]
 }
