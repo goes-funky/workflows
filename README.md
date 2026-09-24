@@ -107,3 +107,21 @@ must be configured for AWS when they are next used. Merging the shared workflow
 does not trigger caller builds or deployments by itself.
 Use `skip-deploy: true` for build/schema-only tests. PROD deployment requires its
 own AWS identity and environment variables; schema DNS cutover is separate.
+
+
+## AWS image-update notification
+
+`flux-build.yaml` calls `notify-infra.yaml` after a successful main push build when
+`AWS_INFRA_DISPATCH_ROLE` is configured for the caller. The notification workflow
+uses OIDC to retrieve the infra-dispatch token from AWS Secrets Manager and sends
+the exact published tag/digest to infra. It has its own runner and never executes
+application code. No additional caller secret mappings or `secrets: inherit` are
+needed. Feature-branch builds remain build-only.
+
+Provision the role and token and merge infra's receiver before setting the role
+variable. See [infra's image-update runbook](https://github.com/goes-funky/infra/blob/main/clouds/aws/docs/image_update_automation.md)
+for permissions, activation and recovery. The dedicated role trusts only this
+repository's `notify-infra.yaml` on master and approved callers on main.
+
+Run `python3 -m unittest discover -s scripts/tests -v` after `make all` to test the
+generated notification step with fake AWS/GitHub commands; no real token is used.

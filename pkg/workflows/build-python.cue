@@ -124,16 +124,6 @@ common.#workflow & {
             }
             secrets: {
                 common.#with.ssh_agent.secrets
-                // include manually to make them optional.
-                "gcp-gcr-service-account": {
-                    description: "GCP GCR Service Account e-mail"
-                    required: false
-                }
-                "gcp-gcr-workload-identity-provider": {
-                    description: "GCP GCR Workload Identity provider"
-                    required: false
-                }
-                // end of manual include
                 "sonar_token": {
                     description: "Token for sonarcloud.io scans"
                     required:    false
@@ -294,15 +284,18 @@ common.#workflow & {
                 },
                 common.#with.load_artifact.step,
                 common.#with.ssh_agent.step,
-                common.#with.gcloud.step & {
+                {
+                    name: "Configure AWS Credentials"
+                    uses: "aws-actions/configure-aws-credentials@v4"
                     with: {
-                        service_account: "${{ secrets.gcp-gcr-service-account }}"
-                        workload_identity_provider: "${{ secrets.gcp-gcr-workload-identity-provider }}"
-                        token_format: "access_token"
+                        "aws-region": "${{ vars.AWS_ARTIFACTS_ECR_REGION }}"
+                        "role-to-assume": "${{ vars.AWS_ARTIFACTS_ECR_ROLE }}"
                     }
                 },
-                common.#with.docker_auth.step,
-                common.#with.docker_artifacts_auth.step,
+                {
+                    name: "Login to Amazon ECR"
+                    uses: "aws-actions/amazon-ecr-login@v2"
+                },
                 {
                     name: "Update docker-compose"
                     uses: "KengoTODA/actions-setup-docker-compose@v1"

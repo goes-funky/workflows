@@ -8,7 +8,7 @@ package common
         workflow_call?: #on_wfc
     }
     env?: [string]: string
-    jobs: [string]: #job
+    jobs: [string]: #job | #reusable_workflow_job
 }
 
 #on_wfc: {
@@ -81,3 +81,10 @@ package common
 }
 
 #string_map: [string]: [...string]
+
+#reusable_workflow_job: {
+    uses: string
+    needs?: [...string]
+    if?: string
+    with?: [string]: string | bool | int
+}

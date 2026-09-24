@@ -46,6 +46,10 @@ common.#workflow & {
                     name: "Lint workflows"
                     run: "make lint"
                 },
+                {
+                    name: "Test infra dispatch"
+                    run: "python3 -m unittest discover -s scripts/tests -v"
+                },
         ]
         }
     }
