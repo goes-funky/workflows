@@ -72,6 +72,8 @@ printf '%s\n' "$@" > "$RUNNER_TEMP/gh-args"
         self.assertEqual(payload['service'], 'hubspot')
         self.assertEqual(payload['tag'], 'fedcba0-25.0.9715-202609241200')
         self.assertEqual(payload['source-run'], 'https://github.com/goes-funky/integrations/actions/runs/123')
+        result, _ = self.invoke(image.replace('202609241200', '20260924120028'), repository='goes-funky/integrations')
+        self.assertEqual(result.returncode, 0, result.stderr)
         for invalid in [image.replace('/cdata/hubspot:', '/modeling-api:'),
                         image.replace('/hubspot:', '/../hubspot:'), image.replace('25.0.9715-', ''),
                         image.split('@')[0], image.replace('202609241200', '202609241200-test')]:
