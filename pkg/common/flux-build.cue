@@ -45,7 +45,7 @@ package common
         registry: "${{ steps.login-ecr.outputs.registry }}"
     }
     name: "Build Docker images"
-    "timeout-minutes": 20
+    "timeout-minutes": 60
     steps: [
         {
             name: "Checkout"
