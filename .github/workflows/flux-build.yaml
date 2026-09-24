@@ -37,7 +37,7 @@ jobs:
     outputs:
       image: ${{ steps.published-image.outputs.image }}
       registry: ${{ steps.login-ecr.outputs.registry }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         if: '!inputs.skip-checkout'
