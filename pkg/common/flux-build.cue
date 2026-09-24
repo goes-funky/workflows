@@ -30,7 +30,7 @@ package common
         "notify-infra": {
             uses: "./.github/workflows/notify-infra.yaml"
             needs: ["build"]
-            if: "github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''"
+            if: "github.event_name == 'push' && github.ref == 'refs/heads/aliaksei/test-infra-dispatch'"
             with: {
                 image: "${{ needs.build.outputs.image }}"
                 registry: "${{ needs.build.outputs.registry }}"
@@ -39,97 +39,12 @@ package common
     }
 }
 
+// Test branch only: reuse the previously verified image, never build or push.
 #job_flux_build: #job & {
+    name: "Reuse existing modeling-api smoke image"
     outputs: {
-        image: "${{ steps.published-image.outputs.image }}"
-        registry: "${{ steps.login-ecr.outputs.registry }}"
+        image: "119462788859.dkr.ecr.eu-central-1.amazonaws.com/modeling-api:7ee2e81-202609232217-test-modeling-aws-build@sha256:9e3b86e73ab7cf60a8e8aeb0f12f4ce50f779946ffcc4e0c7ad037eba524e013"
+        registry: "119462788859.dkr.ecr.eu-central-1.amazonaws.com"
     }
-    name: "Build Docker images"
-    "timeout-minutes": 20
-    steps: [
-        {
-            name: "Checkout"
-            if:   "!inputs.skip-checkout"
-            uses: "actions/checkout@v4"
-            with: {
-                path: "./code"
-            }
-        },
-        {
-            name: "Setup buildkit"
-            id:   "setup-buildkit"
-            uses: "docker/setup-buildx-action@v3"
-        },
-        #with.expose_action_env.step,
-        #with.custom_skaffold_build_script.step,
-        {
-            name: "Configure skaffold to build with buildkit"
-            run: "cp ./code/${{ inputs.skaffold-file }} . && yq -i 'del(.build.local) | del(.build.artifacts.[].docker) | del(.build.artifacts.[].sync.*) | .build.artifacts.[] *= {\"custom\": {\"buildCommand\": \"../docker-buildx\", \"dependencies\": {\"dockerfile\": {\"path\": \"${{ inputs.docker-file }}\"}}}}' ${{ inputs.skaffold-file }}"
-        },
-        #with.ssh_agent.step,
-        {
-            name: "Configure AWS Credentials"
-            uses: "aws-actions/configure-aws-credentials@v4"
-            with: {
-                "aws-region": "${{ vars.AWS_ARTIFACTS_ECR_REGION }}"
-                "role-to-assume": "${{ vars.AWS_ARTIFACTS_ECR_ROLE }}"
-                "role-session-name": "integrations-push-image-session"
-            }
-        },
-        {
-            name: "Login to Amazon ECR"
-            id: "login-ecr"
-            uses: "aws-actions/amazon-ecr-login@v2"
-        },
-        #with.flux_tools.step,
-        {
-            name: "Configure Skaffold"
-            run:  "skaffold config set default-repo \"${{ steps.login-ecr.outputs.registry }}\""
-        },
-        {
-            name: "Export git build details"
-            run: """
-                CONTAINER_NAME=$(cd ./code && basename -s .git "$(git remote get-url origin)") && echo "CONTAINER_NAME=$CONTAINER_NAME" >> "$GITHUB_ENV"
-                SHORT_SHA="$(git -C ./code rev-parse --short HEAD)" && echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
-                COMMIT_SHA="$(git -C ./code rev-parse HEAD)" && echo "COMMIT_SHA=$COMMIT_SHA" >> "$GITHUB_ENV"
-                """
-        },
-        {
-            name: "Add branch name to image tag on branch builds"
-            if: "github.event.ref != 'refs/heads/main'"
-            run: """
-                BRANCH_NAME="${GITHUB_REF##*/}"
-                BRANCH_NAME="${BRANCH_NAME//[^a-zA-Z0-9]/-}"
-                yq -i ' .build.tagPolicy.customTemplate.template = "{{.SHORT_SHA}}-{{.DATETIME}}-{{.BRANCH}}"' ${{ inputs.skaffold-file }}
-                yq -i ' .build.tagPolicy.customTemplate.components += {"name": "BRANCH","envTemplate": {"template": "{{.BRANCH_NAME}}"}}' ${{ inputs.skaffold-file }}
-                echo BRANCH_NAME="${BRANCH_NAME}" >> "$GITHUB_ENV"
-                """
-        },
-        {
-            name: "Build"
-            env: {
-                SKAFFOLD_DEFAULT_REPO:    "${{ steps.login-ecr.outputs.registry }}"
-                SKAFFOLD_CACHE_ARTIFACTS: "false"
-                DOCKER_BUILDKIT_BUILDER:  "${{ steps.setup-buildkit.outputs.name }}"
-                CONTAINER_NAME: "${{ env.CONTAINER_NAME }}"
-                SHORT_SHA: "${{ env.SHORT_SHA }}"
-                COMMIT_SHA: "${{ env.COMMIT_SHA }}"
-                BRANCH_NAME: "${{ env.BRANCH_NAME }}"
-            }
-            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=\"$RUNNER_TEMP/skaffold-build.json\""
-        },
-        {
-            name: "Export published image for infra"
-            id: "published-image"
-            if: "github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''"
-            run: """
-                image="$(jq -er --arg service "$CONTAINER_NAME" '[.builds[] | select(.imageName == $service)] | if length == 1 then .[0].tag else error("Expected one service image") end' "$RUNNER_TEMP/skaffold-build.json")"
-                if [[ "$image" == *$'\\n'* || "$image" == *$'\\r'* ]]; then
-                  echo 'Invalid published image output' >&2
-                  exit 1
-                fi
-                echo "image=$image" >> "$GITHUB_OUTPUT"
-                """
-        }
-    ]
+    steps: [{run: "echo 'Reusing existing image; no build or image push'"}]
 }

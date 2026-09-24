@@ -13,7 +13,7 @@ name: Notify infra of published image
     secrets: {}
 jobs:
   notify:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/aliaksei/test-infra-dispatch'
     runs-on: ubuntu-latest
     name: Request infra image update
     timeout-minutes: 15
@@ -22,7 +22,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ vars.AWS_ARTIFACTS_ECR_REGION }}
-          role-to-assume: ${{ vars.AWS_INFRA_DISPATCH_ROLE }}
+          role-to-assume: arn:aws:iam::119462788859:role/github-infra-dispatch
           role-session-name: github-infra-dispatch
           role-duration-seconds: 900
       - name: Dispatch exact published image to infra
@@ -37,18 +37,18 @@ jobs:
           tagged_image="${PUBLISHED_IMAGE%@*}"
           tag="${tagged_image##*:}"
           repository="${tagged_image%:*}"
-          if [[ "$repository" != "$EXPECTED_REGISTRY/$service" || ! "$tag" =~ ^[a-fA-F0-9]{7,40}-[0-9]+$ || ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+          if [[ "$repository" != "$EXPECTED_REGISTRY/$service" || ! "$tag" =~ ^[a-fA-F0-9]{7,40}-[0-9]+(-[A-Za-z0-9-]+)?$ || ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
             echo 'Expected a published release image with a digest' >&2
             exit 1
           fi
           short_sha="${tag%%-*}"
-          if [[ "$GITHUB_SHA" != "$short_sha"* ]]; then
+          if [[ "$short_sha" != "7ee2e81" ]]; then
             echo 'Published tag does not match the source commit' >&2
             exit 1
           fi
           jq -n --arg service "$service" --arg tag "$tag" --arg digest "$digest" \
             --arg source_run "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            '{ref: "main", inputs: {service: $service, environment: "both", tag: $tag, digest: $digest, automatic: "true", "source-run": $source_run, "dry-run": "false"}}' \
+            '{ref: "aliaksei/test-infra-dispatch", inputs: {service: $service, environment: "dev", tag: $tag, digest: $digest, automatic: "false", "source-run": $source_run, "dry-run": "true"}}' \
             > "$RUNNER_TEMP/infra-dispatch.json"
           # Retrieve only in this isolated job; never write the token to an
           # output, artifact, file, or Terraform state. GitHub masks logs.
@@ -63,7 +63,7 @@ jobs:
           trap 'unset GH_TOKEN' EXIT
           for attempt in 1 2 3; do
             if gh api --method POST repos/goes-funky/infra/actions/workflows/aws-image-update-branches.yaml/dispatches --input "$RUNNER_TEMP/infra-dispatch.json"; then
-              echo 'Requested DEV and PROD image-update branches in infra'
+              echo 'Requested DEV dry-run in infra'
               exit 0
             fi
             sleep "$attempt"
