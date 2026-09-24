@@ -13,7 +13,7 @@ name: Notify infra of published image
     secrets: {}
 jobs:
   notify:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''
+    if: (github.event_name == 'push' || (github.repository == 'goes-funky/integrations' && github.event_name == 'workflow_dispatch')) && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''
     runs-on: ubuntu-latest
     name: Request infra image update
     timeout-minutes: 15
@@ -37,18 +37,33 @@ jobs:
           tagged_image="${PUBLISHED_IMAGE%@*}"
           tag="${tagged_image##*:}"
           repository="${tagged_image%:*}"
-          if [[ "$repository" != "$EXPECTED_REGISTRY/$service" || ! "$tag" =~ ^[a-fA-F0-9]{7,40}-[0-9]+$ || ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
-            echo 'Expected a published release image with a digest' >&2
+          target=infra
+          if [[ "$GITHUB_REPOSITORY" == 'goes-funky/integrations' ]]; then
+            target=integrations
+            service="${repository#"$EXPECTED_REGISTRY/cdata/"}"
+            if [[ ! "$service" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ || "$repository" != "$EXPECTED_REGISTRY/cdata/$service" || ! "$tag" =~ ^[a-fA-F0-9]{7,40}-[0-9]+(\.[0-9]+)*-[0-9]{12}$ ]]; then
+              echo 'Expected a published CData connector release' >&2
+              exit 1
+            fi
+            # CData tags identify the wrapper revision, not the integrations commit.
+          else
+            if [[ "$repository" != "$EXPECTED_REGISTRY/$service" || ! "$tag" =~ ^[a-fA-F0-9]{7,40}-[0-9]+$ ]]; then
+              echo 'Expected a published service release' >&2
+              exit 1
+            fi
+            short_sha="${tag%%-*}"
+            if [[ "$GITHUB_SHA" != "$short_sha"* ]]; then
+              echo 'Published tag does not match the source commit' >&2
+              exit 1
+            fi
+          fi
+          if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo 'Expected a published image digest' >&2
             exit 1
           fi
-          short_sha="${tag%%-*}"
-          if [[ "$GITHUB_SHA" != "$short_sha"* ]]; then
-            echo 'Published tag does not match the source commit' >&2
-            exit 1
-          fi
-          jq -n --arg service "$service" --arg tag "$tag" --arg digest "$digest" \
+          jq -n --arg target "$target" --arg service "$service" --arg tag "$tag" --arg digest "$digest" \
             --arg source_run "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            '{ref: "main", inputs: {service: $service, environment: "both", tag: $tag, digest: $digest, automatic: "true", "source-run": $source_run, "dry-run": "false"}}' \
+            '{ref: "main", inputs: {target: $target, service: $service, environment: "both", tag: $tag, digest: $digest, automatic: "true", "source-run": $source_run, "dry-run": "false"}}' \
             > "$RUNNER_TEMP/infra-dispatch.json"
           # Retrieve only in this isolated job; never write the token to an
           # output, artifact, file, or Terraform state. GitHub masks logs.
