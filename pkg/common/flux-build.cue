@@ -116,7 +116,7 @@ package common
                 COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
             }
-            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=$RUNNER_TEMP/skaffold-build.json"
+            run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=\"$RUNNER_TEMP/skaffold-build.json\""
         },
         {
             name: "Export published image for infra"

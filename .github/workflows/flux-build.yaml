@@ -108,7 +108,7 @@ jobs:
           SHORT_SHA: ${{ env.SHORT_SHA }}
           COMMIT_SHA: ${{ env.COMMIT_SHA }}
           BRANCH_NAME: ${{ env.BRANCH_NAME }}
-        run: cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=$RUNNER_TEMP/skaffold-build.json
+        run: cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output="$RUNNER_TEMP/skaffold-build.json"
       - name: Export published image for infra
         id: published-image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_INFRA_DISPATCH_ROLE != ''
