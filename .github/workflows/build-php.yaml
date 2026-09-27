@@ -5,7 +5,7 @@ name: PHP Linting & Testing
       composer-version:
         type: string
         description: Composer version; match the application's Docker image
-        default: "2.10.3"
+        default: 2.10.3
       database:
         required: false
         default: none
@@ -109,7 +109,7 @@ jobs:
             ${{ runner.os }}-php-
       - name: Install dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true'
-        run: |
+        run: |-
           for namespace in datos_intelligence y42 goes-funky; do
             composer config --global "preferred-install.$namespace/*" source
           done
@@ -171,7 +171,7 @@ jobs:
             ${{ runner.os }}-php-
       - name: Install dependencies
         if: steps.restore-composer-cache.outputs.cache-hit != 'true'
-        run: |
+        run: |-
           for namespace in datos_intelligence y42 goes-funky; do
             composer config --global "preferred-install.$namespace/*" source
           done
@@ -254,7 +254,7 @@ jobs:
             ${{ runner.os }}-php-
       - name: Install dependencies
         if: steps.restore-composer-cache.outputs.cache-hit != 'true'
-        run: |
+        run: |-
           for namespace in datos_intelligence y42 goes-funky; do
             composer config --global "preferred-install.$namespace/*" source
           done

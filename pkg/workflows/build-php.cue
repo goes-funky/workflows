@@ -7,6 +7,11 @@ common.#workflow & {
 
     on: workflow_call: {
         inputs: {
+            "composer-version": {
+                type:        "string"
+                description: "Composer version; match the application's Docker image"
+                default:     "2.10.3"
+            }
             database: {
                 required:    false
                 default:     "none"
@@ -98,7 +103,7 @@ common.#workflow & {
                 with: {
                     "php-version": "${{ matrix.php-version }}"
                     coverage:      "xdebug"
-                    tools:         "php-cs-fixer"
+                    tools:         "composer:${{ inputs.composer-version }}, php-cs-fixer"
                     extensions:    "${{ matrix.extensions }}"
                 }
             }, {
@@ -123,7 +128,12 @@ common.#workflow & {
             }, {
                 name: "Install dependencies"
                 if:   "steps.composer-cache.outputs.cache-hit != 'true'"
-                run:  "composer install --prefer-dist --no-progress --no-suggest"
+                run: """
+                    for namespace in datos_intelligence y42 goes-funky; do
+                      composer config --global "preferred-install.$namespace/*" source
+                    done
+                    composer install --no-interaction --no-progress
+                    """
             }]
         }
 
@@ -163,6 +173,7 @@ common.#workflow & {
                 uses: "shivammathur/setup-php@v2"
                 with: {
                     "php-version": "${{ matrix.php-version }}"
+                    tools:         "composer:${{ inputs.composer-version }}"
                     extensions:    "${{ matrix.extensions }}"
                 }
             },
@@ -186,7 +197,12 @@ common.#workflow & {
             },  {
                 name: "Install dependencies"
                 if:   "steps.restore-composer-cache.outputs.cache-hit != 'true'"
-                run:  "composer install --prefer-dist --no-progress --no-suggest"
+                run: """
+                    for namespace in datos_intelligence y42 goes-funky; do
+                      composer config --global "preferred-install.$namespace/*" source
+                    done
+                    composer install --no-interaction --no-progress
+                    """
             }, {
                 name: "PHPStan cache"
                 uses: "actions/cache@v4"
@@ -269,7 +285,7 @@ common.#workflow & {
                 with: {
                     "php-version": "${{ matrix.php-version }}"
                     coverage:      "xdebug"
-                    tools:         "php-cs-fixer"
+                    tools:         "composer:${{ inputs.composer-version }}, php-cs-fixer"
                     extensions:    "${{ matrix.extensions }}"
                 }
             }, {
@@ -287,7 +303,12 @@ common.#workflow & {
             }, {
                 name: "Install dependencies"
                 if:   "steps.restore-composer-cache.outputs.cache-hit != 'true'"
-                run:  "composer install --prefer-dist --no-progress --no-suggest"
+                run: """
+                    for namespace in datos_intelligence y42 goes-funky; do
+                      composer config --global "preferred-install.$namespace/*" source
+                    done
+                    composer install --no-interaction --no-progress
+                    """
             }, {
                 name: "Set environmental variables"
                 if:   "${{ matrix.database == 'pgsql' }}"
