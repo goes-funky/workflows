@@ -137,9 +137,10 @@ The token needs Contents and Pull requests write only on `goes-funky/integration
 Missing credentials or unsupported environments fail before cluster writes.
 
 The workflow retains OAuth registration and tap-config deployment, then opens a
-draft integrations PR with the built image tag and digest for the selected
-environment. Aliases share that environment's template file. It does not merge,
-auto-approve, or claim the broker rollout completed. Main releases target dev;
+ready integrations image PR with the built image tag and digest for the selected
+environment. Aliases share that environment's template file. The integrations repository reuses its established DEV bot approval/auto-merge
+policy after the required validation check passes; PROD requires manual approval
+and merge. PR creation does not mean the broker rollout completed. Main releases target dev;
 version tags propose dev and prod separately; an explicit environment suppresses
 automatic dev/prod jobs. The setup and approved rollout/cleanup procedure lives in
 `goes-funky/integrations/docs/tap-gitops-releases.md`.

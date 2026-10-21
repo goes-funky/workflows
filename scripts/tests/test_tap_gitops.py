@@ -73,9 +73,11 @@ metadata:
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((directory / 'applied.yaml').exists())
 
-    def test_proposal_is_draft_and_scoped_to_selected_environment(self):
+    def test_proposal_is_ready_and_scoped_to_selected_environment(self):
         proposal = next(s for s in self.steps if s['name'] == 'Propose tap image release')
-        self.assertTrue(proposal['with']['draft'])
+        self.assertFalse(proposal['with']['draft'])
+        self.assertEqual(proposal['with']['branch'], 'tap-release/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}')
+        self.assertIn("env.TARGET_ENVIRONMENT == 'dev'", proposal['with']['labels'])
         self.assertEqual(proposal['with']['add-paths'],
                          'integrations/taps/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}/job_template.yaml')
         for job in ['deploy-development', 'deploy-production']:

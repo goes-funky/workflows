@@ -412,27 +412,28 @@ import "list"
                 token: "${{ secrets.integrations-token }}"
                 path: ".integrations"
                 base: "main"
-                branch: "tap-release/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}/${{ github.sha }}"
+                branch: "tap-release/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}"
                 "add-paths": "integrations/taps/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}/job_template.yaml"
                 "commit-message": "Update ${{ inputs.tap-template-name }} image in ${{ env.TARGET_ENVIRONMENT }}"
                 title: "Release ${{ inputs.tap-template-name }} to ${{ env.TARGET_ENVIRONMENT }}"
-                draft: true
+                draft: false
+                labels: "${{ env.TARGET_ENVIRONMENT == 'dev' && 'flux-dev-update' || 'flux-prod-update' }}"
                 body: """
                     Updates the broker's authoritative template, shared by all aliases, from the digest-pinned Skaffold build artifact.
 
                     Source: ${{ github.repository }}@${{ github.sha }}
                     Build: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-                    Requires review and approval before merge. Flux deploys the template after merge; a successful proposal is not a completed connector rollout. Verify both alias ConfigMaps and a newly launched job's image digest after reconciliation.
+                    DEV uses the existing integrations bot approval/auto-merge policy after image-only validation and required checks. PROD requires manual review and merge. Flux deploys after merge; PR creation alone is not a completed rollout. Verify both alias ConfigMaps and a newly launched job's digest after reconciliation.
                     """
             }
         },
         {
-            name: "Report pending template review"
+            name: "Report template release proposal"
             if: "inputs.tap-template-name != ''"
             env: PR_URL: "${{ steps.tap-release.outputs.pull-request-url }}"
             run: """
-                echo "Template release proposal: ${PR_URL:-no image change}. Broker rollout requires reviewed merge and Flux reconciliation." >> "$GITHUB_STEP_SUMMARY"
+                echo "Template release proposal: ${PR_URL:-no image change}. DEV auto-merges after checks; PROD requires manual review/merge. Broker rollout follows Flux reconciliation." >> "$GITHUB_STEP_SUMMARY"
                 """
         },
     ]
