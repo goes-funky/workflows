@@ -97,7 +97,7 @@ ECR base images; manifests and registration jobs must match the AWS runtime.
 Registry login uses the Artifacts role before deployment switches to the EKS role.
 Deployment waits for the registration Job to complete successfully.
 
-The only accepted secret is `ssh-private-key`. Remove `json-schema-bucket`,
+The standard dependency secret is `ssh-private-key`; opted-in GitOps tap releases additionally accept `integrations-token`. Remove `json-schema-bucket`,
 `gcp-service-account`, `gcp-workload-identity-provider`, `gcp-gcr-service-account`,
 `gcp-gcr-workload-identity-provider`, `gke-cluster` and `gke-location` from callers;
 GitHub rejects explicitly passed secrets that the reusable workflow does not declare.
@@ -125,3 +125,26 @@ repository's `notify-infra.yaml` on master and approved callers on main.
 
 Run `python3 -m unittest discover -s scripts/tests -v` after `make all` to test the
 generated notification step with fake AWS/GitHub commands; no real token is used.
+
+### GitOps tap releases
+
+`deploy-integration.yaml` accepts an optional `tap-template-name` (for example
+`google-adwords`) and `integrations-token` secret. Opted-in connectors must use the
+OAuth-only `build-scripts/src/tap-container/kustomize_gitops` base and a
+`datos_integrations` revision supporting `deploy_notice --auth-only`. Their
+`integrations/taps/<name>/{dev,prod}/job_template.yaml` files must already exist.
+The token needs Contents and Pull requests write only on `goes-funky/integrations`.
+Missing credentials or unsupported environments fail before cluster writes.
+
+The workflow retains OAuth registration and tap-config deployment, then opens a
+draft integrations PR with the built image tag and digest for the selected
+environment. Aliases share that environment's template file. It does not merge,
+auto-approve, or claim the broker rollout completed. Main releases target dev;
+version tags propose dev and prod separately; an explicit environment suppresses
+automatic dev/prod jobs. The setup and approved rollout/cleanup procedure lives in
+`goes-funky/integrations/docs/tap-gitops-releases.md`.
+
+Callers without `tap-template-name` keep the legacy template-notice path while
+they migrate. Do not remove legacy library or broker event compatibility globally
+until all callers have migrated. Changes to templates/resources/secret references
+for an opted-in connector belong in integrations and require review there.
