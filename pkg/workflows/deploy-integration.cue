@@ -17,20 +17,20 @@ common.#deploy_integration_workflow & {
         }
     }
     env: {
-        SKAFFOLD_PUSH: "$${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }"
+        SKAFFOLD_PUSH: "${{ github.event_name != 'pull_request' && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v') || inputs.environment != '') }}"
     }
     jobs: {
         "integration-schema-generate-development": {
-            if:   "!inputs.skip-integration-schema-generate && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
+            if:   "!inputs.environment && !inputs.skip-integration-schema-generate && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v'))"
         }
         "integration-schema-generate-production": {
-            if:   "!inputs.skip-integration-schema-generate && startsWith(github.event.ref, 'refs/tags/v')"
+            if:   "!inputs.environment && !inputs.skip-integration-schema-generate && startsWith(github.ref, 'refs/tags/v')"
         }
         "deploy-development": {
-            if:   "!inputs.skip-deploy && (github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v'))"
+            if:   "!inputs.environment && !inputs.skip-deploy && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v'))"
         }
         "deploy-production": {
-            if:   "!inputs.skip-deploy && startsWith(github.event.ref, 'refs/tags/v')"
+            if:   "!inputs.environment && !inputs.skip-deploy && startsWith(github.ref, 'refs/tags/v')"
         }
     }
 }
