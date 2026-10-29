@@ -75,11 +75,14 @@ metadata:
 
     def test_proposal_is_ready_and_scoped_to_selected_environment(self):
         proposal = next(s for s in self.steps if s['name'] == 'Propose tap image release')
-        self.assertFalse(proposal['with']['draft'])
-        self.assertEqual(proposal['with']['branch'], 'tap-release/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}')
-        self.assertIn("env.TARGET_ENVIRONMENT == 'dev'", proposal['with']['labels'])
-        self.assertEqual(proposal['with']['add-paths'],
-                         'integrations/taps/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}/job_template.yaml')
+        checkout = next(s for s in self.steps if s['name'] == 'Checkout authoritative tap templates')
+        self.assertEqual(checkout['with']['fetch-depth'], 0)
+        self.assertNotIn('uses', proposal)
+        self.assertIn('pushSignedCommit(branch, base, previousHead, [file])', proposal['run'])
+        self.assertNotIn('--draft', proposal['run'])
+        helper = next(s for s in self.steps if s['name'] == 'Checkout signed commit helper')
+        self.assertEqual(helper['with']['repository'], 'goes-funky/infra')
+        self.assertEqual(helper['with']['ref'], 'd457527b382c4e14366a819c721e5562cf3ac2d3')
         for job in ['deploy-development', 'deploy-production']:
             self.assertIn('!inputs.environment', self.workflow['jobs'][job]['if'])
 

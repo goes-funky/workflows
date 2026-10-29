@@ -388,6 +388,7 @@ import "list"
                 repository: "goes-funky/integrations"
                 ref: "main"
                 path: ".integrations"
+                "fetch-depth": 0
                 token: "${{ secrets.integrations-token }}"
             }
         },
@@ -404,29 +405,97 @@ import "list"
                 """
         },
         {
+            name: "Checkout signed commit helper"
+            if: "inputs.tap-template-name != ''"
+            uses: "actions/checkout@v4"
+            with: {
+                repository: "goes-funky/infra"
+                // Reuse the reviewed signer without the infra dispatch/IAM path.
+                ref: "d457527b382c4e14366a819c721e5562cf3ac2d3"
+                path: ".infra-signing"
+                "ssh-key": "${{ secrets.ssh-private-key }}"
+                "persist-credentials": false
+                "sparse-checkout": "scripts/image-update-branches.js"
+                "sparse-checkout-cone-mode": false
+            }
+        },
+        {
             name: "Propose tap image release"
             id: "tap-release"
             if: "inputs.tap-template-name != ''"
-            uses: "peter-evans/create-pull-request@v7"
-            with: {
-                token: "${{ secrets.integrations-token }}"
-                path: ".integrations"
-                base: "main"
-                branch: "tap-release/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}"
-                "add-paths": "integrations/taps/${{ inputs.tap-template-name }}/${{ env.TARGET_ENVIRONMENT }}/job_template.yaml"
-                "commit-message": "Update ${{ inputs.tap-template-name }} image in ${{ env.TARGET_ENVIRONMENT }}"
-                title: "Release ${{ inputs.tap-template-name }} to ${{ env.TARGET_ENVIRONMENT }}"
-                draft: false
-                labels: "${{ env.TARGET_ENVIRONMENT == 'dev' && 'flux-dev-update' || 'flux-prod-update' }}"
-                body: """
-                    Updates the broker's authoritative template, shared by all aliases, from the digest-pinned Skaffold build artifact.
-
-                    Source: ${{ github.repository }}@${{ github.sha }}
-                    Build: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-                    DEV uses the existing integrations bot approval/auto-merge policy after image-only validation and required checks. PROD requires manual review and merge. Flux deploys after merge; PR creation alone is not a completed rollout. Verify both alias ConfigMaps and a newly launched job's digest after reconciliation.
-                    """
+            env: {
+                GH_TOKEN: "${{ secrets.integrations-token }}"
+                TARGET_REPOSITORY: "goes-funky/integrations"
+                TAP_TEMPLATE: "${{ inputs.tap-template-name }}"
+                SOURCE_REPOSITORY: "${{ github.repository }}"
+                SOURCE_SHA: "${{ github.sha }}"
+                SOURCE_RUN: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
+            run: """
+                cd .integrations
+                node <<'NODE'
+                const fs = require('node:fs')
+                const { execFileSync } = require('node:child_process')
+                const { fetchBranch, pushSignedCommit } = require('../.infra-signing/scripts/image-update-branches')
+                const run = (cmd, args, input) => execFileSync(cmd, args, { encoding: 'utf8', input }).trim()
+                const git = (...args) => run('git', args)
+                const gh = (...args) => run('gh', args)
+                const env = process.env
+                // Adapt the existing helper inside this process; runner GITHUB_* defaults cannot be overridden by workflow env.
+                env.GITHUB_REPOSITORY = env.TARGET_REPOSITORY
+                const environment = env.TARGET_ENVIRONMENT
+                if (!['dev', 'prod'].includes(environment) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(env.TAP_TEMPLATE)) throw new Error('Invalid tap release target')
+                const file = `integrations/taps/${env.TAP_TEMPLATE}/${environment}/job_template.yaml`
+                const branch = `tap-release/${env.TAP_TEMPLATE}/${environment}`
+                const base = git('rev-parse', 'HEAD')
+                const changed = git('diff', '--name-only')
+                const openPRs = () => JSON.parse(gh('pr', 'list', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--state', 'open', '--json', 'number,url,headRefOid'))
+                if (!changed) {
+                    const obsolete = openPRs()
+                    if (obsolete.length > 1) throw new Error('Expected at most one release PR')
+                    if (obsolete.length) {
+                        const previous = fetchBranch(branch)
+                        if (!previous || previous !== obsolete[0].headRefOid) throw new Error('Release branch changed; retry cleanup')
+                        const ancestor = git('merge-base', base, previous)
+                        if (git('diff', '--name-only', ancestor, previous) !== file) throw new Error('Refusing to close a proposal with unrelated changes')
+                        run('python3', ['-c', 'import json,sys; from scripts.update_tap_image import validate_image_change; validate_image_change(*json.load(sys.stdin))'],
+                            JSON.stringify([git('show', `${ancestor}:${file}`), git('show', `${previous}:${file}`)]))
+                        gh('pr', 'close', String(obsolete[0].number), '--repo', env.GITHUB_REPOSITORY)
+                    }
+                    console.log('Image is already pinned on main; no release needed')
+                    process.exit(0)
+                }
+                if (changed !== file) throw new Error('Refusing to publish changes outside the selected template')
+                const previousHead = fetchBranch(branch)
+                git('diff', '--check')
+                git('add', '--', file)
+                // This commit is local only. The helper signs on an isolated branch,
+                // verifies signature and tree, then publishes using a guarded lease.
+                git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', '-c', 'commit.gpgsign=false',
+                    'commit', '-m', `Update ${env.TAP_TEMPLATE} image in ${environment}`)
+                const sameTree = previousHead && git('rev-parse', `${previousHead}^{tree}`) === git('rev-parse', 'HEAD^{tree}')
+                const alreadySigned = sameTree && JSON.parse(gh('api', `repos/${env.GITHUB_REPOSITORY}/commits/${previousHead}`)).commit.verification.verified
+                if (!alreadySigned) pushSignedCommit(branch, base, previousHead, [file])
+                const title = `Release ${env.TAP_TEMPLATE} to ${environment}`
+                const body = `Updates the broker template shared by all aliases with the digest-pinned build image.
+
+                Source: ${env.SOURCE_REPOSITORY}@${env.SOURCE_SHA}
+                Build: ${env.SOURCE_RUN}
+
+                DEV uses the existing bot approval/auto-merge policy after image-only validation and required checks. PROD requires manual review and merge. Flux deploys after merge; PR creation alone is not a completed rollout.`
+                const prs = openPRs()
+                if (prs.length > 1) throw new Error('Expected at most one release PR')
+                const label = environment === 'dev' ? 'flux-dev-update' : 'flux-prod-update'
+                let url
+                if (prs.length) {
+                    run('gh', ['pr', 'edit', String(prs[0].number), '--repo', env.GITHUB_REPOSITORY, '--title', title, '--add-label', label, '--body-file', '-'], body)
+                    url = prs[0].url
+                } else {
+                    url = run('gh', ['pr', 'create', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--title', title, '--label', label, '--body-file', '-'], body)
+                }
+                fs.appendFileSync(env.GITHUB_OUTPUT, `pull-request-url=${url}\n`)
+                NODE
+                """
         },
         {
             name: "Report template release proposal"

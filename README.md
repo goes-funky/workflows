@@ -149,3 +149,14 @@ Callers without `tap-template-name` keep the legacy template-notice path while
 they migrate. Do not remove legacy library or broker event compatibility globally
 until all callers have migrated. Changes to templates/resources/secret references
 for an opted-in connector belong in integrations and require review there.
+
+Tap image proposals reuse the signed-commit helper from
+`goes-funky/infra@d457527b382c4e14366a819c721e5562cf3ac2d3` (sparse checkout
+using the existing read SSH key). The existing integrations token signs through
+GitHub's `createCommitOnBranch`; no signing key, GitHub App or IAM change is needed.
+The proposal commit stays local until the helper verifies the remote signature
+and exact tree, then updates the release branch with a guarded lease. Only then
+is the PR created/updated. An identical verified proposal is reused; an identical
+unsigned one is replaced with a signed commit. If the requested image already
+matches main, only an existing image-only PR for that exact release branch is
+closed; unrelated changes cause cleanup to fail instead of being discarded.
