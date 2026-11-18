@@ -33,6 +33,11 @@ name: Deploy Integration
         type: boolean
         description: Skip build to cluster
         required: false
+      tap-template-name:
+        type: string
+        description: Opt in to GitOps tap releases; directory name under integrations/taps
+        default: ""
+        required: false
       skip-job-template-build:
         type: boolean
         description: Job-template configmap building for deploy of tap containers
@@ -93,18 +98,21 @@ name: Deploy Integration
         description: Kubeval version
         default: 0.16.1
     secrets:
+      integrations-token:
+        description: Token with contents and pull requests write on goes-funky/integrations, for GitOps taps
+        required: false
       ssh-private-key:
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
 env:
-  SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }
+  SKAFFOLD_PUSH: ${{ github.event_name != 'pull_request' && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v') || inputs.environment != '') }}
 jobs:
   integration-schema-generate-development:
     name: Upload Integration Schema to dev
     needs:
       - deps
       - build
-    if: '!inputs.skip-integration-schema-generate && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.event.ref, ''refs/tags/v''))'
+    if: '!inputs.environment && !inputs.skip-integration-schema-generate && (github.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.ref, ''refs/tags/v''))'
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -157,7 +165,7 @@ jobs:
       - build
       - integration-schema-generate-development
       - deploy-development
-    if: '!inputs.skip-integration-schema-generate && startsWith(github.event.ref, ''refs/tags/v'')'
+    if: '!inputs.environment && !inputs.skip-integration-schema-generate && startsWith(github.ref, ''refs/tags/v'')'
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -207,11 +215,20 @@ jobs:
     name: Deploy to development
     needs:
       - build
-    if: '!inputs.skip-deploy && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.event.ref, ''refs/tags/v''))'
+    if: '!inputs.environment && !inputs.skip-deploy && (github.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.ref, ''refs/tags/v''))'
     environment: ${{ inputs.development-environment }}
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Validate GitOps release configuration
+        if: inputs.tap-template-name != ''
+        env:
+          INTEGRATIONS_TOKEN: ${{ secrets.integrations-token }}
+        run: |-
+          test -n "$INTEGRATIONS_TOKEN" || { echo "integrations-token is required for GitOps tap releases" >&2; exit 1; }
+          case "$TARGET_ENVIRONMENT" in dev|prod) ;; *) echo "GitOps taps support dev and prod only" >&2; exit 1;; esac
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v4
@@ -250,10 +267,10 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        if: inputs.skip-job-template-build
+        if: inputs.skip-job-template-build && !inputs.tap-template-name
         run: skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template
-        if: '!inputs.skip-job-template-build'
+        if: '!inputs.skip-job-template-build && !inputs.tap-template-name'
         run: |-
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
           yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
@@ -261,16 +278,146 @@ jobs:
           yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
           skaffold apply --force=true rendered.yaml
           yq 'select(.kind == "Job" and .metadata.name == "*deploy-notice-*")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Publish OAuth settings for GitOps tap
+        if: inputs.tap-template-name != ''
+        env:
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |-
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          # Opted-in manifests must contain only the OAuth notice and tap-config.
+          yq -e 'select(.kind == "Job" and .metadata.name == "*deploy-notice") | .spec.template.spec.containers[0].args[0] | contains("--auth-only")' rendered.yaml
+          test "$(yq 'select(.kind == "Job") | .metadata.name' rendered.yaml | grep -c .)" -eq 1
+          test -z "$(yq 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*") | .metadata.name' rendered.yaml)"
+          yq -i 'select(.kind == "Job").metadata.name += "-" + strenv(RELEASE_ID)' rendered.yaml
+          skaffold apply --force=true rendered.yaml
+          yq 'select(.kind == "Job")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Checkout authoritative tap templates
+        if: inputs.tap-template-name != ''
+        uses: actions/checkout@v4
+        with:
+          repository: goes-funky/integrations
+          ref: main
+          path: .integrations
+          fetch-depth: 0
+          token: ${{ secrets.integrations-token }}
+      - name: Prepare environment-specific tap image update
+        if: inputs.tap-template-name != ''
+        env:
+          TAP_TEMPLATE: ${{ inputs.tap-template-name }}
+          CONNECTOR_REPOSITORY: ${{ github.repository }}
+        run: |-
+          python3 -m pip install 'PyYAML==6.0.2'
+          python3 .integrations/scripts/update_tap_image.py --integration "$TAP_TEMPLATE" --environment "$TARGET_ENVIRONMENT" --image-name "${CONNECTOR_REPOSITORY##*/}" --build build.json
+      - name: Checkout signed commit helper
+        if: inputs.tap-template-name != ''
+        uses: actions/checkout@v4
+        with:
+          repository: goes-funky/infra
+          ref: d457527b382c4e14366a819c721e5562cf3ac2d3
+          path: .infra-signing
+          ssh-key: ${{ secrets.ssh-private-key }}
+          persist-credentials: false
+          sparse-checkout: scripts/image-update-branches.js
+          sparse-checkout-cone-mode: false
+      - name: Propose tap image release
+        id: tap-release
+        if: inputs.tap-template-name != ''
+        env:
+          GH_TOKEN: ${{ secrets.integrations-token }}
+          TARGET_REPOSITORY: goes-funky/integrations
+          TAP_TEMPLATE: ${{ inputs.tap-template-name }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |-
+          cd .integrations
+          node <<'NODE'
+          const fs = require('node:fs')
+          const { execFileSync } = require('node:child_process')
+          const { fetchBranch, pushSignedCommit } = require('../.infra-signing/scripts/image-update-branches')
+          const run = (cmd, args, input) => execFileSync(cmd, args, { encoding: 'utf8', input }).trim()
+          const git = (...args) => run('git', args)
+          const gh = (...args) => run('gh', args)
+          const env = process.env
+          // Adapt the existing helper inside this process; runner GITHUB_* defaults cannot be overridden by workflow env.
+          env.GITHUB_REPOSITORY = env.TARGET_REPOSITORY
+          const environment = env.TARGET_ENVIRONMENT
+          if (!['dev', 'prod'].includes(environment) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(env.TAP_TEMPLATE)) throw new Error('Invalid tap release target')
+          const file = `integrations/taps/${env.TAP_TEMPLATE}/${environment}/job_template.yaml`
+          const branch = `tap-release/${env.TAP_TEMPLATE}/${environment}`
+          const base = git('rev-parse', 'HEAD')
+          const changed = git('diff', '--name-only')
+          const openPRs = () => JSON.parse(gh('pr', 'list', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--state', 'open', '--json', 'number,url,headRefOid'))
+          if (!changed) {
+              const obsolete = openPRs()
+              if (obsolete.length > 1) throw new Error('Expected at most one release PR')
+              if (obsolete.length) {
+                  const previous = fetchBranch(branch)
+                  if (!previous || previous !== obsolete[0].headRefOid) throw new Error('Release branch changed; retry cleanup')
+                  const ancestor = git('merge-base', base, previous)
+                  if (git('diff', '--name-only', ancestor, previous) !== file) throw new Error('Refusing to close a proposal with unrelated changes')
+                  run('python3', ['-c', 'import json,sys; from scripts.update_tap_image import validate_image_change; validate_image_change(*json.load(sys.stdin))'],
+                      JSON.stringify([git('show', `${ancestor}:${file}`), git('show', `${previous}:${file}`)]))
+                  gh('pr', 'close', String(obsolete[0].number), '--repo', env.GITHUB_REPOSITORY)
+              }
+              console.log('Image is already pinned on main; no release needed')
+              process.exit(0)
+          }
+          if (changed !== file) throw new Error('Refusing to publish changes outside the selected template')
+          const previousHead = fetchBranch(branch)
+          git('diff', '--check')
+          git('add', '--', file)
+          // This commit is local only. The helper signs on an isolated branch,
+          // verifies signature and tree, then publishes using a guarded lease.
+          git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', '-c', 'commit.gpgsign=false',
+              'commit', '-m', `Update ${env.TAP_TEMPLATE} image in ${environment}`)
+          const sameTree = previousHead && git('rev-parse', `${previousHead}^{tree}`) === git('rev-parse', 'HEAD^{tree}')
+          const alreadySigned = sameTree && JSON.parse(gh('api', `repos/${env.GITHUB_REPOSITORY}/commits/${previousHead}`)).commit.verification.verified
+          if (!alreadySigned) pushSignedCommit(branch, base, previousHead, [file])
+          const title = `Release ${env.TAP_TEMPLATE} to ${environment}`
+          const body = `Updates the broker template shared by all aliases with the digest-pinned build image.
+
+          Source: ${env.SOURCE_REPOSITORY}@${env.SOURCE_SHA}
+          Build: ${env.SOURCE_RUN}
+
+          DEV uses the existing bot approval/auto-merge policy after image-only validation and required checks. PROD requires manual review and merge. Flux deploys after merge; PR creation alone is not a completed rollout.`
+          const prs = openPRs()
+          if (prs.length > 1) throw new Error('Expected at most one release PR')
+          const label = environment === 'dev' ? 'flux-dev-update' : 'flux-prod-update'
+          let url
+          if (prs.length) {
+              run('gh', ['pr', 'edit', String(prs[0].number), '--repo', env.GITHUB_REPOSITORY, '--title', title, '--add-label', label, '--body-file', '-'], body)
+              url = prs[0].url
+          } else {
+              url = run('gh', ['pr', 'create', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--title', title, '--label', label, '--body-file', '-'], body)
+          }
+          fs.appendFileSync(env.GITHUB_OUTPUT, `pull-request-url=${url}
+          `)
+          NODE
+      - name: Report template release proposal
+        if: inputs.tap-template-name != ''
+        env:
+          PR_URL: ${{ steps.tap-release.outputs.pull-request-url }}
+        run: 'echo "Template release proposal: ${PR_URL:-no image change}. DEV auto-merges after checks; PROD requires manual review/merge. Broker rollout follows Flux reconciliation." >> "$GITHUB_STEP_SUMMARY"'
   deploy-production:
     name: Deploy to production
     needs:
       - build
       - deploy-development
-    if: '!inputs.skip-deploy && startsWith(github.event.ref, ''refs/tags/v'')'
+    if: '!inputs.environment && !inputs.skip-deploy && startsWith(github.ref, ''refs/tags/v'')'
     environment: ${{ inputs.production-environment }}
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Validate GitOps release configuration
+        if: inputs.tap-template-name != ''
+        env:
+          INTEGRATIONS_TOKEN: ${{ secrets.integrations-token }}
+        run: |-
+          test -n "$INTEGRATIONS_TOKEN" || { echo "integrations-token is required for GitOps tap releases" >&2; exit 1; }
+          case "$TARGET_ENVIRONMENT" in dev|prod) ;; *) echo "GitOps taps support dev and prod only" >&2; exit 1;; esac
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v4
@@ -309,10 +456,10 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        if: inputs.skip-job-template-build
+        if: inputs.skip-job-template-build && !inputs.tap-template-name
         run: skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template
-        if: '!inputs.skip-job-template-build'
+        if: '!inputs.skip-job-template-build && !inputs.tap-template-name'
         run: |-
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
           yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
@@ -320,6 +467,127 @@ jobs:
           yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
           skaffold apply --force=true rendered.yaml
           yq 'select(.kind == "Job" and .metadata.name == "*deploy-notice-*")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Publish OAuth settings for GitOps tap
+        if: inputs.tap-template-name != ''
+        env:
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |-
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          # Opted-in manifests must contain only the OAuth notice and tap-config.
+          yq -e 'select(.kind == "Job" and .metadata.name == "*deploy-notice") | .spec.template.spec.containers[0].args[0] | contains("--auth-only")' rendered.yaml
+          test "$(yq 'select(.kind == "Job") | .metadata.name' rendered.yaml | grep -c .)" -eq 1
+          test -z "$(yq 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*") | .metadata.name' rendered.yaml)"
+          yq -i 'select(.kind == "Job").metadata.name += "-" + strenv(RELEASE_ID)' rendered.yaml
+          skaffold apply --force=true rendered.yaml
+          yq 'select(.kind == "Job")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Checkout authoritative tap templates
+        if: inputs.tap-template-name != ''
+        uses: actions/checkout@v4
+        with:
+          repository: goes-funky/integrations
+          ref: main
+          path: .integrations
+          fetch-depth: 0
+          token: ${{ secrets.integrations-token }}
+      - name: Prepare environment-specific tap image update
+        if: inputs.tap-template-name != ''
+        env:
+          TAP_TEMPLATE: ${{ inputs.tap-template-name }}
+          CONNECTOR_REPOSITORY: ${{ github.repository }}
+        run: |-
+          python3 -m pip install 'PyYAML==6.0.2'
+          python3 .integrations/scripts/update_tap_image.py --integration "$TAP_TEMPLATE" --environment "$TARGET_ENVIRONMENT" --image-name "${CONNECTOR_REPOSITORY##*/}" --build build.json
+      - name: Checkout signed commit helper
+        if: inputs.tap-template-name != ''
+        uses: actions/checkout@v4
+        with:
+          repository: goes-funky/infra
+          ref: d457527b382c4e14366a819c721e5562cf3ac2d3
+          path: .infra-signing
+          ssh-key: ${{ secrets.ssh-private-key }}
+          persist-credentials: false
+          sparse-checkout: scripts/image-update-branches.js
+          sparse-checkout-cone-mode: false
+      - name: Propose tap image release
+        id: tap-release
+        if: inputs.tap-template-name != ''
+        env:
+          GH_TOKEN: ${{ secrets.integrations-token }}
+          TARGET_REPOSITORY: goes-funky/integrations
+          TAP_TEMPLATE: ${{ inputs.tap-template-name }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |-
+          cd .integrations
+          node <<'NODE'
+          const fs = require('node:fs')
+          const { execFileSync } = require('node:child_process')
+          const { fetchBranch, pushSignedCommit } = require('../.infra-signing/scripts/image-update-branches')
+          const run = (cmd, args, input) => execFileSync(cmd, args, { encoding: 'utf8', input }).trim()
+          const git = (...args) => run('git', args)
+          const gh = (...args) => run('gh', args)
+          const env = process.env
+          // Adapt the existing helper inside this process; runner GITHUB_* defaults cannot be overridden by workflow env.
+          env.GITHUB_REPOSITORY = env.TARGET_REPOSITORY
+          const environment = env.TARGET_ENVIRONMENT
+          if (!['dev', 'prod'].includes(environment) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(env.TAP_TEMPLATE)) throw new Error('Invalid tap release target')
+          const file = `integrations/taps/${env.TAP_TEMPLATE}/${environment}/job_template.yaml`
+          const branch = `tap-release/${env.TAP_TEMPLATE}/${environment}`
+          const base = git('rev-parse', 'HEAD')
+          const changed = git('diff', '--name-only')
+          const openPRs = () => JSON.parse(gh('pr', 'list', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--state', 'open', '--json', 'number,url,headRefOid'))
+          if (!changed) {
+              const obsolete = openPRs()
+              if (obsolete.length > 1) throw new Error('Expected at most one release PR')
+              if (obsolete.length) {
+                  const previous = fetchBranch(branch)
+                  if (!previous || previous !== obsolete[0].headRefOid) throw new Error('Release branch changed; retry cleanup')
+                  const ancestor = git('merge-base', base, previous)
+                  if (git('diff', '--name-only', ancestor, previous) !== file) throw new Error('Refusing to close a proposal with unrelated changes')
+                  run('python3', ['-c', 'import json,sys; from scripts.update_tap_image import validate_image_change; validate_image_change(*json.load(sys.stdin))'],
+                      JSON.stringify([git('show', `${ancestor}:${file}`), git('show', `${previous}:${file}`)]))
+                  gh('pr', 'close', String(obsolete[0].number), '--repo', env.GITHUB_REPOSITORY)
+              }
+              console.log('Image is already pinned on main; no release needed')
+              process.exit(0)
+          }
+          if (changed !== file) throw new Error('Refusing to publish changes outside the selected template')
+          const previousHead = fetchBranch(branch)
+          git('diff', '--check')
+          git('add', '--', file)
+          // This commit is local only. The helper signs on an isolated branch,
+          // verifies signature and tree, then publishes using a guarded lease.
+          git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', '-c', 'commit.gpgsign=false',
+              'commit', '-m', `Update ${env.TAP_TEMPLATE} image in ${environment}`)
+          const sameTree = previousHead && git('rev-parse', `${previousHead}^{tree}`) === git('rev-parse', 'HEAD^{tree}')
+          const alreadySigned = sameTree && JSON.parse(gh('api', `repos/${env.GITHUB_REPOSITORY}/commits/${previousHead}`)).commit.verification.verified
+          if (!alreadySigned) pushSignedCommit(branch, base, previousHead, [file])
+          const title = `Release ${env.TAP_TEMPLATE} to ${environment}`
+          const body = `Updates the broker template shared by all aliases with the digest-pinned build image.
+
+          Source: ${env.SOURCE_REPOSITORY}@${env.SOURCE_SHA}
+          Build: ${env.SOURCE_RUN}
+
+          DEV uses the existing bot approval/auto-merge policy after image-only validation and required checks. PROD requires manual review and merge. Flux deploys after merge; PR creation alone is not a completed rollout.`
+          const prs = openPRs()
+          if (prs.length > 1) throw new Error('Expected at most one release PR')
+          const label = environment === 'dev' ? 'flux-dev-update' : 'flux-prod-update'
+          let url
+          if (prs.length) {
+              run('gh', ['pr', 'edit', String(prs[0].number), '--repo', env.GITHUB_REPOSITORY, '--title', title, '--add-label', label, '--body-file', '-'], body)
+              url = prs[0].url
+          } else {
+              url = run('gh', ['pr', 'create', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--title', title, '--label', label, '--body-file', '-'], body)
+          }
+          fs.appendFileSync(env.GITHUB_OUTPUT, `pull-request-url=${url}
+          `)
+          NODE
+      - name: Report template release proposal
+        if: inputs.tap-template-name != ''
+        env:
+          PR_URL: ${{ steps.tap-release.outputs.pull-request-url }}
+        run: 'echo "Template release proposal: ${PR_URL:-no image change}. DEV auto-merges after checks; PROD requires manual review/merge. Broker rollout follows Flux reconciliation." >> "$GITHUB_STEP_SUMMARY"'
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
@@ -511,9 +779,18 @@ jobs:
       - build
     if: inputs.environment && !inputs.skip-deploy
     environment: ${{ inputs.environment }}
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Validate GitOps release configuration
+        if: inputs.tap-template-name != ''
+        env:
+          INTEGRATIONS_TOKEN: ${{ secrets.integrations-token }}
+        run: |-
+          test -n "$INTEGRATIONS_TOKEN" || { echo "integrations-token is required for GitOps tap releases" >&2; exit 1; }
+          case "$TARGET_ENVIRONMENT" in dev|prod) ;; *) echo "GitOps taps support dev and prod only" >&2; exit 1;; esac
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v4
@@ -552,10 +829,10 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        if: inputs.skip-job-template-build
+        if: inputs.skip-job-template-build && !inputs.tap-template-name
         run: skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template
-        if: '!inputs.skip-job-template-build'
+        if: '!inputs.skip-job-template-build && !inputs.tap-template-name'
         run: |-
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
           yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
@@ -563,3 +840,124 @@ jobs:
           yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
           skaffold apply --force=true rendered.yaml
           yq 'select(.kind == "Job" and .metadata.name == "*deploy-notice-*")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Publish OAuth settings for GitOps tap
+        if: inputs.tap-template-name != ''
+        env:
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |-
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          # Opted-in manifests must contain only the OAuth notice and tap-config.
+          yq -e 'select(.kind == "Job" and .metadata.name == "*deploy-notice") | .spec.template.spec.containers[0].args[0] | contains("--auth-only")' rendered.yaml
+          test "$(yq 'select(.kind == "Job") | .metadata.name' rendered.yaml | grep -c .)" -eq 1
+          test -z "$(yq 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*") | .metadata.name' rendered.yaml)"
+          yq -i 'select(.kind == "Job").metadata.name += "-" + strenv(RELEASE_ID)' rendered.yaml
+          skaffold apply --force=true rendered.yaml
+          yq 'select(.kind == "Job")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Checkout authoritative tap templates
+        if: inputs.tap-template-name != ''
+        uses: actions/checkout@v4
+        with:
+          repository: goes-funky/integrations
+          ref: main
+          path: .integrations
+          fetch-depth: 0
+          token: ${{ secrets.integrations-token }}
+      - name: Prepare environment-specific tap image update
+        if: inputs.tap-template-name != ''
+        env:
+          TAP_TEMPLATE: ${{ inputs.tap-template-name }}
+          CONNECTOR_REPOSITORY: ${{ github.repository }}
+        run: |-
+          python3 -m pip install 'PyYAML==6.0.2'
+          python3 .integrations/scripts/update_tap_image.py --integration "$TAP_TEMPLATE" --environment "$TARGET_ENVIRONMENT" --image-name "${CONNECTOR_REPOSITORY##*/}" --build build.json
+      - name: Checkout signed commit helper
+        if: inputs.tap-template-name != ''
+        uses: actions/checkout@v4
+        with:
+          repository: goes-funky/infra
+          ref: d457527b382c4e14366a819c721e5562cf3ac2d3
+          path: .infra-signing
+          ssh-key: ${{ secrets.ssh-private-key }}
+          persist-credentials: false
+          sparse-checkout: scripts/image-update-branches.js
+          sparse-checkout-cone-mode: false
+      - name: Propose tap image release
+        id: tap-release
+        if: inputs.tap-template-name != ''
+        env:
+          GH_TOKEN: ${{ secrets.integrations-token }}
+          TARGET_REPOSITORY: goes-funky/integrations
+          TAP_TEMPLATE: ${{ inputs.tap-template-name }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |-
+          cd .integrations
+          node <<'NODE'
+          const fs = require('node:fs')
+          const { execFileSync } = require('node:child_process')
+          const { fetchBranch, pushSignedCommit } = require('../.infra-signing/scripts/image-update-branches')
+          const run = (cmd, args, input) => execFileSync(cmd, args, { encoding: 'utf8', input }).trim()
+          const git = (...args) => run('git', args)
+          const gh = (...args) => run('gh', args)
+          const env = process.env
+          // Adapt the existing helper inside this process; runner GITHUB_* defaults cannot be overridden by workflow env.
+          env.GITHUB_REPOSITORY = env.TARGET_REPOSITORY
+          const environment = env.TARGET_ENVIRONMENT
+          if (!['dev', 'prod'].includes(environment) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(env.TAP_TEMPLATE)) throw new Error('Invalid tap release target')
+          const file = `integrations/taps/${env.TAP_TEMPLATE}/${environment}/job_template.yaml`
+          const branch = `tap-release/${env.TAP_TEMPLATE}/${environment}`
+          const base = git('rev-parse', 'HEAD')
+          const changed = git('diff', '--name-only')
+          const openPRs = () => JSON.parse(gh('pr', 'list', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--state', 'open', '--json', 'number,url,headRefOid'))
+          if (!changed) {
+              const obsolete = openPRs()
+              if (obsolete.length > 1) throw new Error('Expected at most one release PR')
+              if (obsolete.length) {
+                  const previous = fetchBranch(branch)
+                  if (!previous || previous !== obsolete[0].headRefOid) throw new Error('Release branch changed; retry cleanup')
+                  const ancestor = git('merge-base', base, previous)
+                  if (git('diff', '--name-only', ancestor, previous) !== file) throw new Error('Refusing to close a proposal with unrelated changes')
+                  run('python3', ['-c', 'import json,sys; from scripts.update_tap_image import validate_image_change; validate_image_change(*json.load(sys.stdin))'],
+                      JSON.stringify([git('show', `${ancestor}:${file}`), git('show', `${previous}:${file}`)]))
+                  gh('pr', 'close', String(obsolete[0].number), '--repo', env.GITHUB_REPOSITORY)
+              }
+              console.log('Image is already pinned on main; no release needed')
+              process.exit(0)
+          }
+          if (changed !== file) throw new Error('Refusing to publish changes outside the selected template')
+          const previousHead = fetchBranch(branch)
+          git('diff', '--check')
+          git('add', '--', file)
+          // This commit is local only. The helper signs on an isolated branch,
+          // verifies signature and tree, then publishes using a guarded lease.
+          git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', '-c', 'commit.gpgsign=false',
+              'commit', '-m', `Update ${env.TAP_TEMPLATE} image in ${environment}`)
+          const sameTree = previousHead && git('rev-parse', `${previousHead}^{tree}`) === git('rev-parse', 'HEAD^{tree}')
+          const alreadySigned = sameTree && JSON.parse(gh('api', `repos/${env.GITHUB_REPOSITORY}/commits/${previousHead}`)).commit.verification.verified
+          if (!alreadySigned) pushSignedCommit(branch, base, previousHead, [file])
+          const title = `Release ${env.TAP_TEMPLATE} to ${environment}`
+          const body = `Updates the broker template shared by all aliases with the digest-pinned build image.
+
+          Source: ${env.SOURCE_REPOSITORY}@${env.SOURCE_SHA}
+          Build: ${env.SOURCE_RUN}
+
+          DEV uses the existing bot approval/auto-merge policy after image-only validation and required checks. PROD requires manual review and merge. Flux deploys after merge; PR creation alone is not a completed rollout.`
+          const prs = openPRs()
+          if (prs.length > 1) throw new Error('Expected at most one release PR')
+          const label = environment === 'dev' ? 'flux-dev-update' : 'flux-prod-update'
+          let url
+          if (prs.length) {
+              run('gh', ['pr', 'edit', String(prs[0].number), '--repo', env.GITHUB_REPOSITORY, '--title', title, '--add-label', label, '--body-file', '-'], body)
+              url = prs[0].url
+          } else {
+              url = run('gh', ['pr', 'create', '--repo', env.GITHUB_REPOSITORY, '--base', 'main', '--head', branch, '--title', title, '--label', label, '--body-file', '-'], body)
+          }
+          fs.appendFileSync(env.GITHUB_OUTPUT, `pull-request-url=${url}
+          `)
+          NODE
+      - name: Report template release proposal
+        if: inputs.tap-template-name != ''
+        env:
+          PR_URL: ${{ steps.tap-release.outputs.pull-request-url }}
+        run: 'echo "Template release proposal: ${PR_URL:-no image change}. DEV auto-merges after checks; PROD requires manual review/merge. Broker rollout follows Flux reconciliation." >> "$GITHUB_STEP_SUMMARY"'
