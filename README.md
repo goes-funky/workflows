@@ -125,3 +125,31 @@ repository's `notify-infra.yaml` on master and approved callers on main.
 
 Run `python3 -m unittest discover -s scripts/tests -v` after `make all` to test the
 generated notification step with fake AWS/GitHub commands; no real token is used.
+
+### GitOps tap releases
+
+`deploy-integration.yaml` accepts an optional `tap-template-name`: the connector's
+template directory under `goes-funky/integrations/integrations/taps` (for example
+`google-adwords`). An opted-in connector releases the way services do:
+
+- A push to the development branch builds the image and calls `notify-infra.yaml`
+  with `tap-template`. Infra's `aws-image-update-branches.yaml` (target `taps`) opens a
+  DEV and a PROD PR in integrations pinning that exact image, with the schemas
+  generated from it. DEV merges automatically after validation; PROD needs review.
+- The build's own schema upload jobs are skipped; integrations publishes each
+  environment's schemas after its release PR merges.
+- The deploy jobs no longer render a job template. They still publish the OAuth
+  settings (`deploy_notice --auth-only`) and tap-config, on the existing triggers.
+
+Requirements: the OAuth-only `build-scripts/src/tap-container/kustomize_gitops` base, a
+`datos_integrations` revision with `deploy_notice --auth-only`, existing
+`integrations/taps/<name>/{dev,prod}/job_template.yaml` files, the
+`AWS_INFRA_DISPATCH_ROLE` Actions variable (the build fails without it rather than
+release nothing), the repository in infra's `scripts/aws-image-updates.json` `taps`, and a
+caller referencing this workflow at `@master`, the only ref the dispatch role trusts.
+The release and cleanup procedure lives in
+`goes-funky/integrations/docs/tap-gitops-releases.md`.
+
+Callers without `tap-template-name` keep the legacy template-notice path while they
+migrate. Do not remove legacy library or broker event compatibility globally until all
+callers have migrated.

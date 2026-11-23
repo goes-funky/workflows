@@ -33,6 +33,11 @@ name: Deploy Integration
         type: boolean
         description: Skip build to cluster
         required: false
+      tap-template-name:
+        type: string
+        description: 'Opt in to GitOps tap releases: the template directory under integrations/taps. Main builds then release through infra instead of deploying a job template.'
+        default: ""
+        required: false
       skip-job-template-build:
         type: boolean
         description: Job-template configmap building for deploy of tap containers
@@ -97,14 +102,14 @@ name: Deploy Integration
         description: SSH private key used to authenticate to GitHub with, in order to fetch private dependencies
         required: false
 env:
-  SKAFFOLD_PUSH: $${ github.event.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.event.ref, 'refs/tags/v') }
+  SKAFFOLD_PUSH: ${{ github.event_name != 'pull_request' && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v') || inputs.environment != '') }}
 jobs:
   integration-schema-generate-development:
     name: Upload Integration Schema to dev
     needs:
       - deps
       - build
-    if: '!inputs.skip-integration-schema-generate && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.event.ref, ''refs/tags/v''))'
+    if: '!inputs.environment && !inputs.skip-integration-schema-generate && !inputs.tap-template-name && (github.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.ref, ''refs/tags/v''))'
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -157,7 +162,7 @@ jobs:
       - build
       - integration-schema-generate-development
       - deploy-development
-    if: '!inputs.skip-integration-schema-generate && startsWith(github.event.ref, ''refs/tags/v'')'
+    if: '!inputs.environment && !inputs.skip-integration-schema-generate && !inputs.tap-template-name && startsWith(github.ref, ''refs/tags/v'')'
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -207,7 +212,7 @@ jobs:
     name: Deploy to development
     needs:
       - build
-    if: '!inputs.skip-deploy && (github.event.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.event.ref, ''refs/tags/v''))'
+    if: '!inputs.environment && !inputs.skip-deploy && (github.ref == format(''refs/heads/{0}'', inputs.development-branch) || startsWith(github.ref, ''refs/tags/v''))'
     environment: ${{ inputs.development-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -250,10 +255,10 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        if: inputs.skip-job-template-build
+        if: inputs.skip-job-template-build && !inputs.tap-template-name
         run: skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template
-        if: '!inputs.skip-job-template-build'
+        if: '!inputs.skip-job-template-build && !inputs.tap-template-name'
         run: |-
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
           yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
@@ -261,12 +266,25 @@ jobs:
           yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
           skaffold apply --force=true rendered.yaml
           yq 'select(.kind == "Job" and .metadata.name == "*deploy-notice-*")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Publish OAuth settings for GitOps tap
+        if: inputs.tap-template-name != ''
+        env:
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |-
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          # Opted-in manifests must contain only the OAuth notice and tap-config.
+          yq -e 'select(.kind == "Job" and .metadata.name == "*deploy-notice") | .spec.template.spec.containers[0].args[0] | contains("--auth-only")' rendered.yaml
+          test "$(yq 'select(.kind == "Job") | .metadata.name' rendered.yaml | grep -c .)" -eq 1
+          test -z "$(yq 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*") | .metadata.name' rendered.yaml)"
+          yq -i 'select(.kind == "Job").metadata.name += "-" + strenv(RELEASE_ID)' rendered.yaml
+          skaffold apply --force=true rendered.yaml
+          yq 'select(.kind == "Job")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
   deploy-production:
     name: Deploy to production
     needs:
       - build
       - deploy-development
-    if: '!inputs.skip-deploy && startsWith(github.event.ref, ''refs/tags/v'')'
+    if: '!inputs.environment && !inputs.skip-deploy && startsWith(github.ref, ''refs/tags/v'')'
     environment: ${{ inputs.production-environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -309,10 +327,10 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        if: inputs.skip-job-template-build
+        if: inputs.skip-job-template-build && !inputs.tap-template-name
         run: skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template
-        if: '!inputs.skip-job-template-build'
+        if: '!inputs.skip-job-template-build && !inputs.tap-template-name'
         run: |-
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
           yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
@@ -320,6 +338,19 @@ jobs:
           yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
           skaffold apply --force=true rendered.yaml
           yq 'select(.kind == "Job" and .metadata.name == "*deploy-notice-*")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Publish OAuth settings for GitOps tap
+        if: inputs.tap-template-name != ''
+        env:
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |-
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          # Opted-in manifests must contain only the OAuth notice and tap-config.
+          yq -e 'select(.kind == "Job" and .metadata.name == "*deploy-notice") | .spec.template.spec.containers[0].args[0] | contains("--auth-only")' rendered.yaml
+          test "$(yq 'select(.kind == "Job") | .metadata.name' rendered.yaml | grep -c .)" -eq 1
+          test -z "$(yq 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*") | .metadata.name' rendered.yaml)"
+          yq -i 'select(.kind == "Job").metadata.name += "-" + strenv(RELEASE_ID)' rendered.yaml
+          skaffold apply --force=true rendered.yaml
+          yq 'select(.kind == "Job")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
   deps:
     runs-on: ubuntu-latest
     name: Dependencies
@@ -366,7 +397,7 @@ jobs:
     needs:
       - deps
       - build
-    if: inputs.environment && !inputs.skip-integration-schema-generate
+    if: inputs.environment && !inputs.skip-integration-schema-generate && !inputs.tap-template-name
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -415,8 +446,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build Docker images
+    outputs:
+      image: ${{ steps.published-image.outputs.image }}
     timeout-minutes: 15
     steps:
+      - name: Require infra dispatch for GitOps tap releases
+        if: inputs.tap-template-name != '' && github.event_name == 'push' && github.ref == format('refs/heads/{0}', inputs.development-branch) && vars.AWS_INFRA_DISPATCH_ROLE == ''
+        run: echo 'Set the AWS_INFRA_DISPATCH_ROLE Actions variable; GitOps tap releases go through infra' >&2; exit 1
       - name: Checkout
         if: '!inputs.skip-checkout'
         uses: actions/checkout@v4
@@ -499,12 +535,31 @@ jobs:
           SKAFFOLD_CACHE_ARTIFACTS: ${{ inputs.use-skaffold-cache }}
           DOCKER_BUILDKIT_BUILDER: ${{ steps.setup-buildkit.outputs.name }}
         run: cd ./code && skaffold build --filename=../skaffold.yaml --file-output=build.json
+      - name: Export published tap image for infra
+        id: published-image
+        if: '!inputs.skip-build && inputs.tap-template-name != '''' && github.event_name == ''push'' && github.ref == format(''refs/heads/{0}'', inputs.development-branch)'
+        run: |-
+          image="$(jq -er --arg name "$CONTAINER_NAME" '[.builds[] | select(.imageName == $name)] | if length == 1 then .[0].tag else error("Expected one connector image") end' ./code/build.json)"
+          if [[ "$image" == *$'\n'* || "$image" == *$'\r'* ]]; then
+            echo 'Invalid published image output' >&2
+            exit 1
+          fi
+          echo "image=$image" >> "$GITHUB_OUTPUT"
       - name: Archive build reference
         if: '!inputs.skip-build'
         uses: actions/upload-artifact@v4
         with:
           name: build-ref
           path: ./code/build.json
+  notify-infra:
+    uses: ./.github/workflows/notify-infra.yaml
+    needs:
+      - build
+    if: inputs.tap-template-name != '' && github.event_name == 'push' && github.ref == format('refs/heads/{0}', inputs.development-branch) && vars.AWS_INFRA_DISPATCH_ROLE != ''
+    with:
+      image: ${{ needs.build.outputs.image }}
+      registry: ${{ inputs.default-repo }}
+      tap-template: ${{ inputs.tap-template-name }}
   deploy-environment:
     name: Deploy to environment
     needs:
@@ -552,10 +607,10 @@ jobs:
           setup-tools: skaffold
           skaffold: ${{ inputs.skaffold }}
       - name: Deploy
-        if: inputs.skip-job-template-build
+        if: inputs.skip-job-template-build && !inputs.tap-template-name
         run: skaffold deploy --force --build-artifacts=build.json
       - name: Deploy tap container with job-template
-        if: '!inputs.skip-job-template-build'
+        if: '!inputs.skip-job-template-build && !inputs.tap-template-name'
         run: |-
           skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
           yq -i eval-all 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*").data."job_template.yml" = (select(.kind == "Job" and .metadata.name == "*job-template")| to_yaml()) | select(.metadata.labels.type != "*job-template")' rendered.yaml
@@ -563,3 +618,16 @@ jobs:
           yq -i eval-all 'select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name = (select(.kind == "Job" and .metadata.name == "*deploy-notice").metadata.name + "-" + strenv(COMMIT_SHA))' rendered.yaml
           skaffold apply --force=true rendered.yaml
           yq 'select(.kind == "Job" and .metadata.name == "*deploy-notice-*")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
+      - name: Publish OAuth settings for GitOps tap
+        if: inputs.tap-template-name != ''
+        env:
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |-
+          skaffold render --offline=true --build-artifacts=build.json > rendered.yaml
+          # Opted-in manifests must contain only the OAuth notice and tap-config.
+          yq -e 'select(.kind == "Job" and .metadata.name == "*deploy-notice") | .spec.template.spec.containers[0].args[0] | contains("--auth-only")' rendered.yaml
+          test "$(yq 'select(.kind == "Job") | .metadata.name' rendered.yaml | grep -c .)" -eq 1
+          test -z "$(yq 'select(.kind == "ConfigMap" and .metadata.name == "*job-template*") | .metadata.name' rendered.yaml)"
+          yq -i 'select(.kind == "Job").metadata.name += "-" + strenv(RELEASE_ID)' rendered.yaml
+          skaffold apply --force=true rendered.yaml
+          yq 'select(.kind == "Job")' rendered.yaml | kubectl wait --for=condition=complete --timeout=300s -f -
