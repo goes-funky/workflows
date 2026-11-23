@@ -16,7 +16,8 @@ class InfraDispatchTest(unittest.TestCase):
             [str(ROOT / 'bin/cue'), 'export', 'pkg/workflows/notify-infra.cue', '--out', 'json'], cwd=ROOT))
         cls.script = next(step['run'] for step in workflow['jobs']['notify']['steps'] if step.get('id') == 'dispatch')
 
-    def invoke(self, image, source_sha='abcdef0123456789', failures=0, aws_failure=False, repository="goes-funky/modeling-api"):
+    def invoke(self, image, source_sha='abcdef0123456789', failures=0, aws_failure=False, repository="goes-funky/modeling-api",
+               tap_template=''):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         directory = Path(temporary.name)
@@ -41,7 +42,8 @@ printf '%s\n' "$@" > "$RUNNER_TEMP/gh-args"
                'RUNNER_TEMP': str(directory), 'PUBLISHED_IMAGE': image,
                'EXPECTED_REGISTRY': '123456789012.dkr.ecr.eu-central-1.amazonaws.com',
                'GITHUB_REPOSITORY': repository, 'GITHUB_SHA': source_sha,
-               'GITHUB_SERVER_URL': 'https://github.com', 'GITHUB_RUN_ID': '123', 'FAILURES': str(failures), 'AWS_FAILURE': '1' if aws_failure else '0'}
+               'GITHUB_SERVER_URL': 'https://github.com', 'GITHUB_RUN_ID': '123', 'FAILURES': str(failures), 'AWS_FAILURE': '1' if aws_failure else '0',
+               'TAP_TEMPLATE': tap_template}
         result = subprocess.run(['bash', '-c', self.script], env=env, capture_output=True, text=True)
         return result, directory
 
@@ -79,6 +81,30 @@ printf '%s\n' "$@" > "$RUNNER_TEMP/gh-args"
                         image.split('@')[0], image.replace('202609241200', '202609241200-test')]:
             with self.subTest(image=invalid):
                 result, directory = self.invoke(invalid, repository='goes-funky/integrations')
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse((directory / 'aws-calls').exists())
+
+    def test_dispatches_tap_commit_tag_with_its_template(self):
+        image = self.image('abcdef0').replace('/modeling-api:', '/tap-google-ads-container:')
+        repository = 'goes-funky/tap-google-ads-container'
+        result, directory = self.invoke(image, repository=repository, tap_template='google-adwords')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads((directory / 'infra-dispatch.json').read_text())['inputs']
+        self.assertEqual({k: payload[k] for k in ['target', 'service', 'environment', 'tag', 'automatic']},
+                         {'target': 'taps', 'service': 'google-adwords', 'environment': 'both',
+                          'tag': 'abcdef0', 'automatic': 'true'})
+        self.assertEqual(payload['source-run'], 'https://github.com/goes-funky/tap-google-ads-container/actions/runs/123')
+        invalid = {
+            'other repository image': (image.replace('/tap-google-ads-container:', '/tap-hubspot-container:'), 'google-adwords', 'abcdef0123456789'),
+            'other commit': (image, 'google-adwords', 'bbbbbbb123456789'),
+            'version tag': (image.replace(':abcdef0@', ':v1.2.3@'), 'google-adwords', 'abcdef0123456789'),
+            'service tag': (image.replace(':abcdef0@', ':abcdef0-202609241200@'), 'google-adwords', 'abcdef0123456789'),
+            'path traversal': (image, '../google-adwords', 'abcdef0123456789'),
+            'no digest': (image.split('@')[0], 'google-adwords', 'abcdef0123456789'),
+        }
+        for name, (candidate, template, sha) in invalid.items():
+            with self.subTest(name):
+                result, directory = self.invoke(candidate, source_sha=sha, repository=repository, tap_template=template)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertFalse((directory / 'aws-calls').exists())
 

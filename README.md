@@ -97,7 +97,7 @@ ECR base images; manifests and registration jobs must match the AWS runtime.
 Registry login uses the Artifacts role before deployment switches to the EKS role.
 Deployment waits for the registration Job to complete successfully.
 
-The standard dependency secret is `ssh-private-key`; opted-in GitOps tap releases additionally accept `integrations-token`. Remove `json-schema-bucket`,
+The only accepted secret is `ssh-private-key`. Remove `json-schema-bucket`,
 `gcp-service-account`, `gcp-workload-identity-provider`, `gcp-gcr-service-account`,
 `gcp-gcr-workload-identity-provider`, `gke-cluster` and `gke-location` from callers;
 GitHub rejects explicitly passed secrets that the reusable workflow does not declare.
@@ -128,35 +128,28 @@ generated notification step with fake AWS/GitHub commands; no real token is used
 
 ### GitOps tap releases
 
-`deploy-integration.yaml` accepts an optional `tap-template-name` (for example
-`google-adwords`) and `integrations-token` secret. Opted-in connectors must use the
-OAuth-only `build-scripts/src/tap-container/kustomize_gitops` base and a
-`datos_integrations` revision supporting `deploy_notice --auth-only`. Their
-`integrations/taps/<name>/{dev,prod}/job_template.yaml` files must already exist.
-The token needs Contents and Pull requests write only on `goes-funky/integrations`.
-Missing credentials or unsupported environments fail before cluster writes.
+`deploy-integration.yaml` accepts an optional `tap-template-name`: the connector's
+template directory under `goes-funky/integrations/integrations/taps` (for example
+`google-adwords`). An opted-in connector releases the way services do:
 
-The workflow retains OAuth registration and tap-config deployment, then opens a
-ready integrations image PR with the built image tag and digest for the selected
-environment. Aliases share that environment's template file. The integrations repository reuses its established DEV bot approval/auto-merge
-policy after the required validation check passes; PROD requires manual approval
-and merge. PR creation does not mean the broker rollout completed. Main releases target dev;
-version tags propose dev and prod separately; an explicit environment suppresses
-automatic dev/prod jobs. The setup and approved rollout/cleanup procedure lives in
+- A push to the development branch builds the image and calls `notify-infra.yaml`
+  with `tap-template`. Infra's `aws-image-update-branches.yaml` (target `taps`) opens a
+  DEV and a PROD PR in integrations pinning that exact image, with the schemas
+  generated from it. DEV merges automatically after validation; PROD needs review.
+- The build's own schema upload jobs are skipped; integrations publishes each
+  environment's schemas after its release PR merges.
+- The deploy jobs no longer render a job template. They still publish the OAuth
+  settings (`deploy_notice --auth-only`) and tap-config, on the existing triggers.
+
+Requirements: the OAuth-only `build-scripts/src/tap-container/kustomize_gitops` base, a
+`datos_integrations` revision with `deploy_notice --auth-only`, existing
+`integrations/taps/<name>/{dev,prod}/job_template.yaml` files, the
+`AWS_INFRA_DISPATCH_ROLE` Actions variable (the build fails without it rather than
+release nothing), the repository in infra's `scripts/aws-image-updates.json` `taps`, and a
+caller referencing this workflow at `@master`, the only ref the dispatch role trusts.
+The release and cleanup procedure lives in
 `goes-funky/integrations/docs/tap-gitops-releases.md`.
 
-Callers without `tap-template-name` keep the legacy template-notice path while
-they migrate. Do not remove legacy library or broker event compatibility globally
-until all callers have migrated. Changes to templates/resources/secret references
-for an opted-in connector belong in integrations and require review there.
-
-Tap image proposals reuse the signed-commit helper from
-`goes-funky/infra@d457527b382c4e14366a819c721e5562cf3ac2d3` (sparse checkout
-using the existing read SSH key). The existing integrations token signs through
-GitHub's `createCommitOnBranch`; no signing key, GitHub App or IAM change is needed.
-The proposal commit stays local until the helper verifies the remote signature
-and exact tree, then updates the release branch with a guarded lease. Only then
-is the PR created/updated. An identical verified proposal is reused; an identical
-unsigned one is replaced with a signed commit. If the requested image already
-matches main, only an existing image-only PR for that exact release branch is
-closed; unrelated changes cause cleanup to fail instead of being discarded.
+Callers without `tap-template-name` keep the legacy template-notice path while they
+migrate. Do not remove legacy library or broker event compatibility globally until all
+callers have migrated.

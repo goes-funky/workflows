@@ -21,10 +21,10 @@ common.#deploy_integration_workflow & {
     }
     jobs: {
         "integration-schema-generate-development": {
-            if:   "!inputs.environment && !inputs.skip-integration-schema-generate && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v'))"
+            if:   "!inputs.environment && !inputs.skip-integration-schema-generate && !inputs.tap-template-name && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v'))"
         }
         "integration-schema-generate-production": {
-            if:   "!inputs.environment && !inputs.skip-integration-schema-generate && startsWith(github.ref, 'refs/tags/v')"
+            if:   "!inputs.environment && !inputs.skip-integration-schema-generate && !inputs.tap-template-name && startsWith(github.ref, 'refs/tags/v')"
         }
         "deploy-development": {
             if:   "!inputs.environment && !inputs.skip-deploy && (github.ref == format('refs/heads/{0}', inputs.development-branch) || startsWith(github.ref, 'refs/tags/v'))"

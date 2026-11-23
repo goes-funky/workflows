@@ -13,6 +13,12 @@ package common
                 description: "Registry authenticated by the image build"
                 required: true
             }
+            "tap-template": {
+                type: "string"
+                description: "GitOps tap: the template directory under integrations/taps this connector's image pins"
+                default: ""
+                required: false
+            }
         }
         secrets: {}
     }
@@ -41,6 +47,7 @@ package common
             env: {
                 PUBLISHED_IMAGE: "${{ inputs.image }}"
                 EXPECTED_REGISTRY: "${{ inputs.registry }}"
+                TAP_TEMPLATE: "${{ inputs.tap-template }}"
             }
             run: """
                 set -euo pipefail
@@ -58,6 +65,15 @@ package common
                     exit 1
                   fi
                   # CData tags identify the wrapper revision, not the integrations commit.
+                elif [[ -n "$TAP_TEMPLATE" ]]; then
+                  # Taps: the image is the connector repository's; infra checks that the
+                  # template already runs that repository before replacing its pin.
+                  target=taps
+                  if [[ ! "$TAP_TEMPLATE" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ || "$repository" != "$EXPECTED_REGISTRY/$service" || ! "$tag" =~ ^[a-f0-9]{7,40}$ || "$GITHUB_SHA" != "$tag"* ]]; then
+                    echo 'Expected a published tap release tagged with its source commit' >&2
+                    exit 1
+                  fi
+                  service="$TAP_TEMPLATE"
                 else
                   if [[ "$repository" != "$EXPECTED_REGISTRY/$service" || ! "$tag" =~ ^[a-fA-F0-9]{7,40}-[0-9]+$ ]]; then
                     echo 'Expected a published service release' >&2

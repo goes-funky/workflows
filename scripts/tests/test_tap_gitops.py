@@ -73,19 +73,26 @@ metadata:
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((directory / 'applied.yaml').exists())
 
-    def test_proposal_is_ready_and_scoped_to_selected_environment(self):
-        proposal = next(s for s in self.steps if s['name'] == 'Propose tap image release')
-        checkout = next(s for s in self.steps if s['name'] == 'Checkout authoritative tap templates')
-        self.assertEqual(checkout['with']['fetch-depth'], 0)
-        self.assertNotIn('uses', proposal)
-        self.assertIn('pushSignedCommit(branch, base, previousHead, [file])', proposal['run'])
-        self.assertNotIn('--draft', proposal['run'])
-        helper = next(s for s in self.steps if s['name'] == 'Checkout signed commit helper')
-        self.assertEqual(helper['with']['repository'], 'goes-funky/infra')
-        self.assertEqual(helper['with']['ref'], 'd457527b382c4e14366a819c721e5562cf3ac2d3')
+    def test_main_builds_release_through_infra_not_the_cluster(self):
+        jobs = self.workflow['jobs']
+        notify = jobs['notify-infra']
+        self.assertEqual(notify['uses'], './.github/workflows/notify-infra.yaml')
+        self.assertEqual(notify['with']['tap-template'], '${{ inputs.tap-template-name }}')
+        self.assertIn("github.ref == format('refs/heads/{0}', inputs.development-branch)", notify['if'])
+        self.assertIn("github.event_name == 'push'", notify['if'])
+        build = {s['name']: s for s in jobs['build']['steps']}
+        self.assertIn("vars.AWS_INFRA_DISPATCH_ROLE == ''", build['Require infra dispatch for GitOps tap releases']['if'])
+        self.assertEqual(jobs['build']['outputs']['image'], '${{ steps.published-image.outputs.image }}')
+        # Schemas are published from integrations after the release PR merges, never by the build.
+        for job in ['integration-schema-generate-development', 'integration-schema-generate-production',
+                    'integration-schema-generate-environment']:
+            self.assertIn('!inputs.tap-template-name', jobs[job]['if'])
+        for job in ['deploy-development', 'deploy-production', 'deploy-environment']:
+            steps = {s['name']: s for s in jobs[job]['steps']}
+            self.assertIn('!inputs.tap-template-name', steps['Deploy tap container with job-template']['if'])
+            self.assertNotIn('integrations-token', json.dumps(jobs[job]))
         for job in ['deploy-development', 'deploy-production']:
-            self.assertIn('!inputs.environment', self.workflow['jobs'][job]['if'])
-
+            self.assertIn('!inputs.environment', jobs[job]['if'])
 
 if __name__ == '__main__':
     unittest.main()
