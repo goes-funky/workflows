@@ -6,6 +6,8 @@ function docker {
 }
 
 declare -a _build_args=(
+    # Refresh mutable base tags (e.g. dev) while retaining the build cache.
+    '--pull'
     '--ssh' 'default'
     '--tag' "${IMAGE}"
     '--progress' 'plain'

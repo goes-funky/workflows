@@ -17,6 +17,11 @@ package common
                     description: "Docker file to use"
                     default:    "Dockerfile"
                 }
+                "disable-attestations": {
+                    type:        "boolean"
+                    description: "Push a single image manifest without provenance attestations, as AWS Lambda requires"
+                    default:     false
+                }
                 ...
             }
             secrets: {
@@ -115,6 +120,7 @@ package common
                 SHORT_SHA: "${{ env.SHORT_SHA }}"
                 COMMIT_SHA: "${{ env.COMMIT_SHA }}"
                 BRANCH_NAME: "${{ env.BRANCH_NAME }}"
+                BUILDX_NO_DEFAULT_ATTESTATIONS: "${{ inputs.disable-attestations && '1' || '0' }}"
             }
             run: "cd ./code && skaffold build --filename=../${{ inputs.skaffold-file }} --file-output=\"$RUNNER_TEMP/skaffold-build.json\""
         },
